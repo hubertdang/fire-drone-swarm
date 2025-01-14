@@ -25,7 +25,9 @@ A control system and simulator for a firefighting drone swarm.
 
 5. Remember to add helpful comments and format your code. Follow the instructions listed [here](https://www.jetbrains.com/help/idea/reformat-and-rearrange-code.html#reformat_file).
 
-5. Add and commit your changes **locally**.
+6. Verify that any additionally required tests have been added and that all tests pass.
+
+7. Add and commit your changes **locally**.
     ```bash
     huber@hubert_laptop MINGW64 ~/OneDrive - Carleton University/w2025/SYSC3303/project/FireDroneSwarm (hubert- issue)
     $ git add src/Hubert.java    # DO THIS COMMAND
@@ -37,7 +39,7 @@ A control system and simulator for a firefighting drone swarm.
      create mode 100644 src/Hubert.java
     ```
 
-6. Once you're finished making your changes, push them to your remote branch.
+8. Once you're finished making your changes, push them to your remote branch.
     ```bash
     huber@hubert_laptop MINGW64 ~/OneDrive - Carleton University/w2025/SYSC3303/project/FireDroneSwarm (hubert-issue)
     $ git push    # DO THIS COMMAND
@@ -52,5 +54,5 @@ A control system and simulator for a firefighting drone swarm.
        406eb44..5fd319a  hubert-issue -> hubert-issue
     ```
 
-7. Confirm your remote branch on GitHub has your newest changes.
-8. Create your pull request. Follow the instructions listed [here](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request#creating-the-pull-request).
+9. Confirm your remote branch on GitHub has your newest changes.
+10. Create your pull request. Follow the instructions listed [here](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request#creating-the-pull-request).
