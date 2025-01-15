@@ -1,13 +1,15 @@
+Fixes # (issue)
+
 ## Description
 
 Replace this with a summary of the change and which issue is fixed. Include relevant motivation and context. List any dependencies that are required for this change.
 
-Fixes # (issue)
-
 ## Type of change
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Refactor
+- [ ] Enhancement
 
 ## Testing information
 
@@ -19,7 +21,7 @@ If updates to existing unit tests were required, did you update them?
 - [ ] Yes
 - [ ] No
 
-New and existing unit tests pass
+New and existing unit tests pass?
 - [ ] Yes
 - [ ] No
 
