@@ -56,3 +56,6 @@ A control system and simulator for a firefighting drone swarm.
 
 9. Confirm your remote branch on GitHub has your newest changes.
 10. Create your pull request. Follow the instructions listed [here](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request#creating-the-pull-request).
+11. Once your pull request is ready to merge, please **squash and merge** to limit the number of commits to master.
+![image](https://github.com/user-attachments/assets/e829f914-5a12-4ec0-a8e7-1ee3f6358397)
+
