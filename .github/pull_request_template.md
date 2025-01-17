@@ -32,4 +32,4 @@ Replace this with any additional testing info. This might include steps you took
 
 - [ ] I formatted my code (there's a built-in reformatter in IntelliJ - mentioned in README.md)
 - [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation (diagrams)
+- [ ] I have confirmed documentation (UML diagrams) are up-to-date
