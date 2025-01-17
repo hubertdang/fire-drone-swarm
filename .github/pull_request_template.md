@@ -10,6 +10,7 @@ Replace this with a summary of the change and which issue is fixed. Include rele
 - [ ] New feature
 - [ ] Refactor
 - [ ] Enhancement
+- [ ] Test
 
 ## Testing information
 
