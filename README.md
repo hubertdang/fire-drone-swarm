@@ -23,7 +23,7 @@ A control system and simulator for a firefighting drone swarm.
 
 4. Make your code changes **locally**.
 
-5. Remember to add helpful comments and format your code. Follow the instructions listed [here](https://www.jetbrains.com/help/idea/reformat-and-rearrange-code.html#reformat_file).
+5. Remember to add helpful comments and format your code. Try to adhere to [Java Code Conventions](https://www.oracle.com/docs/tech/java/codeconventions.pdf) and follow the instructions listed [here](https://www.jetbrains.com/help/idea/reformat-and-rearrange-code.html#reformat_file).
 
 6. Verify that any additionally required tests have been added and that all tests pass.
 
