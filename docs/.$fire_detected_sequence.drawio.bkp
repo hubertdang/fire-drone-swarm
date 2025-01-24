@@ -1,0 +1,134 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.0.4 Chrome/128.0.6613.186 Electron/32.2.5 Safari/537.36" version="26.0.4">
+  <diagram name="Page-1" id="2YBvvXClWsGukQMizWep">
+    <mxGraphModel dx="1434" dy="836" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-2" value="Precondition: A fire of high severity has started at a given zone." style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;size=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="350" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-3" value="FireIncidentSubsystem" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="40" y="120" width="130" height="680" as="geometry" />
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-4" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="GcDJuWTbuOkvY3Uvuqt4-3">
+          <mxGeometry x="60" y="80" width="10" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-5" value="onFire" style="html=1;align=left;spacingLeft=2;endArrow=block;rounded=0;edgeStyle=orthogonalEdgeStyle;curved=0;rounded=0;" edge="1" target="GcDJuWTbuOkvY3Uvuqt4-4" parent="GcDJuWTbuOkvY3Uvuqt4-3">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="65" y="60" as="sourcePoint" />
+            <Array as="points">
+              <mxPoint x="95" y="90" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-6" value="Zone" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="210" y="120" width="60" height="680" as="geometry" />
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-10" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="GcDJuWTbuOkvY3Uvuqt4-6">
+          <mxGeometry x="25" y="100" width="10" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-29" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="GcDJuWTbuOkvY3Uvuqt4-6">
+          <mxGeometry x="25" y="190" width="10" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-32" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="GcDJuWTbuOkvY3Uvuqt4-6">
+          <mxGeometry x="25" y="230" width="10" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-11" value="getSeverity" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;entryX=0;entryY=0;entryDx=0;entryDy=5;" edge="1" target="GcDJuWTbuOkvY3Uvuqt4-10" parent="1" source="GcDJuWTbuOkvY3Uvuqt4-4">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="120" y="225" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-12" value="severity" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;exitX=0;exitY=1;exitDx=0;exitDy=-5;" edge="1" source="GcDJuWTbuOkvY3Uvuqt4-10" parent="1" target="GcDJuWTbuOkvY3Uvuqt4-4">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="170" y="375" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-13" value="Scheduler" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="320" y="120" width="100" height="680" as="geometry" />
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-19" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="GcDJuWTbuOkvY3Uvuqt4-13">
+          <mxGeometry x="45" y="160" width="10" height="390" as="geometry" />
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-20" value="handleFireReq" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;entryX=0;entryY=0;entryDx=0;entryDy=5;" edge="1" target="GcDJuWTbuOkvY3Uvuqt4-19" parent="1" source="GcDJuWTbuOkvY3Uvuqt4-3">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="285" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-22" value="MissionQueue" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="450" y="120" width="100" height="680" as="geometry" />
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-23" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="GcDJuWTbuOkvY3Uvuqt4-22">
+          <mxGeometry x="45" y="170" width="10" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-24" value="queueMission" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;entryX=0;entryY=0;entryDx=0;entryDy=5;" edge="1" target="GcDJuWTbuOkvY3Uvuqt4-23" parent="1" source="GcDJuWTbuOkvY3Uvuqt4-19">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="390" y="295" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-30" value="getSeverity" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;entryX=1;entryY=0;entryDx=0;entryDy=5;" edge="1" target="GcDJuWTbuOkvY3Uvuqt4-29" parent="1" source="GcDJuWTbuOkvY3Uvuqt4-23">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="180" y="315" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-31" value="severity" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;exitX=1;exitY=1;exitDx=0;exitDy=-5;" edge="1" source="GcDJuWTbuOkvY3Uvuqt4-29" parent="1" target="GcDJuWTbuOkvY3Uvuqt4-23">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="180" y="385" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-33" value="getRequiredAgentAmount" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;entryX=1;entryY=0;entryDx=0;entryDy=5;" edge="1" target="GcDJuWTbuOkvY3Uvuqt4-32" parent="1" source="GcDJuWTbuOkvY3Uvuqt4-23">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="490" y="355" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-34" value="requiredAgentAmount" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;exitX=1;exitY=1;exitDx=0;exitDy=-5;" edge="1" source="GcDJuWTbuOkvY3Uvuqt4-32" parent="1" target="GcDJuWTbuOkvY3Uvuqt4-23">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="490" y="375" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-35" value="DroneSubsystem" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="1">
+          <mxGeometry x="580" y="120" width="100" height="680" as="geometry" />
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-36" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="GcDJuWTbuOkvY3Uvuqt4-35">
+          <mxGeometry x="45" y="300" width="10" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-39" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="GcDJuWTbuOkvY3Uvuqt4-35">
+          <mxGeometry x="50" y="330.02" width="10" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-40" value="getDrones" style="html=1;align=left;spacingLeft=2;endArrow=block;rounded=0;edgeStyle=orthogonalEdgeStyle;curved=0;rounded=0;" edge="1" target="GcDJuWTbuOkvY3Uvuqt4-39" parent="GcDJuWTbuOkvY3Uvuqt4-35">
+          <mxGeometry x="0.0032" relative="1" as="geometry">
+            <mxPoint x="55" y="310" as="sourcePoint" />
+            <Array as="points">
+              <mxPoint x="80" y="340.02" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-41" value="" style="html=1;points=[[0,0,0,0,5],[0,1,0,0,-5],[1,0,0,0,5],[1,1,0,0,-5]];perimeter=orthogonalPerimeter;outlineConnect=0;targetShapes=umlLifeline;portConstraint=eastwest;newEdgeStyle={&quot;curved&quot;:0,&quot;rounded&quot;:0};" vertex="1" parent="GcDJuWTbuOkvY3Uvuqt4-35">
+          <mxGeometry x="50" y="400" width="10" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-42" value="getEmptyDrones" style="html=1;align=left;spacingLeft=2;endArrow=block;rounded=0;edgeStyle=orthogonalEdgeStyle;curved=0;rounded=0;" edge="1" parent="GcDJuWTbuOkvY3Uvuqt4-35" target="GcDJuWTbuOkvY3Uvuqt4-41">
+          <mxGeometry x="0.0032" relative="1" as="geometry">
+            <mxPoint x="55" y="379.98" as="sourcePoint" />
+            <Array as="points">
+              <mxPoint x="80" y="410" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-37" value="getCandidateDrones" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;entryX=0;entryY=0;entryDx=0;entryDy=5;" edge="1" target="GcDJuWTbuOkvY3Uvuqt4-36" parent="1" source="GcDJuWTbuOkvY3Uvuqt4-19">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="390" y="435" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-38" value="candidateDrones" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;curved=0;rounded=0;exitX=0;exitY=1;exitDx=0;exitDy=-5;" edge="1" source="GcDJuWTbuOkvY3Uvuqt4-36" parent="1" target="GcDJuWTbuOkvY3Uvuqt4-19">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="390" y="505" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GcDJuWTbuOkvY3Uvuqt4-49" value="Scheduler waits for 1 of 2 things. 1) there is a fire request to handle, and 2) there are empty drones. Should the scheduler wait for these conditions?&lt;div&gt;Actually I think the scheduler only waits for drones to go empty because FireIncidentSubsystem will directly call handleFireReq&lt;/div&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;size=12;" vertex="1" parent="1">
+          <mxGeometry x="530" y="10" width="270" height="100" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
