@@ -27,7 +27,7 @@ public class Drone implements Runnable {
     private AgentTank agentTank;
     private float currentSpeed= 0f;
 
-    private float localUsedAmount = 0.0f;    //buffer to calculate the agent used
+    // private float localUsedAmount = 0.0f;    //buffer to calculate the agent used, for future develop
 
     private volatile boolean stopRequested = false;    //flags that if Scheduler  calls stopAgent()
 
@@ -79,7 +79,7 @@ public class Drone implements Runnable {
      *  - Update status via scheduler
      *
      */
-    private void releaseAgent() {
+    public void releaseAgent() {
         stopRequested = false;
         if (agentTank.isEmpty()) {
             System.out.println("[Drone#" + id + "] Tank empty, cannot release agent.");
@@ -190,10 +190,6 @@ public class Drone implements Runnable {
         currentSpeed = 0;
     }
 
-    private boolean hasArrived(Position target) {
-        float dist = position.distanceFrom(target);
-        return dist <= ARRIVAL_DISTANCE_THRESHOLD;
-    }
 
 
 
@@ -258,13 +254,7 @@ public class Drone implements Runnable {
         }
     }
 
-    /**
-     * check if zone still need agent
-     */
-    private boolean zoneStillNeedsAgent(Zone zone) {
-        if (zone == null) return false;
-        return zone.getRequiredAgent() > 0;
-    }
+
 
 
 
