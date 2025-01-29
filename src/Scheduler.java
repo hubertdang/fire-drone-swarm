@@ -43,6 +43,6 @@ public class Scheduler implements Runnable {
     }
 
     public boolean comparePriority(Zone zone1, Zone zone2) {
-       return false;
+       return true;
     }
 }
