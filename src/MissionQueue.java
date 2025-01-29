@@ -5,8 +5,17 @@ public class MissionQueue {
     public static final int MODERATE_SEVERITY = 1;
     public static final int LOW_SEVERITY = 2;
 
+    /**
+     * A map containing missions ordered by severity and required agent amount
+     * keys: represent severity as mentioned at the top as static final integers
+     * values: an array list containing zones ordered by required agent amount
+     *
+     */
     private Map<Integer, ArrayList<Zone>> missions;
 
+    /**
+     * Constructor for the MissionQueue class. Constructs a mission queue.
+     */
     public MissionQueue() {
         missions = new HashMap<>();
         for (int i = 0; i < 3; i++){
@@ -14,6 +23,11 @@ public class MissionQueue {
         }
     }
 
+    /**
+     * Adds a zone to the correct position in the mission queue
+     *
+     * @param zone
+     */
     public void queue(Zone zone) {
         if (zone.getSeverity() == FireSeverity.HIGH){
             missions.get(HIGH_SEVERITY).add(zone);
@@ -32,6 +46,12 @@ public class MissionQueue {
         }
     }
 
+    /**
+     * Returns the zone with the highest severity and highest required agent amount
+     * from the mission queue without removing it.
+     *
+     * @return zone with highest severity and required agent amount
+     */
     public Zone peek() {
         if (missions.get(HIGH_SEVERITY).size() != 0){
             return missions.get(HIGH_SEVERITY).getFirst();
@@ -47,6 +67,11 @@ public class MissionQueue {
         }
     }
 
+    /**
+     * Removes the zone with the highest priority and highest required agent amount
+     *
+     * @return zone with highest severity and required agent amount
+     */
     public Zone pop() {
         if (missions.get(HIGH_SEVERITY).size() != 0){
             return missions.get(HIGH_SEVERITY).removeFirst();
@@ -62,6 +87,11 @@ public class MissionQueue {
         }
     }
 
+    /**
+     * Checks if the mission queue is empty
+     *
+     * @return true if mission queue is empty, false otherwise
+     */
     public boolean isEmpty() {
         if (missions.get(HIGH_SEVERITY).isEmpty() && missions.get(MODERATE_SEVERITY).isEmpty() && missions.get(LOW_SEVERITY).isEmpty()) {
             return true;
