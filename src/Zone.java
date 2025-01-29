@@ -33,7 +33,7 @@ public class Zone {
      *
      * @param severity the fire severity level
      */
-    public void setSeverity(FireSeverity severity) {
+    public synchronized void setSeverity(FireSeverity severity) {
         this.severity = severity;
     }
 
@@ -42,7 +42,7 @@ public class Zone {
      *
      * @return the fire severity level
      */
-    public FireSeverity getSeverity() {
+    public synchronized FireSeverity getSeverity() {
         return this.severity;
     }
     
@@ -70,7 +70,7 @@ public class Zone {
      *
      * @param requiredAgents the amount of agent required
      */
-    public void setRequiredAgents(float requiredAgents) {
+    public synchronized void setRequiredAgents(float requiredAgents) {
         this.requiredAgents = requiredAgents;
     }
 
@@ -79,7 +79,7 @@ public class Zone {
      *
      * @return the required agent amount
      */
-    public float getRequiredAgents() {
+    public synchronized float getRequiredAgents() {
         return this.requiredAgents;
     }
 
