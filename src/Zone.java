@@ -25,7 +25,7 @@ public class Zone {
 
         float centerX = (float)(startX + endX) / 2;
         float centerY = (float)(startY + endY) / 2;
-        this.position = new Position( centerX, centerY);
+        this.position = new Position(centerX, centerY);
     }
 
     /**
