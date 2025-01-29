@@ -52,7 +52,7 @@ public class Zone {
      *
      * @return the center position of the zone
      */
-    public Position getCenterPosition() {
+    public Position getPosition() {
         return this.position;
     }
 
