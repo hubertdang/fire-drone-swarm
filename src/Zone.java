@@ -19,9 +19,9 @@ public class Zone {
      * @param startY the starting y-coordinate of the zone
      * @param endY the ending y-coordinate of the zone
      */
-    public Zone(int id, float requiredAgents, int startX, int endX, int startY, int endY) {
+    public Zone(int id, float requiredAgentAmount, int startX, int endX, int startY, int endY) {
         this.id = id;
-        this.requiredAgentAmount = requiredAgents;
+        this.requiredAgentAmount = requiredAgentAmount;
 
         float centerX = (float)(startX + endX) / 2;
         float centerY = (float)(startY + endY) / 2;
