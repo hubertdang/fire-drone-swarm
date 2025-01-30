@@ -96,9 +96,9 @@ public class Zone {
         if (obj == null || getClass() != obj.getClass()) return false;
 
         Zone zone = (Zone) obj;
-        return id == zone.id &&
-                Float.compare(zone.requiredAgentAmount, requiredAgentAmount) == 0 &&
-                position.equals(zone.position) &&
-                severity == zone.severity;
+        return this.id == zone.getId() &&
+                Float.compare(zone.getRequiredAgentAmount(), this.requiredAgentAmount) == 0 &&
+                this.position.equals(zone.getPosition()) &&
+                this.severity == zone.getSeverity();
     }
 }
