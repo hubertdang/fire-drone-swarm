@@ -12,26 +12,30 @@ public class FireIncidentSubsystem implements Runnable {
     private Scheduler scheduler;
     private HashMap<Integer, Zone> clearZones;
     private HashMap<Integer, Zone> fireZones;
-    private ArrayList<Event> events;
-    public static final HashMap<FireSeverity, Integer> AGENT_AMOUNT = new HashMap<FireSeverity, Integer>() {{
+    private ArrayList<SimEvent> events;
+    public static final HashMap<FireSeverity, Integer> AGENT_AMOUNT = new HashMap<FireSeverity, Integer>() {{ // Amount of agents required in liters for each fire severity
         put(FireSeverity.NO_FIRE, 0);
         put(FireSeverity.LOW, 10);
         put(FireSeverity.MODERATE, 20);
         put(FireSeverity.HIGH, 30);
     }};
 
-
+    /**
+     * Constructs a FireIncidentSubsystem with the given scheduler.
+     *
+     * @param scheduler the scheduler to be used
+     */
     public FireIncidentSubsystem(Scheduler scheduler) {
         this.scheduler = scheduler;
         this.clearZones = new HashMap<Integer, Zone>();
         this.fireZones = new HashMap<Integer, Zone>(); // no fires when we initialize
-        this.events = new ArrayList<Event>();
+        this.events = new ArrayList<SimEvent>();
     }
 
     /**
      * Request a drone manually to be sent to a zone
      *
-     * @param zone the zone the drone will be sent to
+     * @param zone      the zone the drone will be sent to
      * @param eventTime the time the event occurred
      */
     private void manualReqDrone(Zone zone, long eventTime) {
@@ -39,7 +43,7 @@ public class FireIncidentSubsystem implements Runnable {
             System.out.println("[" + Thread.currentThread().getName() + "]: " + "Manual request for drone at zone: " + zone.getId());
             clearZones.remove(zone.getId());
             fireZones.put(zone.getId(), zone);
-            scheduler.setFireInfo(zone.getPosition(),zone.getSeverity(),eventTime);
+            scheduler.setFireInfo(zone.getPosition(), zone.getSeverity(), eventTime);
         } else {
             System.out.println("[" + Thread.currentThread().getName() + "]: " + "Zone " + zone.getId() + " is already on fire");
         }
@@ -48,14 +52,14 @@ public class FireIncidentSubsystem implements Runnable {
     /**
      * Detect a fire at a zone and send a request to the scheduler
      *
-     * @param zone the zone the drone will be sent to
+     * @param zone      the zone the drone will be sent to
      * @param eventTime the time the event occurred
      */
     private void trackFire(Zone zone, long eventTime) {
         System.out.println("[" + Thread.currentThread().getName() + "]: " + "Fire detected at zone: " + zone.getId());
         clearZones.remove(zone.getId());
         fireZones.put(zone.getId(), zone);
-        scheduler.setFireInfo(zone.getPosition(),zone.getSeverity(),eventTime);
+        scheduler.setFireInfo(zone.getPosition(), zone.getSeverity(), eventTime);
 
     }
 
@@ -74,7 +78,7 @@ public class FireIncidentSubsystem implements Runnable {
                 String eventType = eventData[2].trim();
                 String severity = eventData[3].trim();
 
-                Event event = new Event(time, zoneId, eventType, severity);
+                SimEvent event = new SimEvent(time, zoneId, eventType, severity);
                 events.add(event);
             }
             sortEventsByTime(events);
@@ -209,7 +213,7 @@ public class FireIncidentSubsystem implements Runnable {
      *
      * @param event the event being sent to the scheduler
      */
-    private void sendEvent(Event event) {
+    private void sendEvent(SimEvent event) {
         String eventType = event.getEventType();
         String severity = event.getSeverity();
         int zoneId = event.getZoneId();
@@ -243,7 +247,7 @@ public class FireIncidentSubsystem implements Runnable {
      *
      * @param events the events hashmap to be sorted
      */
-    private void sortEventsByTime(ArrayList<Event> events) {
+    private void sortEventsByTime(ArrayList<SimEvent> events) {
         events.sort((event1, event2) -> {
             long time1 = event1.getTime();
             long time2 = event2.getTime();
@@ -286,7 +290,7 @@ public class FireIncidentSubsystem implements Runnable {
         return clearZones;
     }
 
-    public ArrayList<Event> getEvents() {
+    public ArrayList<SimEvent> getEvents() {
         return events;
     }
 
