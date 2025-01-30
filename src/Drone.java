@@ -1,46 +1,44 @@
 /**
  * <p>Drone</p>
  *
- * // Example usage:
- * Drone drone = new Drone(1, scheduler);
- * drone.run();
- * }
- *
  * @author Shenhao Gong
- *
- * @version 2025-Jan-26th
+ * @version 2025-Jan-29th
  */
 
 public class Drone implements Runnable {
     private static final Position BASE_POSITION = new Position(0, 0);
-    private static final float TOP_SPEED = 20.0f;
-    private static final float TAKEOFF_ACCEL_RATE = 3.0f;
-    private static final float LAND_DECEL_RATE = 5.0f;
-    private static final float ARRIVAL_DISTANCE_THRESHOLD = 20f;
-
-    private int id;
-    private Position position;
+    private static final float TOP_SPEED = 20.0f;     // 20m/s
+    private static final float TAKEOFF_ACCEL_RATE = 3.0f;  //3m/s^2
+    private static final float LAND_DECEL_RATE = 5.0f;   //5m/s^2
+    private static final float NO_SPEED_FLOOR = 0.5f;  // if speed <0.5m/s assume it is 0
+    private static final float ARRIVAL_DISTANCE_THRESHOLD = 10f;  //10m  which means if the distance is less than 20m assume it is arrived
+    private final int id;
+    private final Position position;
+    private final Scheduler scheduler;
+    private final AgentTank agentTank;
+    //flags for scheduler to change
+    private volatile boolean flyCmdFlag = false;
+    private volatile boolean relAgentCmdFlag = false;
+    private volatile boolean stopAgentCmdFlag = false;
     //private float rating;           //for scheduling algorithm later
     private Zone zoneToService;       // The zone assigned by the Scheduler. The drone won't pick tasks itself
     private DroneStatus status;
-    private Scheduler scheduler;
-    private AgentTank agentTank;
-    private float currentSpeed= 0f;
+    private float currentSpeed = 0f;
 
-    // private float localUsedAmount = 0.0f;    //buffer to calculate the agent used, for future develop
-
-    private volatile boolean stopRequested = false;    //flags that if Scheduler  calls stopAgent()
+    private Position destination = null;
+    private final boolean releasingAgent = false;  //flags for releasing agent
 
     public Drone(int id, Scheduler scheduler) {
         this.id = id;
         this.scheduler = scheduler;
         this.position = new Position(BASE_POSITION.getX(), BASE_POSITION.getY());
         this.currentSpeed = 0f;
-        this.status=DroneStatus.BASE;
+        this.status = DroneStatus.BASE;
         this.agentTank = new AgentTank();
 
 
     }
+
 
     public Position getPosition() {
         return position;
@@ -54,72 +52,87 @@ public class Drone implements Runnable {
         return agentTank.getCurrAgentAmount();
     }
 
-    public void setZoneToService(Zone zone) {
-        this.zoneToService = zone;
-    }
-
     public Zone getZoneToService() {
         return zoneToService;
     }
 
-    public void setStatus(DroneStatus status) {
-        this.status = status;
+    public void setZoneToService(Zone zone) {
+        this.zoneToService = zone;
     }
 
     public DroneStatus getStatus() {
         return status;
     }
 
+    public void setStatus(DroneStatus status) {
+        this.status = status;
+    }
 
+    public Position getDestination() {
+        return this.destination;
+    }
 
     /**
-     * In Iteration #1, this just simulates the release process:
-     *  - If the tank is not empty, keep spraying at 1L per 1s
-     *  - Decrease the zone's required agent accordingly
-     *  - Update status via scheduler
+     * The Scheduler might call this to forcibly change the drone's flight target mid-route.
+     */
+    public void setDestination(Position newDest) {
+        this.destination = newDest;
+    }
+
+    private void autoRefillIfAtBase() {
+        // If  "at" base & tank isn't full, refill
+        float distToBase = position.distanceFrom(BASE_POSITION);
+        if (distToBase < ARRIVAL_DISTANCE_THRESHOLD && !agentTank.isFull()) {
+            System.out.println("[Drone#" + id + "] At base. Refilling agent tank...");
+            agentTank.refill();
+        }
+    }
+
+    /**
+     *
      *
      */
-    public void releaseAgent() {
-        stopRequested = false;
-        if (agentTank.isEmpty()) {
-            System.out.println("[Drone#" + id + "] Tank empty, cannot release agent.");
-            setStatus(DroneStatus.EMPTY);
+    public void releaseAgent(float deltaTime) {
+        // Open the nozzle if it's not opened
+        if (!agentTank.isNozzleOpen()) {
+            agentTank.openNozzle();
+            setStatus(DroneStatus.DROPPING_AGENT);
+            System.out.println("[Drone#" + id + "] Starting agent release...");
+        }
+
+        // If no zone is assigned or zone doesn't need agent, stop immediately
+        if (zoneToService == null || zoneToService.getRequiredAgentAmount() <= 0 || agentTank.isEmpty()) {
+            finalizeRelease();
             return;
         }
 
-        agentTank.openNozzle();
-        System.out.println("[Drone#" + id + "] Nozzle open. Releasing agent...");
+        float agentToDrop = AgentTank.getAgentDropRate() * deltaTime;
+        float remainingNeed = zoneToService.getRequiredAgentAmount();
+        float actualDrop = Math.min(agentToDrop, remainingNeed);  // Only release what’s needed
 
-        // Keep releasing until zone is satisfied, tank is empty, or stopRequested
-        while (!stopRequested      //when scheduler call stopAgent(), this flag will be set to true
-                && zoneToService != null
-                && zoneToService.getRequiredAgent() > 0
-                && !agentTank.isEmpty()) {
-            agentTank.decreaseAgent(1.0f); // 1L each loop
-            float newRequired = zoneToService.getRequiredAgent() - 1.0f;
-            zoneToService.setRequiredAgentAmount(Math.max(0, newRequired));
+        // Check if release should continue
+        if (!agentTank.isEmpty() && remainingNeed > 0) {
+            agentTank.decreaseAgent(actualDrop);
+            zoneToService.setRequiredAgentAmount(Math.max(0, remainingNeed - actualDrop));
 
-            // If tank became empty, report it
-            if (agentTank.isEmpty()) {
-                System.out.println("[Drone#" + id + "] Tank became empty.");
-                scheduler.droneStatusUpdated(DroneStatus.EMPTY);
-            }
-
-            // Sleep a bit to simulate time
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                System.out.println("[Drone#" + id + "] Interrupted in releaseAgent.");
-                break;
-            }
+            System.out.println("[Drone#" + id + "] Releasing " + actualDrop + "L. Tank="
+                    + getTankCapacity() + ", zoneNeed=" + zoneToService.getRequiredAgentAmount());
         }
 
-        agentTank.closeNozzle();
+        // Stop releasing if tank is empty or zone no longer needs agent
+        if (agentTank.isEmpty() || zoneToService.getRequiredAgentAmount() <= 0) {
+            finalizeRelease();
+        }
+    }
 
-        if (stopRequested) {
-            System.out.println("[Drone#" + id + "] stopRequested => Stopped release mid-process.");
+    private void finalizeRelease() {
+        agentTank.closeNozzle();
+        relAgentCmdFlag = false;
+        if (agentTank.isEmpty()) {
+            setStatus(DroneStatus.EMPTY);
         } else {
-            System.out.println("[Drone#" + id + "] Done releasing agent.");
+            System.out.println("[Drone#" + id + "] Done releasing agent (zone or tank condition).");
+            // Possibly set status=ARRIVED or something else
         }
     }
 
@@ -128,84 +141,98 @@ public class Drone implements Runnable {
      * The drone will also decide to return to base if it's in the middle of releasing.
      */
     public void stopAgent() {
-        stopRequested = true;
-        agentTank.closeNozzle();
-        System.out.println("[Drone#" + id + "] stopAgent() called. stopRequested=true");
+        System.out.println("[Drone#" + id + "] handleStopAgent() called.");
+        // if currently releasing agent, close nozzle
+        if (agentTank.isNozzleOpen()) {
+            agentTank.closeNozzle();
+            System.out.println("[Drone#" + id + "] Stopped releasing agent mid-process.");
+        }
+        relAgentCmdFlag = false; // ensure we don't keep releasing
     }
 
+    /**
+     * Incremental approach to flight. If no destination is set, do nothing.
+     * If arrived, set status=ARRIVED or BASE if the destination was BASE_POSITION.
+     *
+     * @param deltaTime is passed in run, by using systemTime in run()
+     *
+     */
+    private void fly(float deltaTime) {
 
-
-    private void fly(Position target) throws InterruptedException {
-        final long stepMillis = 100;
-        final float stepSec   = stepMillis / 1000f;
-
-        while (true) {
-            float distance = position.distanceFrom(target);
-
-            // If drone is very close but speed is still high, continue decelerating
-            // or if speed is near 0 but distance is still not negligible, keep going
-            if (distance < ARRIVAL_DISTANCE_THRESHOLD && currentSpeed < 0.5f) {
-                // We consider this truly arrived
-                break;
+        // If no destination yet, see if the zone is set
+        if (destination == null) {
+            if (zoneToService != null) {
+                destination = zoneToService.getPosition();
+                setStatus(DroneStatus.ENROUTE);
+                System.out.println("[Drone#" + id + "] handleFly: heading to zone " + zoneToService.getId());
+            } else {
+                // no zone, no destination => ignore
+                flyCmdFlag = false;
+                return;
             }
+        }
 
-            // Accelerate or decelerate
+        float distance = position.distanceFrom(destination);
+        float stoppingDistance = (currentSpeed * currentSpeed) / (2 * LAND_DECEL_RATE);
+
+        // If arrived (close enough + speed near 0), stop
+        if (distance < ARRIVAL_DISTANCE_THRESHOLD && currentSpeed < NO_SPEED_FLOOR) {
+            System.out.println("[Drone#" + id + "] handleFly: Arrived at dest. speed=" + currentSpeed);
+            currentSpeed = 0;
+            if (destination.equals(BASE_POSITION)) {
+                setStatus(DroneStatus.BASE);
+            } else {
+                setStatus(DroneStatus.ARRIVED);
+            }
+            flyCmdFlag = false; // done flying
+            return;
+        }
+
+        if (distance <= stoppingDistance) {
+            currentSpeed -= LAND_DECEL_RATE * deltaTime;
+            if (currentSpeed < 0) {
+                currentSpeed = 0;
+            }
+        } else {
             if (currentSpeed < TOP_SPEED) {
-                currentSpeed += TAKEOFF_ACCEL_RATE * stepSec;
+                currentSpeed += TAKEOFF_ACCEL_RATE * deltaTime;
                 if (currentSpeed > TOP_SPEED) {
                     currentSpeed = TOP_SPEED;
                 }
             }
-            if (distance < currentSpeed * 5) {
-                currentSpeed -= LAND_DECEL_RATE * stepSec;
-                if (currentSpeed < 0) {
-                    currentSpeed = 0;
-                }
-            }
-
-            float stepDist = currentSpeed * stepSec;
-            float dx = target.getX() - position.getX();
-            float dy = target.getY() - position.getY();
-            float angle = (float) Math.atan2(dy, dx);
-
-            // If stepDist > distance, do a partial step
-            if (stepDist > distance) {
-                stepDist = distance; // only move exactly the needed distance
-            }
-
-            float newX = position.getX() + stepDist * (float)Math.cos(angle);
-            float newY = position.getY() + stepDist * (float)Math.sin(angle);
-            position.update(newX, newY);
-
-            System.out.println("[Drone#" + id + "] Position: ("
-                    + position.getX() + "," + position.getY()
-                    + "), speed=" + currentSpeed + ", dist=" + distance);
-
-            Thread.sleep(stepMillis);
         }
 
-        System.out.println("[Drone#" + id + "] Arrived at ("
-                + position.getX() + "," + position.getY()
-                + ") with speed ~" + currentSpeed);
-        currentSpeed = 0;
+        float stepDist = currentSpeed * deltaTime;
+        float dx = destination.getX() - position.getX();
+        float dy = destination.getY() - position.getY();
+        float angle = (float) Math.atan2(dy, dx);
+
+        if (stepDist > distance) {
+            stepDist = distance;
+        }
+
+        float newX = position.getX() + stepDist * (float) Math.cos(angle);
+        float newY = position.getY() + stepDist * (float) Math.sin(angle);
+        position.update(newX, newY);
+
+        System.out.println("[Drone#" + id + "] Flying: pos=(" + newX + "," + newY + "), speed=" + currentSpeed + ", dist=" + distance);
     }
-
-
-
 
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof Drone) && ((Drone) obj).id == this.id;
     }
 
+    @Override
+    public String toString() {
+        return "[Drone#" + id + ", status=" + status + ", pos=(" + position.getX() + "," + position.getY() + ")]";
+    }
+
     /**
      * The main thread logic:
-     *
-     *   Check if a zone is assigned and needs servicing.
-     *   If yes, fly there, release agent, then return to base(should be set by scheduler but call it here for now).
-     *   Otherwise, idle for a moment and check again.<
-     *
-     *
+     * Check if a zone is assigned and needs servicing.
+     * If yes, fly there, release agent, then return to base(should be set by scheduler but call it here for now).
+     * Otherwise, idle for a moment and check again.<
      * In a real system, the Scheduler would update zoneToService or call stopAgent(),
      * and the drone must respond
      */
@@ -213,104 +240,112 @@ public class Drone implements Runnable {
     public void run() {
         System.out.println("[Drone#" + id + "] Thread started. Initial status: " + status);
 
-        while (true) {
-            try {
-                // If there's a zone needing service
-                if (zoneToService != null && zoneToService.getRequiredAgent() > 0) {
+        long previousTime = System.nanoTime(); // Use nanoseconds
+        final long stepSize = 100_000_000L; // 100ms in nanoseconds
 
-                    // 1) Fly to zone
-                    setStatus(DroneStatus.ENROUTE);
-                    scheduler.droneStatusUpdated(DroneStatus.ENROUTE);
-                    fly(zoneToService.getPosition());
+        while (!Thread.interrupted()) {
+            long currentTime = System.nanoTime();
 
-                    // 2) Arrive
-                    setStatus(DroneStatus.ARRIVED);
-                    scheduler.droneStatusUpdated(DroneStatus.ARRIVED);
+            // Only process updates every 100ms (simulate real-world time)
+            if ((currentTime - previousTime) >= stepSize) {
+                float deltaTime = (currentTime - previousTime) / 1_000_000_000f; // Convert ns to seconds
+                previousTime = currentTime; // Update for next iteration
 
-                    // 3) Release agent
-                    setStatus(DroneStatus.DROPPING_AGENT);
-                    scheduler.droneStatusUpdated(DroneStatus.DROPPING_AGENT);
-                    releaseAgent();
+                // 1) check if the drone is at base , refill if at base and agent not full
+                autoRefillIfAtBase();
 
-                    // 4) Fly back to base
-                    setStatus(DroneStatus.ENROUTE);
-                    scheduler.droneStatusUpdated(DroneStatus.ENROUTE);
-                    fly(BASE_POSITION);
+                // 2) Read and clear command flags set by the scheduler
 
-                    setStatus(DroneStatus.BASE);
-                    scheduler.droneStatusUpdated(DroneStatus.BASE);
-
-                    // Reset
-                    zoneToService = null;
-                    stopRequested = false;
-                } else {
-                    // No zone or no need, just idle
-                    Thread.sleep(500);
+                if (stopAgentCmdFlag) {
+                    stopAgent();         // closes nozzle or sets internal flags
+                    stopAgentCmdFlag = false;  // reset
+                } else if (flyCmdFlag) {
+                    // Move the drone towards some assigned position (zone or otherwise)
+                    fly(deltaTime);
+                } else if (relAgentCmdFlag) {
+                    // Release agent based on dt
+                    releaseAgent(deltaTime);
                 }
-            } catch (InterruptedException e) {
-                System.out.println("[Drone#" + id + "] Interrupted → stopping thread.");
-                break;
+
+                // 3) Periodically update scheduler about position & status
+                scheduler.droneStatusUpdated(this.getStatus());
+
             }
         }
+        System.out.println("[Drone#" + id + "] Thread stopping.");
     }
 
 
-
-
-
     /**
-     *
-     * quickly did an fly(150.0,80.0) test, the result is:
-     * [FlyTest] Initial drone position: 0.0, 0.0
-     * [FlyTest] Calling fly(...) to 150.0, 80.0
-     * [Drone#1] Arrived at (132.95303, 70.90828)
-     * .
-     * .
-     * .
-     * [FlyTest] Final drone position: 132.95303, 70.90828
-     * [FlyTest] Distance to target = 19.319899
-     * [FlyTest] PASS: Drone arrived within threshold.
+     * tests
      * */
-   /* public static void main(String[] args) {
-        // Create a minimal mock of a Scheduler if needed
-        Scheduler mockScheduler = new Scheduler() {
-            //@Override
-            public void droneStatusUpdated(DroneStatus status, Drone drone) {
-                System.out.println("[MockScheduler] Drone#" + drone.getId()
-                        + " status: " + status);
-            }
-        };
-
-        // Create a Drone (not started in a separate thread yet)
+    /*
+    public static void main(String[] args) {
+        // 1) Create a mock Scheduler
+        Scheduler mockScheduler = new Scheduler(); // or a mock
         Drone drone = new Drone(1, mockScheduler);
+        drone.setZoneToService(new Zone(1, 1, 0, 700, 0, 600));
 
-        // Print the initial position (should be base, e.g., (0,0))
-        System.out.println("[FlyTest] Initial drone position: "
-                + drone.getPosition().getX() + ", " + drone.getPosition().getY());
+        // 2) Start the test with real-world pacing
+        float totalTime = 0f;
+        float endTime = 30.0f; // Test for 30 seconds
+        long startTime = System.nanoTime();
+        final long stepSize = 100_000_000L; // 100ms in nanoseconds
 
-        // Now directly call fly(...) to see how it updates position
-        // For demonstration, let's fly to (150, 80).
-        Position target = new Position(200, 150);
+        while (totalTime < endTime) {
+            long currentTime = System.nanoTime();
+            if ((currentTime - startTime) >= stepSize) { // Enforce real-world pacing
+                float deltaTime = (currentTime - startTime) / 1_000_000_000f; // Convert to seconds
+                startTime = currentTime; // Update for next step
 
-        try {
-            System.out.println("[FlyTest] Calling fly(...) to "
-                    + target.getX() + ", " + target.getY());
-            drone.fly(target);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+                drone.fly(deltaTime); // Step the simulation
+                totalTime += deltaTime; // Accumulate elapsed time
+            }
         }
 
-        // After fly(...) returns, the drone should be at or near the target
-        float finalDist = drone.getPosition().distanceFrom(target);
-        System.out.println("[FlyTest] Final drone position: "
-                + drone.getPosition().getX() + ", " + drone.getPosition().getY());
-        System.out.println("[FlyTest] Distance to target = " + finalDist);
+        // 3) Check results
+        float distFromStart = drone.getPosition().distanceFrom(new Position(0, 0));
+        System.out.println("TestflyIncrementally done. distFromStart=" + distFromStart);
 
-        // Simple assertion or check
-        if (finalDist <= 20f) { // or ARRIVAL_DISTANCE_THRESHOLD
-            System.out.println("[FlyTest] PASS: Drone arrived within threshold.");
-        } else {
-            System.out.println("[FlyTest] FAIL: Drone too far from target. (dist=" + finalDist + ")");
+        // Optional: Check if drone reached top speed
+        // System.out.println("Final speed=" + drone.getCurrentSpeed());
+    }*/
+
+
+    /*test for release agent*/
+    /*
+    public static void main(String[] args) {
+        Scheduler mockScheduler = new Scheduler();
+
+        Drone drone = new Drone(1, mockScheduler);
+        drone.setZoneToService(new Zone(1, 10, 0, 700, 0, 600));
+
+        System.out.println("\n [Test Start] Drone releasing agent...");
+
+        float totalTime = 0f;
+        float deltaTime = 1.0f; // Simulate 1 second per update
+
+        while (totalTime < 20.0f) { // Let it run for 20 seconds
+            drone.releaseAgent(deltaTime);
+            totalTime += deltaTime;
+
+            System.out.println(" Time: " + totalTime + "s | Tank: " + drone.getTankCapacity() +
+                    "L | Zone Need: " + drone.getZoneToService().getRequiredAgentAmount() + "L");
+
+            if (drone.getTankCapacity() <= 0 || drone.getZoneToService().getRequiredAgentAmount() <= 0) {
+                System.out.println(" [Test End] Agent release stopped.");
+                System.out.println(drone.getStatus());
+                break;
+            }
+
+            //Simulate real-world time (optional)
+            try {
+                Thread.sleep(100); // Sleep 1 second to simulate real time
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }*/
+
 }
+
