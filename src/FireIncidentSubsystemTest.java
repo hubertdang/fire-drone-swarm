@@ -64,7 +64,7 @@ public class FireIncidentSubsystemTest {
     @Test
     void testPollFireZones() {
         // Add a zone to fireZones
-        Zone zone = new Zone(1, new Position(350, 300), 0);
+        Zone zone = new Zone(1, 0, 0, 700, 0, 600);
         zone.setSeverity(FireSeverity.HIGH);
         fireIncidentSubsystem.getFireZones().put(1, zone);
 
