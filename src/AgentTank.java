@@ -74,7 +74,12 @@ public class AgentTank {
      */
     public synchronized void decreaseAgent(float amount) {
         if (this.isNozzleOpen() && !this.isEmpty()){
-            this.currAgentAmount -= amount;
+            if (this.currAgentAmount < amount) {
+                this.currAgentAmount = 0.0f;
+            }
+            else {
+                this.currAgentAmount -= amount;
+            }
         }
     }
 }
