@@ -4,25 +4,42 @@ public class AgentTank {
     private static final float NOZZLE_TIME = 2.0f;     // 2 sec
 
     private float currAgentAmount;
-    private boolean nozzlesOpen;
+    private boolean isNozzleOpen;
 
     public AgentTank() {
+        this.refill();
+        this.closeNozzle();
     }
 
     public void openNozzle() {
+        this.isNozzleOpen = true;
     }
 
     public void closeNozzle() {
+        this.isNozzleOpen = false;
+    }
+
+    public boolean isNozzleOpen() {
+        return this.isNozzleOpen;
+    }
+
+    public void refill() {
+        this.currAgentAmount = CAPACITY;
     }
 
     public boolean isEmpty() {
-        return false;
+        return this.getCurrAgentAmount() <= 0;
     }
 
     public float getCurrAgentAmount() {
-        return 0;
+        return this.currAgentAmount;
     }
 
     public void decreaseAgent(float amount) {
+        if (!this.isEmpty()){
+            this.currAgentAmount -= amount;
+        }
+
+        this.isEmpty();
     }
 }
