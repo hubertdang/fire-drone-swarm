@@ -56,4 +56,21 @@ public class Position {
         float yDiff = position.getY() - this.y;
         return (float) Math.sqrt(Math.pow(xDiff, 2) + Math.pow(yDiff, 2));
     }
+
+    /**
+     * Checks if this position is equal to another object. Two positions are equal
+     * if they have the same x and y coordinates.
+     *
+     * @param obj the object to compare
+     * @return true if the object is a Position with the same x and y coordinates, false otherwise
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true; // Check if the same reference
+        if (obj == null || getClass() != obj.getClass()) return false; // Ensure the object is of type Position
+
+        Position position = (Position) obj;
+        return Float.compare(position.x, x) == 0 &&
+                Float.compare(position.y, y) == 0; // Compare x and y values
+    }
 }
