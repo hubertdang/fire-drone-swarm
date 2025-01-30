@@ -36,13 +36,13 @@ public class ZoneTest {
 
     @Test
     public void setRequiredAgents() {
-        zone.setRequiredAgents(6.0f);
-        assertEquals(6.0f, zone.getRequiredAgents(), "Required agents should be updated to 6.0");
+        zone.setRequiredAgentAmount(6.0f);
+        assertEquals(6.0f, zone.getRequiredAgentAmount(), "Required agents should be updated to 6.0");
     }
 
     @Test
     public void getRequiredAgents() {
-        assertEquals(5.0f, zone.getRequiredAgents(), "Required agents should be 5.0");
+        assertEquals(5.0f, zone.getRequiredAgentAmount(), "Required agents should be 5.0");
     }
 
     @Test

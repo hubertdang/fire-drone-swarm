@@ -6,7 +6,7 @@ public class Zone {
     private int id;
     private Position position;
     private FireSeverity severity;
-    private float requiredAgents;
+    private float requiredAgentAmount;
 
     /**
      * Constructs a Zone with a given ID, required agent amount, and boundaries.
@@ -21,7 +21,7 @@ public class Zone {
      */
     public Zone(int id, float requiredAgents, int startX, int endX, int startY, int endY) {
         this.id = id;
-        this.requiredAgents = requiredAgents;
+        this.requiredAgentAmount = requiredAgents;
 
         float centerX = (float)(startX + endX) / 2;
         float centerY = (float)(startY + endY) / 2;
@@ -68,10 +68,10 @@ public class Zone {
     /**
      * Sets the required amount of agent needed for firefighting in this zone.
      *
-     * @param requiredAgents the amount of agent required
+     * @param requiredAgentAmount the amount of agent required
      */
-    public synchronized void setRequiredAgents(float requiredAgents) {
-        this.requiredAgents = requiredAgents;
+    public synchronized void setRequiredAgentAmount(float requiredAgentAmount) {
+        this.requiredAgentAmount = requiredAgentAmount;
     }
 
     /**
@@ -79,8 +79,8 @@ public class Zone {
      *
      * @return the required agent amount
      */
-    public synchronized float getRequiredAgents() {
-        return this.requiredAgents;
+    public synchronized float getRequiredAgentAmount() {
+        return this.requiredAgentAmount;
     }
 
     /**
@@ -97,7 +97,7 @@ public class Zone {
 
         Zone zone = (Zone) obj;
         return id == zone.id &&
-                Float.compare(zone.requiredAgents, requiredAgents) == 0 &&
+                Float.compare(zone.requiredAgentAmount, requiredAgentAmount) == 0 &&
                 position.equals(zone.position) &&
                 severity == zone.severity;
     }
