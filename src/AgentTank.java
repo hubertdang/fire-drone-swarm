@@ -87,13 +87,6 @@ public class AgentTank {
      */
     public synchronized void decreaseAgent(float amount) {
         if (this.isNozzleOpen() && !this.isEmpty()) {
-            try {
-                long delay = (long) (amount * 1000); // Convert drop rate to milliseconds
-                Thread.sleep(delay);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt(); // Restore interrupted status
-            }
-
             if (this.currAgentAmount < amount) {
                 this.currAgentAmount = 0.0f;
             } else {
