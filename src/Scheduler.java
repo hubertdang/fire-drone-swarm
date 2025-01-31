@@ -1,21 +1,15 @@
 public class Scheduler implements Runnable {
     private Drone drone;
     private MissionQueue missionQueue;
+    private static final Position BASE = new Position(0, 0);
 
     /**
      * Constructs a scheduler for the system
      *
      */
-    public Scheduler() {
-        missionQueue = new MissionQueue();
-    }
+    public Scheduler(Drone drone) {
 
-    /**
-     * Adds a drone to the system
-     *
-     * @param drone
-     */
-    public void addDrone(Drone drone) {
+        missionQueue = new MissionQueue();
         this.drone = drone;
     }
 
@@ -62,7 +56,7 @@ public class Scheduler implements Runnable {
     public void zoneSeverityUpdated(Zone zone) {
         if (zone.getSeverity() == FireSeverity.NO_FIRE){
             drone.stopAgent();
-            drone.fly(new Position(0 ,0));
+            drone.fly(BASE);
         }
     }
 
@@ -73,7 +67,7 @@ public class Scheduler implements Runnable {
      * @param zone
      */
     public void dispatch(Drone drone, Zone zone) {
-        if (drone.getZoneToService() == null || comparePriority(drone.getZoneToService(), zone)){
+        if (drone.getZoneToService() == null){
             drone.setZoneToService(missionQueue.pop());
             drone.fly(zone.getPosition());
         }
