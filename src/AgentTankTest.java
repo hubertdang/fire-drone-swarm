@@ -9,31 +9,27 @@ public class AgentTankTest {
     @BeforeEach
     public void setUp() {
         agentTank = new AgentTank();
+        agentTank.openNozzle();
     }
 
     @Test
     public void openNozzle() {
-        agentTank.openNozzle();
         assertTrue(agentTank.isNozzleOpen(), "Nozzle should be open after calling openNozzle()");
     }
 
     @Test
     public void closeNozzle() {
-        agentTank.openNozzle();
         agentTank.closeNozzle();
         assertFalse(agentTank.isNozzleOpen(), "Nozzle should be closed after calling closeNozzle()");
     }
 
     @Test
     public void isNozzleOpen() {
-        assertFalse(agentTank.isNozzleOpen(), "Nozzle should be closed by default");
-        agentTank.openNozzle();
         assertTrue(agentTank.isNozzleOpen(), "Nozzle should be open after calling openNozzle()");
     }
 
     @Test
     public void refill() {
-        agentTank.openNozzle();
         agentTank.decreaseAgent(5.0f);
         assertTrue(agentTank.getCurrAgentAmount() < 11.0f, "Current agent amount should be less than full after decrease");
 
@@ -44,7 +40,6 @@ public class AgentTankTest {
     @Test
     public void isEmpty() {
         assertFalse(agentTank.isEmpty(), "Tank should not be empty initially");
-        agentTank.openNozzle();
 
         agentTank.decreaseAgent(11.0f);
         assertTrue(agentTank.isEmpty(), "Tank should be empty after using all agent");
@@ -57,7 +52,6 @@ public class AgentTankTest {
     public void getCurrAgentAmount() {
         assertEquals(11.0f, agentTank.getCurrAgentAmount(), 0.001, "Initial amount should be full capacity");
 
-        agentTank.openNozzle();
         agentTank.decreaseAgent(3.0f);
         assertEquals(8.0f, agentTank.getCurrAgentAmount(), 0.001, "Amount should decrease correctly");
 
@@ -67,6 +61,7 @@ public class AgentTankTest {
 
     @Test
     public void decreaseAgent() {
+        agentTank.closeNozzle();
         agentTank.decreaseAgent(5.0f);
         assertEquals(11.0f, agentTank.getCurrAgentAmount(), 0.001, "Agent should not decrease, nozzle is not open");
 

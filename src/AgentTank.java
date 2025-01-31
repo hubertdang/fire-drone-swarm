@@ -3,9 +3,9 @@
  * to release the agent at a specified rate.
  */
 public class AgentTank {
-    private static final float CAPACITY = 11.0f;       // 11 L
-    private static final float AGENT_DROP_RATE = 1.0f; // 1 L/sec
-    private static final float NOZZLE_TIME = 2.0f;     // 2 sec
+    public static final float CAPACITY = 11.0f;       // 11 L
+    public static final float AGENT_DROP_RATE = 1.0f; // 1 L/sec
+    public static final long NOZZLE_TIME = 2000;     // 2 sec
 
     private float currAgentAmount;
     private boolean isNozzleOpen;
@@ -22,6 +22,11 @@ public class AgentTank {
      * Opens the nozzle, allowing the agent to be released.
      */
     public synchronized void openNozzle() {
+        try {
+            Thread.sleep(this.NOZZLE_TIME);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
         this.isNozzleOpen = true;
     }
 
@@ -29,6 +34,11 @@ public class AgentTank {
      * Closes the nozzle, stopping the release of the agent.
      */
     public synchronized void closeNozzle() {
+        try {
+            Thread.sleep(this.NOZZLE_TIME);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
         this.isNozzleOpen = false;
     }
 
@@ -68,16 +78,25 @@ public class AgentTank {
 
     /**
      * Decreases the amount of agent in the tank by a specified amount.
-     * If the tank is empty, the amount will not be decreased further.
+     * The agent is released at a rate of 1 liter per second, meaning the function
+     * will wait proportionally based on the amount of agent being released.
+     *
+     * If the nozzle is closed or the tank is empty, no agent will be released.
      *
      * @param amount The amount to decrease in liters.
      */
     public synchronized void decreaseAgent(float amount) {
-        if (this.isNozzleOpen() && !this.isEmpty()){
+        if (this.isNozzleOpen() && !this.isEmpty()) {
+            try {
+                long delay = (long) (amount * 1000); // Convert drop rate to milliseconds
+                Thread.sleep(delay);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt(); // Restore interrupted status
+            }
+
             if (this.currAgentAmount < amount) {
                 this.currAgentAmount = 0.0f;
-            }
-            else {
+            } else {
                 this.currAgentAmount -= amount;
             }
         }
