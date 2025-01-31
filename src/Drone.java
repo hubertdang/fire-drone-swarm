@@ -10,11 +10,11 @@ public class Drone implements Runnable {
     private static final float TOP_SPEED = 20.0f;     // 20m/s
     private static final float TAKEOFF_ACCEL_RATE = 3.0f;  //3m/s^2
     private static final float LAND_DECEL_RATE = 5.0f;   //5m/s^2
-    private static final float ARRIVAL_DISTANCE_THRESHOLD = 1f;  //1m  which means if the distance is less than 20m assume it is arrived
+    private static final float ARRIVAL_DISTANCE_THRESHOLD = 0.1f;  //0.1m  which means if the distance is less than 20m assume it is arrived
     private final int id;
     private final Scheduler scheduler;
     private final AgentTank agentTank;
-    private final Position position;
+    private Position position;
     //private float rating;           //for scheduling algorithm later
     private Zone zoneToService;       // The zone assigned by the Scheduler. The drone won't pick tasks itself
     private volatile DroneStatus status;  // make sure thread will check status everytime
@@ -96,17 +96,9 @@ public class Drone implements Runnable {
 
 
     /**
-     * make a new thread while do releaseAgent, because scheduler may call stopAgent
-     */
-    public void releaseAgent() {
-        new Thread(this::releaseAgentLoop).start();
-    }
-
-    /**
      * Executes agent release operation
      */
-    public void releaseAgentLoop() {
-
+    public void releaseAgent() {
         setStatus(DroneStatus.DROPPING_AGENT);
         scheduler.droneStatusUpdated(getStatus());
         System.out.println("[Drone#" + id + "] Starting agent release.");
@@ -138,22 +130,22 @@ public class Drone implements Runnable {
             zoneToService.setRequiredAgentAmount(zoneToService.getRequiredAgentAmount() - agentToDrop);
 
             System.out.println("[Drone#" + id + "] Releasing " + agentToDrop + "L. Tank=" + getTankCapacity() + ", zoneNeed=" + zoneToService.getRequiredAgentAmount());
+
         }
     }
+
 
     /**
      * The scheduler can ask drone stopAgent, it will close the agent nozzle and set agentStatus to IDLE
      */
     public void stopAgent() {
         System.out.println("[Drone#" + id + "] handleStopAgent() called.");
-        synchronized (this) {
-            if (status == DroneStatus.DROPPING_AGENT) {
-                agentTank.closeNozzle();
-                System.out.println("[Drone#" + id + "] Stopped releasing agent.");
-                setStatus(DroneStatus.IDLE);
-            } else {
-                System.out.println("[Drone#" + id + "] Not currently releasing agent. No action taken.");
-            }
+        if (status == DroneStatus.DROPPING_AGENT) {
+            agentTank.closeNozzle();
+            System.out.println("[Drone#" + id + "] Stopped releasing agent.");
+            setStatus(DroneStatus.IDLE);
+        } else {
+            System.out.println("[Drone#" + id + "] Not currently releasing agent. No action taken.");
         }
     }
 
@@ -168,20 +160,19 @@ public class Drone implements Runnable {
         System.out.println("[Drone#" + id + "] Starting flight.");
 
         long previousTime = System.nanoTime(); //get current system time before get into while loop
-
+        long currentTime;
+        float deltaTime;
+        float distanceFromDestination;
         while (true) {
 
-            long currentTime = System.nanoTime();
-            float deltaTime = (currentTime - previousTime) / 1_000_000_000f; // convert into seconds
+            currentTime = System.nanoTime();
+            deltaTime = (currentTime - previousTime) / 1_000_000_000f; // convert into seconds
             previousTime = currentTime;
 
-            float distance;
-            synchronized (this) {
-                distance = position.distanceFrom(destination); //destination may change by scheduler
-            }
+            distanceFromDestination = position.distanceFrom(destination);
 
-            // If arrived (close enough + speed near 0), stop, and check if Drone is at base or arrived at destination
-            if (distance < ARRIVAL_DISTANCE_THRESHOLD) {
+            // If arrived (close enough ), stop, and check if Drone is at base or arrived at destination
+            if (distanceFromDestination < ARRIVAL_DISTANCE_THRESHOLD) {
                 System.out.println("[Drone#" + id + "] handleFly: Arrived at dest. speed=" + currentSpeed);
                 currentSpeed = 0;
                 if (destination.equals(BASE_POSITION)) {
@@ -197,41 +188,41 @@ public class Drone implements Runnable {
             float stoppingDistance = (currentSpeed * currentSpeed) / (2 * LAND_DECEL_RATE); //use s=(v^2/2a) calculate stop distance, when hit this distance, start to decelerate
 
             //when get in stoppingDistance -> decelerate OR  if not hit TOP_SPEED -> accelerate
-            synchronized (this) {
-                if (distance <= stoppingDistance) {
-                    currentSpeed -= LAND_DECEL_RATE * deltaTime;
-                    if (currentSpeed < 0) {
-                        currentSpeed = 0;
-                    }
-                } else {
-                    if (currentSpeed < TOP_SPEED) {
-                        currentSpeed += TAKEOFF_ACCEL_RATE * deltaTime;
-                        if (currentSpeed > TOP_SPEED) {
-                            currentSpeed = TOP_SPEED;
-                        }
+
+            if (distanceFromDestination <= stoppingDistance) {
+                currentSpeed -= LAND_DECEL_RATE * deltaTime;
+                if (currentSpeed < 0) {
+                    currentSpeed = 0;
+                }
+            } else {
+                if (currentSpeed < TOP_SPEED) {
+                    currentSpeed += TAKEOFF_ACCEL_RATE * deltaTime;
+                    if (currentSpeed > TOP_SPEED) {
+                        currentSpeed = TOP_SPEED;
                     }
                 }
             }
 
-            // Update the new position by calculating the distance traveled, calculate angle using Math.tan(), and get the new x and y coordinates with sin() and cos()
+
+            // Update the new position based on distance travelled
             float stepDist;
             float newX, newY;
-            synchronized (this) {
-                stepDist = currentSpeed * deltaTime;
-                float dx = destination.getX() - position.getX();
-                float dy = destination.getY() - position.getY();
-                float angle = (float) Math.atan2(dy, dx);
 
-                if (stepDist > distance) {
-                    stepDist = distance;
-                }
+            stepDist = currentSpeed * deltaTime;
+            float dx = destination.getX() - position.getX();
+            float dy = destination.getY() - position.getY();
+            float angle = (float) Math.atan2(dy, dx);
 
-                newX = position.getX() + stepDist * (float) Math.cos(angle);
-                newY = position.getY() + stepDist * (float) Math.sin(angle);
-                position.update(newX, newY);
+            if (stepDist > distanceFromDestination) {
+                stepDist = distanceFromDestination;
             }
 
-            System.out.println("[Drone#" + id + "] Flying: pos=(" + newX + "," + newY + "), speed=" + currentSpeed + " m/s, distance=" + distance + " m");
+            newX = position.getX() + stepDist * (float) Math.cos(angle);
+            newY = position.getY() + stepDist * (float) Math.sin(angle);
+            position.update(newX, newY);
+
+
+            System.out.println("[Drone#" + id + "] Flying: pos=(" + newX + "," + newY + "), speed=" + currentSpeed + " m/s, distance=" + distanceFromDestination + " m");
         }
     }
 
