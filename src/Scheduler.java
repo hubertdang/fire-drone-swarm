@@ -25,12 +25,17 @@ public class Scheduler implements Runnable {
     }
 
     /**
-     * Adds a zone to mission queue based on fire severity and amount of agent needed
+     * Adds a zone to mission queue based on fire severity and amount of agent needed.
+     * Dispatches a drone to the new zone if the new zone has a higher priority than the
+     * zone being currently serviced by the drone.
      *
      * @param zone
      */
     public void handleFireReq(Zone zone) {
         missionQueue.queue(zone);
+        if (drone.getZoneToService() == null || comparePriority(zone, drone.getZoneToService())) {
+            dispatch(drone, zone);
+        }
     }
 
     /**
@@ -66,10 +71,8 @@ public class Scheduler implements Runnable {
      * @param zone
      */
     public void dispatch(Drone drone, Zone zone) {
-        if (drone.getZoneToService() == null) {
-            drone.setZoneToService(missionQueue.pop());
-            drone.fly(zone.getPosition());
-        }
+        drone.setZoneToService(missionQueue.pop());
+        drone.fly(zone.getPosition());
     }
 
     /**
