@@ -54,7 +54,7 @@ public class FireIncidentSubsystemTest {
 
         // Verify that events are added correctly
         assertEquals(2, fireIncidentSubsystem.getEvents().size());
-        Event event1 = fireIncidentSubsystem.getEvents().get(0);
+        SimEvent event1 = fireIncidentSubsystem.getEvents().get(0);
         assertEquals(1, event1.getZoneId());
         assertEquals(14 * 3600 * 1000 + 3 * 60 * 1000 + 15 * 1000, event1.getTime());
         assertEquals("FIRE_DETECTED", event1.getEventType());
@@ -82,7 +82,7 @@ public class FireIncidentSubsystemTest {
     @Test
     void testIsEventReadyToProcess() {
         // Add an event
-        fireIncidentSubsystem.getEvents().add(new Event(14 * 3600 * 1000 + 3 * 60 * 1000 + 15 * 1000, 1, "FIRE_DETECTED", "High"));
+        fireIncidentSubsystem.getEvents().add(new SimEvent(14 * 3600 * 1000 + 3 * 60 * 1000 + 15 * 1000, 1, "FIRE_DETECTED", "High"));
 
         // Verify event readiness
         assertTrue(fireIncidentSubsystem.isEventReadyToProcess(0, 14 * 3600 * 1000 + 3 * 60 * 1000 + 15 * 1000, 14 * 3600 * 1000 + 3 * 60 * 1000 + 15 * 1000));

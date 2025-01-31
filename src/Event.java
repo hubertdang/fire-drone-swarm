@@ -1,7 +1,7 @@
 /**
  * Event class represents an event that occurs in the simulation.
  */
-public class Event {
+public class SimEvent {
     private long time;
     private int zoneId;
     private String eventType;
@@ -15,7 +15,7 @@ public class Event {
      * @param eventType the type of the event
      * @param severity  the severity of the event
      */
-    public Event(long time, int zoneId, String eventType, String severity) {
+    public SimEvent(long time, int zoneId, String eventType, String severity) {
         this.time = time;
         this.zoneId = zoneId;
         this.eventType = eventType;
