@@ -83,6 +83,28 @@ public class Scheduler implements Runnable {
      * @return true if zone1 has higher priority than zone2, false otherwise
      */
     public boolean comparePriority(Zone zone1, Zone zone2) {
-        return true;
+        if (zone1.getSeverity() == FireSeverity.LOW) {
+            if (zone2.getSeverity() == FireSeverity.MODERATE || zone2.getSeverity() == FireSeverity.HIGH) {
+                return false;
+            } else {
+                return (zone1.getRequiredAgentAmount() > zone2.getRequiredAgentAmount());
+            }
+        } else if (zone1.getSeverity() == FireSeverity.MODERATE) {
+            if (zone2.getSeverity() == FireSeverity.HIGH) {
+                return false;
+            } else if (zone2.getSeverity() == FireSeverity.LOW) {
+                return true;
+            } else {
+                return (zone1.getRequiredAgentAmount() > zone2.getRequiredAgentAmount());
+            }
+        } else if (zone1.getSeverity() == FireSeverity.HIGH) {
+            if (zone2.getSeverity() == FireSeverity.MODERATE || zone2.getSeverity() == FireSeverity.LOW) {
+                return true;
+            } else {
+                return (zone1.getRequiredAgentAmount() > zone2.getRequiredAgentAmount());
+            }
+        } else {
+            return false;
+        }
     }
 }
