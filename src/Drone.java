@@ -104,6 +104,9 @@ public class Drone implements Runnable {
         System.out.println("[Drone#" + id + "] Starting agent release.");
 
         long previousTime = System.nanoTime();
+        long currentTime;
+        float deltaTime;
+        float agentToDrop;
 
         while (true) {
             //the status will change if agent is empty or call stopAgent()
@@ -113,8 +116,8 @@ public class Drone implements Runnable {
             }
 
 
-            long currentTime = System.nanoTime();
-            float deltaTime = (currentTime - previousTime) / 1_000_000_000f; // convert to second
+            currentTime = System.nanoTime();
+            deltaTime = (currentTime - previousTime) / 1_000_000_000f; // convert to second
             previousTime = currentTime;
 
             if (agentTank.isEmpty()) {
@@ -124,7 +127,7 @@ public class Drone implements Runnable {
             }
 
             //check how much agent can drop vs how much agent left
-            float agentToDrop = Math.min(agentTank.getCurrAgentAmount(), AgentTank.AGENT_DROP_RATE * deltaTime);
+            agentToDrop = Math.min(agentTank.getCurrAgentAmount(), AgentTank.AGENT_DROP_RATE * deltaTime);
 
             agentTank.decreaseAgent(agentToDrop);
             zoneToService.setRequiredAgentAmount(zoneToService.getRequiredAgentAmount() - agentToDrop);
@@ -161,8 +164,13 @@ public class Drone implements Runnable {
 
         long previousTime = System.nanoTime(); //get current system time before get into while loop
         long currentTime;
-        float deltaTime;
+        float deltaTime;  //time duration
         float distanceFromDestination;
+        float stepDist;  //distance traveled each time duration
+        float newX, newY;
+        float angle;
+        float stoppingDistance;
+
         while (true) {
 
             currentTime = System.nanoTime();
@@ -185,7 +193,7 @@ public class Drone implements Runnable {
                 return;
             }
 
-            float stoppingDistance = (currentSpeed * currentSpeed) / (2 * LAND_DECEL_RATE); //use s=(v^2/2a) calculate stop distance, when hit this distance, start to decelerate
+            stoppingDistance = (currentSpeed * currentSpeed) / (2 * LAND_DECEL_RATE); //use s=(v^2/2a) calculate stop distance, when hit this distance, start to decelerate
 
             //when get in stoppingDistance -> decelerate OR  if not hit TOP_SPEED -> accelerate
 
@@ -203,15 +211,11 @@ public class Drone implements Runnable {
                 }
             }
 
-
             // Update the new position based on distance travelled
-            float stepDist;
-            float newX, newY;
+
 
             stepDist = currentSpeed * deltaTime;
-            float dx = destination.getX() - position.getX();
-            float dy = destination.getY() - position.getY();
-            float angle = (float) Math.atan2(dy, dx);
+            angle = (float) Math.atan2(destination.getX() - position.getX(), destination.getY() - position.getY());
 
             if (stepDist > distanceFromDestination) {
                 stepDist = distanceFromDestination;
@@ -243,7 +247,6 @@ public class Drone implements Runnable {
     public void run() {
 
     }
-
 
 }
 
