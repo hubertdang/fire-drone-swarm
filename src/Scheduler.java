@@ -1,16 +1,16 @@
 public class Scheduler implements Runnable {
-    private Drone drone;
-    private MissionQueue missionQueue;
     private static final Position BASE = new Position(0, 0);
+    private final Drone drone;
+    private final MissionQueue missionQueue;
 
     /**
-     * Constructs a scheduler for the system
-     *
+     * Constructs a scheduler for the system.
+     * Initialises the drone and mission queue.
      */
-    public Scheduler(Drone drone) {
+    public Scheduler() {
 
         missionQueue = new MissionQueue();
-        this.drone = drone;
+        drone = new Drone(1, this);
     }
 
     /**
@@ -39,13 +39,12 @@ public class Scheduler implements Runnable {
      * @param status
      */
     public void droneStatusUpdated(DroneStatus status) {
-        if (status == DroneStatus.ARRIVED){
+        if (status == DroneStatus.ARRIVED) {
             drone.releaseAgent();
-        }
-        else if (status == DroneStatus.BASE) {
+        } else if (status == DroneStatus.BASE) {
             //drone.recover(); - method/flag does not exist in the drone class yet
+        } else {
         }
-        else {}
     }
 
     /**
@@ -54,7 +53,7 @@ public class Scheduler implements Runnable {
      * @param zone
      */
     public void zoneSeverityUpdated(Zone zone) {
-        if (zone.getSeverity() == FireSeverity.NO_FIRE){
+        if (zone.getSeverity() == FireSeverity.NO_FIRE) {
             drone.stopAgent();
             drone.fly(BASE);
         }
@@ -67,7 +66,7 @@ public class Scheduler implements Runnable {
      * @param zone
      */
     public void dispatch(Drone drone, Zone zone) {
-        if (drone.getZoneToService() == null){
+        if (drone.getZoneToService() == null) {
             drone.setZoneToService(missionQueue.pop());
             drone.fly(zone.getPosition());
         }
@@ -81,6 +80,6 @@ public class Scheduler implements Runnable {
      * @return true if zone1 has higher priority than zone2, false otherwise
      */
     public boolean comparePriority(Zone zone1, Zone zone2) {
-       return true;
+        return true;
     }
 }
