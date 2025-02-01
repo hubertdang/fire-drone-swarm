@@ -2,6 +2,50 @@
 
 A control system and simulator for a firefighting drone swarm.
 
+## 📂 Project Structure
+
+| **File**                         | **Description**                                                                                 |
+|----------------------------------|-------------------------------------------------------------------------------------------------|
+| `FireIncidentSubsystem.java`     | Handles fire events and drone requests, communicating with `Scheduler`                          |
+| `FireIncidentBuffer.java`        | Represents the buffer used between the fire incident subsystem and the scheduler.               |
+| `Scheduler.java`                 | Processes fire incidents and drone requests.                                                    |
+| `MissionQueue.java`              | Represents the queue of missions for the drones.                                                |
+| `SimEvent.java`                  | Represents a fire event message.                                                                |
+| `Task.java`                      | Represents a task used to aid in the generation of messages passed between scheduler and drone. |
+| `Drone.java`                     | Represents a drone in the simulation.                                                           |
+| `DroneBuffer.java`               | Represents the buffer used between drone adn scheduler.                                         |
+| `DroneStatus.java`               | Enum defining the possible statuses the drone can be in.                                        |
+| `Zone.java`                      | Represents a zone, including position and severity of any fire occurring there.                 |
+| `AgentTank.java`                 | Represents the tank of the drone.                                                               |
+| `Position.java`                  | Represents x, y coordinates of a zone.                                                          |
+| `FireSeverity.java`              | Enum defining `NO_FIRE`, `LOW`, `MODERATE`, and `HIGH` severity levels.                         |
+| `Main.java`                      | Entry point for running the simulation.                                                         |
+| `FireIncidentSubsystemTest.java` | Unit tests for `FireIncidentSubsystem`.                                                         |
+| `SchedulerTest.java`             | Unit tests for `Scheduler`.                                                                     |
+| `ZoneTest.java`                  | Unit tests for `Zone`.                                                                          |
+| `AgentTankTest.java`             | Unit tests for `AgentTank`.                                                                     |
+| `PositionTest.java`              | Unit tests for `Position`.                                                                      |
+| `sample_input_files/zones.csv`   | Sample test file containing zone definitions.                                                   |
+| `sample_input_files/events.csv`  | Sample test file containing fire incident events.                                               |
+
+## ⚙️ Setup Instructions
+
+### **Prerequisites**
+- Java 11+ installed.
+- IntelliJ IDEA or any Java IDE.
+- Ensure that the following test files exist in sample_input_files/: `zones.csv`, `events.csv`.
+
+### **1. Clone the Repository**
+```sh
+git clone https://github.com/hubertdang/fire-drone-swarm.git `
+cd fire-drone-swarm
+```
+### **2. Open the Project in IntelliJ IDEA**
+1. Open IntelliJ IDEA.
+2. Click on `Open`.
+3. Compile and run `Main.java` inside your IDE.
+4. To run unit tests, click on unit test file and run the test
+
 ## Developer Workflow
 
 1. Checkout the project in IntelliJ. Follow the instructions listed [here](https://www.jetbrains.com/help/idea/manage-projects-hosted-on-github.html#clone-from-GitHub).
@@ -58,4 +102,14 @@ A control system and simulator for a firefighting drone swarm.
 10. Create your pull request. Follow the instructions listed [here](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request#creating-the-pull-request).
 11. Once your pull request is ready to merge, please **squash and merge** to limit the number of commits to master.
 ![image](https://github.com/user-attachments/assets/e829f914-5a12-4ec0-a8e7-1ee3f6358397)
+
+## Breakdown of Responsibilities
+In general, the team approached the project collaboratively, working together to solve problems and make decisions. However, each team member was responsible for specific tasks and components of the project. 
+The breakdown of responsibilities is as follows:
+- Amilesh: `FireIncidentSubsystem`, `FireIncidentSubsystemTest`, `SimEvent`
+- Hubert: UML Diagrams
+- David: UML Diagrams, `Task`, `DroneBuffer`, `FireIncidentBuffer`
+- Aashna: `Zone`, `ZoneTest`, `Position`, `PositionTest`, `AgentTank`, `AgentTankTest`
+- Shenhao Gong: `Drone`, `DroneStatus`, `FireSeverity`
+- Manit: `Scheduler`, `MissionQueue`, `SchedulerTest`
 
