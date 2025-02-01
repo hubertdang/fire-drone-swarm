@@ -3,5 +3,6 @@ public enum DroneStatus {
     EMPTY,
     ENROUTE,
     BASE,
+    IDLE,
     ARRIVED
 }
