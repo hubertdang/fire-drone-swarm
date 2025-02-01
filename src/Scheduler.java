@@ -107,4 +107,7 @@ public class Scheduler implements Runnable {
             return false;
         }
     }
+
+    public void setFireInfo(Position position, FireSeverity severity, long eventTime) {
+    }
 }

@@ -221,7 +221,7 @@ public class FireIncidentSubsystem implements Runnable {
         Zone zone = clearZones.get(zoneId);
         FireSeverity fireSeverity = FireSeverity.valueOf(severity.toUpperCase());
         zone.setSeverity(fireSeverity);
-        zone.setRequiredAgents(AGENT_AMOUNT.get(fireSeverity));
+        zone.setRequiredAgentAmount(AGENT_AMOUNT.get(fireSeverity));
 
         if (eventType.equals("FIRE_DETECTED")) {
             trackFire(zone, eventTime);

@@ -101,7 +101,6 @@ public class Drone implements Runnable {
     public void releaseAgent() {
         setStatus(DroneStatus.DROPPING_AGENT);
         scheduler.droneStatusUpdated(getStatus());
-        System.out.println("[Drone#" + id + "] Starting agent release.");
 
         long previousTime = System.nanoTime();
         long currentTime;
@@ -111,7 +110,6 @@ public class Drone implements Runnable {
         while (true) {
             //the status will change if agent is empty or call stopAgent()
             if (getStatus() != DroneStatus.DROPPING_AGENT) {
-                System.out.println("[Drone#" + id + "] Release agent stopped. Current status: " + getStatus());
                 break;
             }
 
@@ -121,7 +119,6 @@ public class Drone implements Runnable {
             previousTime = currentTime;
 
             if (agentTank.isEmpty()) {
-                System.out.println("[Drone#" + id + "] Tank is empty. Stopping agent release.");
                 setStatus(DroneStatus.EMPTY);
                 break;
             }
@@ -132,7 +129,6 @@ public class Drone implements Runnable {
             agentTank.decreaseAgent(agentToDrop);
             zoneToService.setRequiredAgentAmount(zoneToService.getRequiredAgentAmount() - agentToDrop);
 
-            System.out.println("[Drone#" + id + "] Releasing " + agentToDrop + "L. Tank=" + getTankCapacity() + ", zoneNeed=" + zoneToService.getRequiredAgentAmount());
 
         }
     }
@@ -142,13 +138,12 @@ public class Drone implements Runnable {
      * The scheduler can ask drone stopAgent, it will close the agent nozzle and set agentStatus to IDLE
      */
     public void stopAgent() {
-        System.out.println("[Drone#" + id + "] handleStopAgent() called.");
+
         if (status == DroneStatus.DROPPING_AGENT) {
             agentTank.closeNozzle();
-            System.out.println("[Drone#" + id + "] Stopped releasing agent.");
             setStatus(DroneStatus.IDLE);
         } else {
-            System.out.println("[Drone#" + id + "] Not currently releasing agent. No action taken.");
+
         }
     }
 
@@ -158,9 +153,8 @@ public class Drone implements Runnable {
      *
      * @param destination the destination for drone to go
      */
-    private void fly(Position destination) {
+    public void fly(Position destination) {
         setStatus(DroneStatus.ENROUTE);
-        System.out.println("[Drone#" + id + "] Starting flight.");
 
         long previousTime = System.nanoTime(); //get current system time before get into while loop
         long currentTime;
@@ -181,7 +175,6 @@ public class Drone implements Runnable {
 
             // If arrived (close enough ), stop, and check if Drone is at base or arrived at destination
             if (distanceFromDestination < ARRIVAL_DISTANCE_THRESHOLD) {
-                System.out.println("[Drone#" + id + "] handleFly: Arrived at dest. speed=" + currentSpeed);
                 currentSpeed = 0;
                 if (destination.equals(BASE_POSITION)) {
                     setStatus(DroneStatus.BASE);
@@ -225,8 +218,6 @@ public class Drone implements Runnable {
             newY = position.getY() + stepDist * (float) Math.sin(angle);
             position.update(newX, newY);
 
-
-            System.out.println("[Drone#" + id + "] Flying: pos=(" + newX + "," + newY + "), speed=" + currentSpeed + " m/s, distance=" + distanceFromDestination + " m");
         }
     }
 
