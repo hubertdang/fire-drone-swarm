@@ -1,3 +1,5 @@
+import static java.lang.Thread.sleep;
+
 /**
  * <p>Drone</p>
  *
@@ -10,24 +12,24 @@ public class Drone implements Runnable {
     private static final float TOP_SPEED = 20.0f;     // 20m/s
     private static final float TAKEOFF_ACCEL_RATE = 3.0f;  //3m/s^2
     private static final float LAND_DECEL_RATE = 5.0f;   //5m/s^2
-    private static final float ARRIVAL_DISTANCE_THRESHOLD = 0.1f;  //0.1m  which means if the distance is less than 20m assume it is arrived
+    private static final float ARRIVAL_DISTANCE_THRESHOLD = 25.0f;  //25m  which means if the distance is less than 20m assume it is arrived
     private final int id;
-    private final Scheduler scheduler;
     private final AgentTank agentTank;
     private Position position;
     //private float rating;           //for scheduling algorithm later
     private Zone zoneToService;       // The zone assigned by the Scheduler. The drone won't pick tasks itself
     private volatile DroneStatus status;  // make sure thread will check status everytime
     private float currentSpeed = 0f;
+    private DroneBuffer droneBuffer;
 
 
-    public Drone(int id, Scheduler scheduler) {
+    public Drone(int id, DroneBuffer droneBuffer) {
         this.id = id;
-        this.scheduler = scheduler;
         this.position = new Position(BASE_POSITION.getX(), BASE_POSITION.getY());
         this.currentSpeed = 0f;
         this.status = DroneStatus.BASE;
         this.agentTank = new AgentTank();
+        this.droneBuffer = droneBuffer;
     }
 
 
@@ -100,17 +102,19 @@ public class Drone implements Runnable {
      */
     public void releaseAgent() {
         setStatus(DroneStatus.DROPPING_AGENT);
-        scheduler.droneStatusUpdated(getStatus());
         System.out.println("[Drone#" + id + "] Starting agent release.");
 
         long previousTime = System.nanoTime();
         long currentTime;
         float deltaTime;
         float agentToDrop;
+        int tempStepperForSim = 0;
 
         while (true) {
+            tempStepperForSim++;
             //the status will change if agent is empty or call stopAgent()
-            if (getStatus() != DroneStatus.DROPPING_AGENT) {
+            if (getStatus() != DroneStatus.DROPPING_AGENT || tempStepperForSim == 7) {
+                this.setStatus(DroneStatus.FIRE_STOPPED);// temp until we figure out how to say fire has stopped
                 System.out.println("[Drone#" + id + "] Release agent stopped. Current status: " + getStatus());
                 break;
             }
@@ -130,11 +134,20 @@ public class Drone implements Runnable {
             agentToDrop = Math.min(agentTank.getCurrAgentAmount(), AgentTank.AGENT_DROP_RATE * deltaTime);
 
             agentTank.decreaseAgent(agentToDrop);
-            zoneToService.setRequiredAgentAmount(zoneToService.getRequiredAgentAmount() - agentToDrop);
+            //zoneToService.setRequiredAgentAmount(zoneToService.getRequiredAgentAmount() - agentToDrop);
 
-            System.out.println("[Drone#" + id + "] Releasing " + agentToDrop + "L. Tank=" + getTankCapacity() + ", zoneNeed=" + zoneToService.getRequiredAgentAmount());
+            System.out.println("[Drone#" + id + "] Releasing " + agentToDrop + "L. Tank=" + getTankCapacity()); // + ", zoneNeed=" + zoneToService.getRequiredAgentAmount());
 
+            // sleep thread to allow other threads to run/ not flood logs
+            try {
+                sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
+
+        // temporary acknowledgment to say fire is stopped after drone empties tank
+        droneBuffer.addSchedulerAcknowledgement(new Task(DroneStatus.FIRE_STOPPED));
     }
 
 
@@ -170,9 +183,10 @@ public class Drone implements Runnable {
         float newX, newY;
         float angle;
         float stoppingDistance;
+        int tempStepperForSim = 0;
 
         while (true) {
-
+            tempStepperForSim++;
             currentTime = System.nanoTime();
             deltaTime = (currentTime - previousTime) / 1_000_000_000f; // convert into seconds
             previousTime = currentTime;
@@ -180,15 +194,15 @@ public class Drone implements Runnable {
             distanceFromDestination = position.distanceFrom(destination);
 
             // If arrived (close enough ), stop, and check if Drone is at base or arrived at destination
-            if (distanceFromDestination < ARRIVAL_DISTANCE_THRESHOLD) {
+            if (distanceFromDestination < ARRIVAL_DISTANCE_THRESHOLD || tempStepperForSim == 10) {
                 System.out.println("[Drone#" + id + "] handleFly: Arrived at dest. speed=" + currentSpeed);
                 currentSpeed = 0;
                 if (destination.equals(BASE_POSITION)) {
                     setStatus(DroneStatus.BASE);
-                    scheduler.droneStatusUpdated(getStatus());
+                    droneBuffer.addSchedulerAcknowledgement(new Task(DroneStatus.BASE));
                 } else {
                     setStatus(DroneStatus.ARRIVED);
-                    scheduler.droneStatusUpdated(getStatus());
+                    droneBuffer.addSchedulerAcknowledgement(new Task(DroneStatus.ARRIVED));
                 }
                 return;
             }
@@ -227,6 +241,14 @@ public class Drone implements Runnable {
 
 
             System.out.println("[Drone#" + id + "] Flying: pos=(" + newX + "," + newY + "), speed=" + currentSpeed + " m/s, distance=" + distanceFromDestination + " m");
+
+            // sleep to minimize logs
+            // threshold must be >= 20m to account for this sleep call
+            try {
+                sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -246,6 +268,41 @@ public class Drone implements Runnable {
     @Override
     public void run() {
 
+        while (true) {
+            // wait until given a directive by scheduler
+            droneBuffer.waitForTask();
+
+            // process tasks received
+            Task taskToDo = droneBuffer.popSchedulerTask();
+
+            System.out.println("[" + Thread.currentThread().getName() + "]: Drone " +
+                    this.id + " received a new task to: " + taskToDo.getDroneStatus());
+
+            switch (taskToDo.getDroneStatus()) {
+                case BASE -> {
+                    this.setStatus(DroneStatus.ENROUTE);
+                    fly(BASE_POSITION);
+                }
+                case ENROUTE -> {
+                    this.setStatus(DroneStatus.ENROUTE);
+                    fly(taskToDo.getEvent().getZonePosition());
+                }
+                case DROPPING_AGENT -> {
+                    this.setStatus(DroneStatus.DROPPING_AGENT);
+                    releaseAgent(); // this causes drone to drop agent until its empty, need to fix this
+                }
+                case STOP_DROPPING_AGENT -> {
+                    this.setStatus(DroneStatus.IDLE);
+                    stopAgent();
+                }
+                case IDLE -> {
+                    setStatus(DroneStatus.IDLE);
+                }
+            }
+
+            // tell scheduler drones current state after executing task
+            droneBuffer.addSchedulerAcknowledgement(new Task(this.getStatus()));
+        }
     }
 
 }

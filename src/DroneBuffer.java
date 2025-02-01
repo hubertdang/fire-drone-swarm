@@ -7,35 +7,58 @@ import java.util.ArrayList;
 
 public class DroneBuffer {
 
-    private ArrayList<Task> tasksFromDrone;
+    private ArrayList<Task> acknowledgementFromDrone;
     private ArrayList<Task> tasksFromScheduler;
 
+    /**
+     * Constructs a shared buffer used for message passing.
+     */
     public DroneBuffer() {
-        tasksFromDrone = new ArrayList<>();
+        acknowledgementFromDrone = new ArrayList<>();
         tasksFromScheduler = new ArrayList<>();
-        notifyAll();
     }
 
-    public synchronized void popDroneTask() {
-        this.tasksFromDrone.remove(0);
+    /**
+     * Retrieves an acknowledgement message from the buffer.
+     * @return a Task object
+     */
+    public synchronized Task popDroneAcknowledgement() {
+        Task message = this.acknowledgementFromDrone.remove(0);
         notifyAll();
+        return message;
     }
 
-    public synchronized void popSchedulerTask() {
-        this.tasksFromScheduler.remove(0);
+    /**
+     * Retrieves a task message from the buffer.
+     * @return a Task object
+     */
+    public synchronized Task popSchedulerTask() {
+        Task message = this.tasksFromScheduler.remove(0);
         notifyAll();
+        return message;
     }
 
+    /**
+     * Adds task message to buffer.
+     * @param task the message to be added to buffer
+     */
     public synchronized void addDroneTask(Task task) {
-        tasksFromDrone.add(task);
-        notifyAll();
-    }
-
-    public synchronized void addSchedulerTask(Task task) {
         tasksFromScheduler.add(task);
         notifyAll();
     }
 
+    /**
+     * Adds task acknowledgement message to buffer.
+     * @param task the message to be added to buffer
+     */
+    public synchronized void addSchedulerAcknowledgement(Task task) {
+        acknowledgementFromDrone.add(task);
+        notifyAll();
+    }
+
+    /**
+     * Disables drone thread while waiting for a new fire event to service.
+     */
     public synchronized void waitForTask() {
         while (tasksFromScheduler.isEmpty()) {
             try {
@@ -44,6 +67,13 @@ public class DroneBuffer {
                 throw new RuntimeException(e);
             }
         }
-        notifyAll();
+    }
+
+    /**
+     * newAcknowledgement signifies if there are any additions to event list
+     * @return true if acknowledgementMessages not empty, false otherwise
+     */
+    public synchronized boolean newAcknowledgement() {
+        return !acknowledgementFromDrone.isEmpty();
     }
 }

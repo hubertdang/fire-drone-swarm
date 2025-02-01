@@ -7,26 +7,26 @@
 public class Task {
 
     private DroneStatus droneStatus;
-    private Zone zone;
+    private SimEvent event;
 
     /**
-     * Task constructor 1 takes a desired task, and sets the Zone to a default value;
+     * Task constructor 1 takes a desired task, and sets the event to a default value;
      * to convey message between scheduler and drone.
      * @param droneStatus the status message to be interpreted by a Drone.
      */
     public Task(DroneStatus droneStatus) {
         this.droneStatus = droneStatus;
-        this.zone = new Zone(-1, -1, -1, -1, -1, -1);
+        this.event = null;
     }
 
     /**
      * Task constructor 2 takes a desired task, and Zone to convey message between scheduler and drone
-     * @param zone the Zone to service.
+     * @param event the Zone to service.
      * @param droneStatus the status message to be interpreted by a Drone.
      */
-    public Task(Zone zone, DroneStatus droneStatus) {
+    public Task(DroneStatus droneStatus, SimEvent event) {
         this.droneStatus = droneStatus;
-        this.zone = zone;
+        this.event = event;
     }
 
     /**
@@ -36,8 +36,8 @@ public class Task {
     public DroneStatus getDroneStatus() {return this.droneStatus;}
 
     /**
-     * getZone
-     * @return the zone to service.
+     * getEvent
+     * @return the event to service.
      */
-    public Zone getZone() {return this.zone;}
+    public SimEvent getEvent() {return this.event;}
 }

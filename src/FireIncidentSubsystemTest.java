@@ -9,11 +9,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class FireIncidentSubsystemTest {
     private FireIncidentSubsystem fireIncidentSubsystem;
-    private Scheduler scheduler;
 
     @BeforeEach
     public void setUp() {
-        fireIncidentSubsystem = new FireIncidentSubsystem(scheduler);
+        fireIncidentSubsystem = new FireIncidentSubsystem(new FireIncidentBuffer());
     }
 
     @Test
@@ -82,7 +81,7 @@ public class FireIncidentSubsystemTest {
     @Test
     void testIsEventReadyToProcess() {
         // Add an event
-        fireIncidentSubsystem.getEvents().add(new SimEvent(14 * 3600 * 1000 + 3 * 60 * 1000 + 15 * 1000, 1, "FIRE_DETECTED", "High"));
+        fireIncidentSubsystem.getEvents().add(new SimEvent(14 * 3600 * 1000 + 3 * 60 * 1000 + 15 * 1000, 1, "FIRE_DETECTED", "High", null));
 
         // Verify event readiness
         assertTrue(fireIncidentSubsystem.isEventReadyToProcess(0, 14 * 3600 * 1000 + 3 * 60 * 1000 + 15 * 1000, 14 * 3600 * 1000 + 3 * 60 * 1000 + 15 * 1000));

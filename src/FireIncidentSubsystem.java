@@ -7,9 +7,11 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import static java.lang.Thread.sleep;
+
 
 public class FireIncidentSubsystem implements Runnable {
-    private Scheduler scheduler;
+    private FireIncidentBuffer fireBuffer;
     private HashMap<Integer, Zone> clearZones;
     private HashMap<Integer, Zone> fireZones;
     private ArrayList<SimEvent> events;
@@ -21,12 +23,12 @@ public class FireIncidentSubsystem implements Runnable {
     }};
 
     /**
-     * Constructs a FireIncidentSubsystem with the given scheduler.
+     * Constructs a FireIncidentSubsystem with the given fireBuffer.
      *
-     * @param scheduler the scheduler to be used
+     * @param fireBuffer the scheduler to be used
      */
-    public FireIncidentSubsystem(Scheduler scheduler) {
-        this.scheduler = scheduler;
+    public FireIncidentSubsystem(FireIncidentBuffer fireBuffer) {
+        this.fireBuffer = fireBuffer;
         this.clearZones = new HashMap<Integer, Zone>();
         this.fireZones = new HashMap<Integer, Zone>(); // no fires when we initialize
         this.events = new ArrayList<SimEvent>();
@@ -37,13 +39,15 @@ public class FireIncidentSubsystem implements Runnable {
      *
      * @param zone      the zone the drone will be sent to
      * @param eventTime the time the event occurred
+     * @param eventType the type of event that has occurred
      */
-    private void manualReqDrone(Zone zone, long eventTime) {
+    private void manualReqDrone(Zone zone, long eventTime, String eventType) {
         if (!isOnFire(zone)) {
             System.out.println("[" + Thread.currentThread().getName() + "]: " + "Manual request for drone at zone: " + zone.getId());
             clearZones.remove(zone.getId());
             fireZones.put(zone.getId(), zone);
-            scheduler.setFireInfo(zone.getPosition(), zone.getSeverity(), eventTime);
+            SimEvent manualEvent = new SimEvent(eventTime, zone.getId(), eventType, zone.getSeverity().toString(), zone.getPosition());
+            fireBuffer.addEventMessage(manualEvent);
         } else {
             System.out.println("[" + Thread.currentThread().getName() + "]: " + "Zone " + zone.getId() + " is already on fire");
         }
@@ -59,8 +63,10 @@ public class FireIncidentSubsystem implements Runnable {
         System.out.println("[" + Thread.currentThread().getName() + "]: " + "Fire detected at zone: " + zone.getId());
         clearZones.remove(zone.getId());
         fireZones.put(zone.getId(), zone);
-        scheduler.setFireInfo(zone.getPosition(), zone.getSeverity(), eventTime);
 
+        SimEvent newEvent = new SimEvent(eventTime, zone.getId(), "FIRE_DETECTED",
+                zone.getSeverity().toString(), zone.getPosition());
+        fireBuffer.addEventMessage(newEvent);
     }
 
     /**
@@ -77,8 +83,10 @@ public class FireIncidentSubsystem implements Runnable {
                 int zoneId = Integer.parseInt(eventData[1].trim());
                 String eventType = eventData[2].trim();
                 String severity = eventData[3].trim();
+                Position zonePosition = fireZones.containsKey(zoneId) ? fireZones.get(zoneId).getPosition() :
+                        clearZones.get(zoneId).getPosition();
 
-                SimEvent event = new SimEvent(time, zoneId, eventType, severity);
+                SimEvent event = new SimEvent(time, zoneId, eventType, severity, zonePosition);
                 events.add(event);
             }
             sortEventsByTime(events);
@@ -194,7 +202,7 @@ public class FireIncidentSubsystem implements Runnable {
      */
     public void pollFireZones() {
 
-        System.out.println("[" + Thread.currentThread().getName() + "]: " + "Polling fire zones");
+        System.out.println("[" + Thread.currentThread().getName() + "]: FireIncidentSubsystem" + "Polling fire zones");
         Iterator<Zone> iterator = fireZones.values().iterator();
         while (iterator.hasNext()) {
             Zone zone = iterator.next();
@@ -206,6 +214,13 @@ public class FireIncidentSubsystem implements Runnable {
         if (fireZones.isEmpty()) {
             System.out.println("[" + Thread.currentThread().getName() + "]: " + "No fires have been found");
         }
+
+        // sleep polling thread to allow other threads to run
+        try {
+            sleep(5000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -215,18 +230,17 @@ public class FireIncidentSubsystem implements Runnable {
      */
     private void sendEvent(SimEvent event) {
         String eventType = event.getEventType();
-        String severity = event.getSeverity();
+        FireSeverity severity = event.getSeverity();
         int zoneId = event.getZoneId();
         long eventTime = event.getTime();
         Zone zone = clearZones.get(zoneId);
-        FireSeverity fireSeverity = FireSeverity.valueOf(severity.toUpperCase());
-        zone.setSeverity(fireSeverity);
-        zone.setRequiredAgents(AGENT_AMOUNT.get(fireSeverity));
+        zone.setSeverity(severity);
+        zone.setRequiredAgentAmount(AGENT_AMOUNT.get(severity));
 
         if (eventType.equals("FIRE_DETECTED")) {
             trackFire(zone, eventTime);
         } else if (eventType.equals("DRONE_REQUEST")) {
-            manualReqDrone(zone, eventTime);
+            manualReqDrone(zone, eventTime,"DRONE_REQUEST");
         } else {
             System.out.println("[" + Thread.currentThread().getName() + "]: " + "Invalid event type: " + eventType);
         }
@@ -266,7 +280,9 @@ public class FireIncidentSubsystem implements Runnable {
         int hours = Integer.parseInt(parts[0]);
         int minutes = Integer.parseInt(parts[1]);
         int seconds = Integer.parseInt(parts[2]);
-        return (hours * 3600L + minutes * 60L + seconds) * 1000L;
+        // temp to speed upn simulation
+        //return (hours * 3600L + minutes * 60L + seconds) * 1000L;
+        return minutes * 60L + seconds;
     }
 
     /**
@@ -299,9 +315,9 @@ public class FireIncidentSubsystem implements Runnable {
     }
 
     public static void main(String[] args) {
-        FireIncidentSubsystem fireIncidentSubsystem = new FireIncidentSubsystem(new Scheduler());
-        fireIncidentSubsystem.readSimZoneFile(new File("./sample_input_files/zones.csv"));
-        fireIncidentSubsystem.readSimEventFile(new File("./sample_input_files/events.csv"));
-        fireIncidentSubsystem.run();
+//        FireIncidentSubsystem fireIncidentSubsystem = new FireIncidentSubsystem(new Scheduler());
+//        fireIncidentSubsystem.readSimZoneFile(new File("./sample_input_files/zones.csv"));
+//        fireIncidentSubsystem.readSimEventFile(new File("./sample_input_files/events.csv"));
+//        fireIncidentSubsystem.run();
     }
 }

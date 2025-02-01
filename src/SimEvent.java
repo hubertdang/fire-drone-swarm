@@ -1,11 +1,12 @@
 /**
- * Event class represents an event that occurs in the simulation.
+ * SimEvent class represents an event that occurs in the simulation.
  */
 public class SimEvent {
     private long time;
     private int zoneId;
     private String eventType;
-    private String severity;
+    private FireSeverity severity;
+    private Position zonePosition;
 
     /**
      * Constructs a new Event with the given time, zone ID, event type, and severity.
@@ -14,12 +15,15 @@ public class SimEvent {
      * @param zoneId    the ID of the zone where the event occurred
      * @param eventType the type of the event
      * @param severity  the severity of the event
+     * @param zonePosition the center location (x,y) of the Zone
      */
-    public SimEvent(long time, int zoneId, String eventType, String severity) {
+    public SimEvent(long time, int zoneId, String eventType, String severity, Position zonePosition) {
         this.time = time;
         this.zoneId = zoneId;
         this.eventType = eventType;
-        this.severity = severity;
+        // convert string to enum
+        this.severity = FireSeverity.valueOf(severity.toUpperCase());
+        this.zonePosition = zonePosition;
     }
 
     /**
@@ -54,9 +58,16 @@ public class SimEvent {
      *
      * @return the severity of the event
      */
-    public String getSeverity() {
+    public FireSeverity getSeverity() {
         return severity;
     }
+
+    /**
+     * Returns the position of the Zone.
+     *
+     * @return the position of a Zone
+     */
+    public Position getZonePosition() { return zonePosition; }
 
     /**
      * Returns a string representation of the event.
@@ -65,6 +76,7 @@ public class SimEvent {
      */
     @Override
     public String toString() {
-        return "Event[Time=" + time + ", ZoneID=" + zoneId + ", Type=" + eventType + ", Severity=" + severity + "]";
+        return "Event[Time=" + time + ", ZoneID=" + zoneId + ", Type=" + eventType + ", Severity=" + severity +
+                ", Location=" + zonePosition + "]";
     }
 }

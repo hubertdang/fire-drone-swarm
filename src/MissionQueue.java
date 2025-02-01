@@ -51,11 +51,11 @@ public class MissionQueue {
      */
     public Zone peek() {
         if (!missions.get(HIGH_SEVERITY).isEmpty()) {
-            return missions.get(HIGH_SEVERITY).getFirst();
+            return missions.get(HIGH_SEVERITY).get(0);
         } else if (!missions.get(MODERATE_SEVERITY).isEmpty()) {
-            return missions.get(MODERATE_SEVERITY).getFirst();
+            return missions.get(MODERATE_SEVERITY).get(0);
         } else if (!missions.get(LOW_SEVERITY).isEmpty()) {
-            return missions.get(LOW_SEVERITY).getFirst();
+            return missions.get(LOW_SEVERITY).get(0);
         } else {
             return null;
         }
@@ -68,11 +68,11 @@ public class MissionQueue {
      */
     public Zone pop() {
         if (!missions.get(HIGH_SEVERITY).isEmpty()) {
-            return missions.get(HIGH_SEVERITY).removeFirst();
+            return missions.get(HIGH_SEVERITY).remove(0);
         } else if (!missions.get(MODERATE_SEVERITY).isEmpty()) {
-            return missions.get(MODERATE_SEVERITY).removeFirst();
+            return missions.get(MODERATE_SEVERITY).remove(0);
         } else if (!missions.get(LOW_SEVERITY).isEmpty()) {
-            return missions.get(LOW_SEVERITY).removeFirst();
+            return missions.get(LOW_SEVERITY).remove(0);
         } else {
             return null;
         }

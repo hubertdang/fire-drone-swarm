@@ -13,7 +13,7 @@ public class Zone {
      * The center position is calculated as the midpoint of the given coordinates.
      *
      * @param id the unique identifier of the zone
-     * @param requiredAgents the amount of agent required for firefighting
+     * @param requiredAgentAmount the amount of agent required for firefighting
      * @param startX the starting x-coordinate of the zone
      * @param endX the ending x-coordinate of the zone
      * @param startY the starting y-coordinate of the zone
@@ -22,7 +22,6 @@ public class Zone {
     public Zone(int id, float requiredAgentAmount, int startX, int endX, int startY, int endY) {
         this.id = id;
         this.requiredAgentAmount = requiredAgentAmount;
-
         float centerX = (float)(startX + endX) / 2;
         float centerY = (float)(startY + endY) / 2;
         this.position = new Position(centerX, centerY);
