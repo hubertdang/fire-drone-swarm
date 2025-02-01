@@ -28,15 +28,28 @@ public class Scheduler implements Runnable {
     public void run() {
         while(true) {
 
-            // check fireBuffer for new SimEvent messages
+            // check fireBuffer for new SimEvent messages, add to mission queue
             if (fireBuffer.newEvent()) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Scheduler has received a new event.\n\t" +
-                        "Requesting a drone to fly to fire.");
+                        "adding to mission queue.");
                 SimEvent fireToService = fireBuffer.popEventMessage();
-                Task dispatchDroneTask = new Task(DroneStatus.ENROUTE, fireToService);
+                handleFireReq(fireToService);
+            }
+
+            // Requesting drone dispatch if mission queue has any new events
+            if (!missionQueue.isEmpty()) {
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "Scheduler has detected a new event in mission queue.\n\t" +
+                        "requesting a drone to service.");
+                SimEvent fireToService = missionQueue.pop();
+                Task dispatchDroneTask = new Task(DroneStatus.ENROUTE, fireToService, 1);
                 droneBuffer.addDroneTask(dispatchDroneTask);
             }
+
+
+
+
 
             // check to see if the drones status has updated
             if (droneBuffer.newAcknowledgement()) {
@@ -49,17 +62,17 @@ public class Scheduler implements Runnable {
                     case ARRIVED -> {
                         System.out.println("[" + Thread.currentThread().getName() + "]: Scheduler " +
                                 "requesting drone to drop agent.");
-                        droneBuffer.addDroneTask(new Task(DroneStatus.DROPPING_AGENT));
+                        droneBuffer.addDroneTask(new Task(DroneStatus.DROPPING_AGENT, 0));
                     }
                     case EMPTY -> {
                         System.out.println("[" + Thread.currentThread().getName() + "]: Scheduler " +
                                 "requesting drone to fly to base to resupply agent.");
-                        droneBuffer.addDroneTask(new Task(DroneStatus.BASE));
+                        droneBuffer.addDroneTask(new Task(DroneStatus.BASE, 0));
                     }
                     case FIRE_STOPPED -> {
                         System.out.println("[" + Thread.currentThread().getName() + "]: Scheduler" +
                                 "requesting drone to enter idle state.");
-                        droneBuffer.addDroneTask(new Task(DroneStatus.IDLE));
+                        droneBuffer.addDroneTask(new Task(DroneStatus.IDLE, 0));
 
                         // relay information to Fire subsystem...this is not correct
                         // pls suggest how else the fire subsystem can detect change and tell
@@ -83,14 +96,14 @@ public class Scheduler implements Runnable {
     }
 
     /**
-     * Adds a zone to mission queue based on fire severity and amount of agent needed.
+     * Adds an event to mission queue based on fire severity and amount of agent needed.
      * Dispatches a drone to the new zone if the new zone has a higher priority than the
      * zone being currently serviced by the drone.
      *
-     * @param zone
+     * @param event a SimEvent object
      */
-    public void handleFireReq(Zone zone) {
-        missionQueue.queue(zone);
+    private void handleFireReq(SimEvent event) {
+        missionQueue.queue(event);
     }
 
     /**

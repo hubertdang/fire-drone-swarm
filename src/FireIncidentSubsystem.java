@@ -202,7 +202,7 @@ public class FireIncidentSubsystem implements Runnable {
      */
     public void pollFireZones() {
 
-        System.out.println("[" + Thread.currentThread().getName() + "]: FireIncidentSubsystem" + "Polling fire zones");
+        System.out.println("[" + Thread.currentThread().getName() + "]: FireIncidentSubsystem" + " polling fire zones");
         Iterator<Zone> iterator = fireZones.values().iterator();
         while (iterator.hasNext()) {
             Zone zone = iterator.next();
