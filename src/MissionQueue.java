@@ -13,7 +13,7 @@ public class MissionQueue {
      * keys: represent severity as mentioned at the top as static final integers
      * values: an array list containing zones ordered by required agent amount
      */
-    private final Map<Integer, ArrayList<SimEvent>> missions;
+    private final Map<Integer, ArrayList<Zone>> missions;
 
     /**
      * Constructor for the MissionQueue class. Constructs a mission queue.
@@ -28,17 +28,17 @@ public class MissionQueue {
     /**
      * Adds an event to the correct position in the mission queue
      *
-     * @param event
+     * @param zone
      */
-    public void queue(SimEvent event) {
-        if (event.getSeverity() == FireSeverity.HIGH) {
-            missions.get(HIGH_SEVERITY).add(event);
+    public void queue(Zone zone) {
+        if (zone.getSeverity() == FireSeverity.HIGH) {
+            missions.get(HIGH_SEVERITY).add(zone);
             //Collections.sort(missions.get(HIGH_SEVERITY)); --need to add a compareTo method in zone class for sorting zones by required agent amount
-        } else if (event.getSeverity() == FireSeverity.MODERATE) {
-            missions.get(MODERATE_SEVERITY).add(event);
+        } else if (zone.getSeverity() == FireSeverity.MODERATE) {
+            missions.get(MODERATE_SEVERITY).add(zone);
             //Collections.sort(missions.get(MODERATE));
-        } else if (event.getSeverity() == FireSeverity.LOW) {
-            missions.get(LOW_SEVERITY).add(event);
+        } else if (zone.getSeverity() == FireSeverity.LOW) {
+            missions.get(LOW_SEVERITY).add(zone);
             //Collections.sort(missions.get(LOW));
         }
     }
@@ -49,7 +49,7 @@ public class MissionQueue {
      *
      * @return event with highest severity and required agent amount
      */
-    public SimEvent peek() {
+    public Zone peek() {
         if (!missions.get(HIGH_SEVERITY).isEmpty()) {
             return missions.get(HIGH_SEVERITY).get(0);
         } else if (!missions.get(MODERATE_SEVERITY).isEmpty()) {
@@ -66,7 +66,7 @@ public class MissionQueue {
      *
      * @return event with highest severity and required agent amount
      */
-    public SimEvent pop() {
+    public Zone pop() {
         if (!missions.get(HIGH_SEVERITY).isEmpty()) {
             return missions.get(HIGH_SEVERITY).remove(0);
         } else if (!missions.get(MODERATE_SEVERITY).isEmpty()) {

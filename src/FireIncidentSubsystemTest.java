@@ -61,24 +61,6 @@ public class FireIncidentSubsystemTest {
     }
 
     @Test
-    void testPollFireZones() {
-        // Add a zone to fireZones
-        Zone zone = new Zone(1, 0, 0, 700, 0, 600);
-        zone.setSeverity(FireSeverity.HIGH);
-        fireIncidentSubsystem.getFireZones().put(1, zone);
-
-        // Simulate the fire being extinguished
-        zone.setSeverity(FireSeverity.NO_FIRE);
-
-        // Poll fire zones
-        fireIncidentSubsystem.pollFireZones();
-
-        // Verify the fire zone is cleared and added back to clear zones
-        assertFalse(fireIncidentSubsystem.getFireZones().containsKey(1));
-        assertTrue(fireIncidentSubsystem.getClearZones().containsKey(1));
-    }
-
-    @Test
     void testIsEventReadyToProcess() {
         // Add an event
         fireIncidentSubsystem.getEvents().add(new SimEvent(14 * 3600 * 1000 + 3 * 60 * 1000 + 15 * 1000, 1, "FIRE_DETECTED", "High", null));

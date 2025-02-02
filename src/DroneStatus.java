@@ -6,5 +6,6 @@ public enum DroneStatus {
     ENROUTE,
     BASE,
     IDLE,
-    ARRIVED
+    ARRIVED,
+    STATUS_UPDATE
 }

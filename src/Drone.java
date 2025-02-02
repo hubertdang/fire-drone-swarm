@@ -31,6 +31,7 @@ public class Drone implements Runnable {
         this.status = DroneStatus.BASE;
         this.agentTank = new AgentTank();
         this.droneBuffer = droneBuffer;
+        this.zoneToService = null;
     }
 
 
@@ -101,14 +102,14 @@ public class Drone implements Runnable {
     /**
      * Executes agent release operation
      */
-    public void releaseAgent(FireSeverity severity) {
+    public void releaseAgent() {
         setStatus(DroneStatus.DROPPING_AGENT);
         System.out.println("[Drone#" + id + "] Starting agent release.");
 
         long previousTime = System.nanoTime();
         long currentTime;
         float deltaTime;
-        float agentToDrop = FireIncidentSubsystem.AGENT_AMOUNT.get(severity);
+        float agentToDrop;
 
         while (true) {
             //the status will change if agent is empty or call stopAgent()
@@ -116,7 +117,6 @@ public class Drone implements Runnable {
                 System.out.println("[Drone#" + id + "] Release agent stopped. Current status: " + getStatus());
                 break;
             }
-
 
             currentTime = System.nanoTime();
             deltaTime = (currentTime - previousTime) / 1_000_000_000f; // convert to second
@@ -132,7 +132,7 @@ public class Drone implements Runnable {
             agentToDrop = Math.min(agentTank.getCurrAgentAmount(), AgentTank.AGENT_DROP_RATE * deltaTime);
 
             agentTank.decreaseAgent(agentToDrop);
-            //zoneToService.setRequiredAgentAmount(zoneToService.getRequiredAgentAmount() - agentToDrop);
+            zoneToService.setRequiredAgentAmount(zoneToService.getRequiredAgentAmount() - agentToDrop);
 
             System.out.println("[Drone#" + id + "] Releasing " + agentToDrop + "L. Tank=" + getTankCapacity()); // + ", zoneNeed=" + zoneToService.getRequiredAgentAmount());
 
@@ -147,9 +147,6 @@ public class Drone implements Runnable {
                 throw new RuntimeException(e);
             }
         }
-
-        // temporary acknowledgment to say fire is stopped after drone empties tank
-        droneBuffer.addSchedulerAcknowledgement(new Task(DroneStatus.FIRE_STOPPED, 0));
     }
 
 
@@ -158,7 +155,7 @@ public class Drone implements Runnable {
      */
     public void stopAgent() {
         System.out.println("[Drone#" + id + "] handleStopAgent() called.");
-        if (status == DroneStatus.DROPPING_AGENT) {
+        if (status == DroneStatus.FIRE_STOPPED) {
             agentTank.closeNozzle();
             System.out.println("[Drone#" + id + "] Stopped releasing agent.");
             setStatus(DroneStatus.IDLE);
@@ -202,7 +199,6 @@ public class Drone implements Runnable {
                 } else {
                     setStatus(DroneStatus.ARRIVED);
                 }
-                droneBuffer.addSchedulerAcknowledgement(new Task(this.getStatus(), 0));
                 return;
             }
 
@@ -252,12 +248,6 @@ public class Drone implements Runnable {
     }
 
     /**
-     * Set the severity of the zone to be serviced.
-     * @param severity enum representing fire severity
-     */
-    private void setZoneSeverity(FireSeverity severity) { this.zoneSeverity = severity; }
-
-    /**
      * Retrieves the severity of the zone to be serviced.
      * @return FireSeverity enum
      */
@@ -295,17 +285,21 @@ public class Drone implements Runnable {
                 }
                 case ENROUTE -> {
                     this.setStatus(DroneStatus.ENROUTE);
-                    fly(taskToDo.getEvent().getZonePosition());
-                    setZoneSeverity(taskToDo.getEvent().getSeverity());
-
+                    // need to inform scheduler drone is enroute
+                    // for state change ENROUTE -> ARRIVED in scheduler
+                    droneBuffer.addSchedulerAcknowledgement(new Task(this.getStatus()));
+                    fly(taskToDo.getZone().getPosition());
+                    setZoneToService(taskToDo.getZone());
                 }
                 case DROPPING_AGENT -> {
                     this.setStatus(DroneStatus.DROPPING_AGENT);
-                    releaseAgent(zoneSeverity);
+                    releaseAgent();
                 }
                 case STOP_DROPPING_AGENT -> {
-                    this.setStatus(DroneStatus.IDLE);
-                    stopAgent();
+                    this.stopAgent();
+                }
+                case STATUS_UPDATE -> {
+                    break;
                 }
                 case IDLE -> {
                     setStatus(DroneStatus.IDLE);
@@ -313,7 +307,7 @@ public class Drone implements Runnable {
             }
 
             // tell scheduler drones current state after executing task
-            droneBuffer.addSchedulerAcknowledgement(new Task(this.getStatus(), 0));
+            droneBuffer.addSchedulerAcknowledgement(new Task(this.getStatus(), zoneToService));
 
             // allow scheduler time to receive and compute acknowledgement
             try {
@@ -323,6 +317,5 @@ public class Drone implements Runnable {
             }
         }
     }
-
 }
 

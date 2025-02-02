@@ -1,6 +1,4 @@
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * DroneBuffer Class
@@ -9,21 +7,15 @@ import java.util.Map;
 
 public class DroneBuffer {
 
-    private Map<Integer, ArrayList<Task>> acknowledgementFromDrone;
-    private Map<Integer, ArrayList<Task>> tasksFromScheduler;
+    private ArrayList<Task> acknowledgementFromDrone;
+    private ArrayList<Task> tasksFromScheduler;
 
     /**
      * Constructs a shared priority buffer used for message passing.
      */
     public DroneBuffer() {
-        acknowledgementFromDrone = new HashMap<>();
-        tasksFromScheduler = new HashMap<>();
-
-        // initializes priority array lists
-        for (int i = 0 ; i < 2 ; i++) {
-            acknowledgementFromDrone.put(i, new ArrayList<>());
-            tasksFromScheduler.put(i, new ArrayList<>());
-        }
+        acknowledgementFromDrone = new ArrayList<>();
+        tasksFromScheduler = new ArrayList<>();
     }
 
     /**
@@ -32,10 +24,10 @@ public class DroneBuffer {
      */
     public synchronized Task popDroneAcknowledgement() {
         Task message = null;
-        if (!acknowledgementFromDrone.get(0).isEmpty()) {
-            message = acknowledgementFromDrone.get(0).remove(0);
-        } else if (!acknowledgementFromDrone.get(1).isEmpty()) {
-            message = acknowledgementFromDrone.get(1).remove(0);
+        if (!acknowledgementFromDrone.isEmpty()) {
+            message = acknowledgementFromDrone.remove(0);
+        } else if (!acknowledgementFromDrone.isEmpty()) {
+            message = acknowledgementFromDrone.remove(0);
         }
         notifyAll();
         return message;
@@ -48,10 +40,10 @@ public class DroneBuffer {
     public synchronized Task popSchedulerTask() {
         Task message = null;
 
-        if (!tasksFromScheduler.get(0).isEmpty()) {
-            message = tasksFromScheduler.get(0).remove(0);
-        } else if (!tasksFromScheduler.get(1).isEmpty()) {
-            message = tasksFromScheduler.get(1).remove(0);
+        if (!tasksFromScheduler.isEmpty()) {
+            message = tasksFromScheduler.remove(0);
+        } else if (!tasksFromScheduler.isEmpty()) {
+            message = tasksFromScheduler.remove(0);
         }
 
         notifyAll();
@@ -63,7 +55,7 @@ public class DroneBuffer {
      * @param task the message to be added to buffer
      */
     public synchronized void addDroneTask(Task task) {
-        tasksFromScheduler.get(task.getTaskPriority()).add(task);
+        tasksFromScheduler.add(task);
         notifyAll();
     }
 
@@ -72,7 +64,7 @@ public class DroneBuffer {
      * @param task the message to be added to buffer
      */
     public synchronized void addSchedulerAcknowledgement(Task task) {
-        acknowledgementFromDrone.get(task.getTaskPriority()).add(task);
+        acknowledgementFromDrone.add(task);
         notifyAll();
     }
 
@@ -80,7 +72,7 @@ public class DroneBuffer {
      * Disables drone thread while waiting for a new fire event to service.
      */
     public synchronized void waitForTask() {
-        while (tasksFromScheduler.get(0).isEmpty() && tasksFromScheduler.get(1).isEmpty()) {
+        while (tasksFromScheduler.isEmpty() && tasksFromScheduler.isEmpty()) {
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -94,7 +86,6 @@ public class DroneBuffer {
      * @return true if acknowledgementMessages not empty, false otherwise
      */
     public synchronized boolean newAcknowledgement() {
-        return !acknowledgementFromDrone.get(0).isEmpty() ||
-                !acknowledgementFromDrone.get(1).isEmpty();
+        return !acknowledgementFromDrone.isEmpty();
     }
 }

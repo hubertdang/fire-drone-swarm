@@ -26,65 +26,70 @@ public class Scheduler implements Runnable {
      */
     @Override
     public void run() {
+        DroneStatus currentDroneStatus = DroneStatus.BASE;
+        DroneStatus previousDroneStatus = null;
+        boolean droneOnMission = false;
+
         while(true) {
 
-            // check fireBuffer for new SimEvent messages, add to mission queue
+            // check fireBuffer for new messages, add to mission queue
             if (fireBuffer.newEvent()) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Scheduler has received a new event.\n\t" +
                         "adding to mission queue.");
-                SimEvent fireToService = fireBuffer.popEventMessage();
-                handleFireReq(fireToService);
+                Zone zoneToService = fireBuffer.popEventMessage();
+                handleFireReq(zoneToService);
             }
 
-            // Requesting drone dispatch if mission queue has any new events
-            if (!missionQueue.isEmpty()) {
-                System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Scheduler has detected a new event in mission queue.\n\t" +
-                        "requesting a drone to service.");
-                SimEvent fireToService = missionQueue.pop();
-                Task dispatchDroneTask = new Task(DroneStatus.ENROUTE, fireToService, 1);
-                droneBuffer.addDroneTask(dispatchDroneTask);
-            }
-
-
-
-
-
-            // check to see if the drones status has updated
+            // check for drone acknowledgements
             if (droneBuffer.newAcknowledgement()) {
                 Task acknowledgementStatus = droneBuffer.popDroneAcknowledgement();
                 System.out.println("[" + Thread.currentThread().getName() + "]: Scheduler " +
                         "a drone has sent back an acknowledgement\n\t" +
                         "Status: " + acknowledgementStatus.getDroneStatus());
 
-                switch (acknowledgementStatus.getDroneStatus()) {
+                previousDroneStatus = currentDroneStatus;
+                currentDroneStatus = acknowledgementStatus.getDroneStatus();
+
+                System.out.println("DEBUG: Previous Status: " + previousDroneStatus);
+                System.out.println("DEBUG: Current Status: " + currentDroneStatus);
+
+                switch (currentDroneStatus) {
                     case ARRIVED -> {
-                        System.out.println("[" + Thread.currentThread().getName() + "]: Scheduler " +
-                                "requesting drone to drop agent.");
-                        droneBuffer.addDroneTask(new Task(DroneStatus.DROPPING_AGENT, 0));
-                    }
-                    case EMPTY -> {
-                        System.out.println("[" + Thread.currentThread().getName() + "]: Scheduler " +
-                                "requesting drone to fly to base to resupply agent.");
-                        droneBuffer.addDroneTask(new Task(DroneStatus.BASE, 0));
+                        // drop agent, to location
+                        if ( previousDroneStatus == DroneStatus.ENROUTE ) {
+                            droneBuffer.addDroneTask(new Task(DroneStatus.DROPPING_AGENT));
+                        }
                     }
                     case FIRE_STOPPED -> {
-                        System.out.println("[" + Thread.currentThread().getName() + "]: Scheduler" +
-                                "requesting drone to enter idle state.");
-                        droneBuffer.addDroneTask(new Task(DroneStatus.IDLE, 0));
-
-                        // relay information to Fire subsystem...this is not correct
-                        // pls suggest how else the fire subsystem can detect change and tell
-                        // drone to stop
-                        fireBuffer.addAcknowledgementMessage("Fire has been put out.");
+                        // close nozzle
+                        if ( previousDroneStatus == DroneStatus.ARRIVED) {
+                            droneBuffer.addDroneTask(new Task(DroneStatus.STOP_DROPPING_AGENT));
+                        }
+                    }
+                    case IDLE -> {
+                        droneOnMission = false; // open to receiving new missions
+                        if (previousDroneStatus == DroneStatus.FIRE_STOPPED) {
+                            // indicate fire has been put out to the fire incident subsystem
+                            Zone servicedZone = acknowledgementStatus.getZone();
+                            servicedZone.setSeverity(FireSeverity.NO_FIRE); // where should this code be?
+                            fireBuffer.addAcknowledgementMessage(servicedZone);
+                        }
                     }
                 }
             }
 
-
-
-
+            // handle missions from the mission queue
+            if (!missionQueue.isEmpty() && (currentDroneStatus == DroneStatus.IDLE
+                    || currentDroneStatus == DroneStatus.BASE)
+                        && !droneOnMission) {
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "Scheduler is requesting drone to handle a fire " +
+                        "from the mission queue.");
+                Task newMission = new Task(DroneStatus.ENROUTE, missionQueue.pop());
+                droneBuffer.addDroneTask(newMission);
+                droneOnMission = true;
+            }
 
             // give other threads oppurtunity to access shared buffers
             try {
@@ -100,10 +105,10 @@ public class Scheduler implements Runnable {
      * Dispatches a drone to the new zone if the new zone has a higher priority than the
      * zone being currently serviced by the drone.
      *
-     * @param event a SimEvent object
+     * @param zone a Zone object
      */
-    private void handleFireReq(SimEvent event) {
-        missionQueue.queue(event);
+    private void handleFireReq(Zone zone) {
+        missionQueue.queue(zone);
     }
 
     /**

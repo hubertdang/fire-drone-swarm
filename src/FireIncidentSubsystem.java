@@ -46,8 +46,7 @@ public class FireIncidentSubsystem implements Runnable {
             System.out.println("[" + Thread.currentThread().getName() + "]: " + "Manual request for drone at zone: " + zone.getId());
             clearZones.remove(zone.getId());
             fireZones.put(zone.getId(), zone);
-            SimEvent manualEvent = new SimEvent(eventTime, zone.getId(), eventType, zone.getSeverity().toString(), zone.getPosition());
-            fireBuffer.addEventMessage(manualEvent);
+            fireBuffer.addEventMessage(zone);
         } else {
             System.out.println("[" + Thread.currentThread().getName() + "]: " + "Zone " + zone.getId() + " is already on fire");
         }
@@ -63,10 +62,7 @@ public class FireIncidentSubsystem implements Runnable {
         System.out.println("[" + Thread.currentThread().getName() + "]: " + "Fire detected at zone: " + zone.getId());
         clearZones.remove(zone.getId());
         fireZones.put(zone.getId(), zone);
-
-        SimEvent newEvent = new SimEvent(eventTime, zone.getId(), "FIRE_DETECTED",
-                zone.getSeverity().toString(), zone.getPosition());
-        fireBuffer.addEventMessage(newEvent);
+        fireBuffer.addEventMessage(zone);
     }
 
     /**
@@ -142,14 +138,17 @@ public class FireIncidentSubsystem implements Runnable {
         long startTime = getCurrentTime();
         int eventIndex = 0;
         long eventIndexTime = 0;
-        System.out.println("[" + Thread.currentThread().getName() + "]: " + "Simulation started at: " + startTime);
+        System.out.println("[" + Thread.currentThread().getName() + "]: " + "Simulation started at: "
+                + TimeUtils.secondsToTimestamp(startTime));
 
         while (hasActiveFiresOrUpcomingEvents(eventIndex)) {
             long currentTime = getCurrentTime();
-            System.out.println("[" + Thread.currentThread().getName() + "]: " + "Current time: " + currentTime);
+            System.out.println("[" + Thread.currentThread().getName() + "]: " + "Current time: "
+                    + TimeUtils.secondsToTimestamp(currentTime));
             if (eventIndex < events.size()) { // Check if we have reached the end of the events
                 eventIndexTime = events.get(eventIndex).getTime();
-                System.out.println("[" + Thread.currentThread().getName() + "]: " + "Next event time: " + eventIndexTime);
+                System.out.println("[" + Thread.currentThread().getName() + "]: " + "Next event time: "
+                        + TimeUtils.secondsToTimestamp(eventIndexTime));
             }
 
 
@@ -165,10 +164,27 @@ public class FireIncidentSubsystem implements Runnable {
                 eventIndexTime = events.get(eventIndex).getTime();
             }
 
-            // Check out the fire zones to see if the fires have been put out
-            pollFireZones();
+            // check buffer for acknowledgement that fire has been put out
+            if (fireBuffer.newAcknowledgement()) {
+                Zone servicedZone = fireBuffer.popAcknowledgementMessage();
+                if (servicedZone.getSeverity() == FireSeverity.NO_FIRE) {
+                    clearZones.put(servicedZone.getId(), servicedZone);
+                    fireZones.remove(servicedZone.getId());
+                    System.out.println("FireIncidentSubsystem: Zone: " + servicedZone.getId()
+                        + "'s fire has been extinguished.");
+                }
+            }
+
+            // sleep polling thread to allow other threads to run
+            try {
+                sleep(5000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
+
         System.out.println("Simulation completed. All fires have been extinguished.");
+
     }
 
     /**
@@ -195,32 +211,6 @@ public class FireIncidentSubsystem implements Runnable {
         boolean hasPendingEvents = eventIndex < events.size(); // Check if there are events left to process
         boolean isEventTimeReached = hasPendingEvents && eventIndexTime <= currentTime; // Check if the current event's time has been reached
         return hasPendingEvents && isEventTimeReached;
-    }
-
-    /**
-     * Poll the fire zones to see if the fires have been put out
-     */
-    public void pollFireZones() {
-
-        System.out.println("[" + Thread.currentThread().getName() + "]: FireIncidentSubsystem" + " polling fire zones");
-        Iterator<Zone> iterator = fireZones.values().iterator();
-        while (iterator.hasNext()) {
-            Zone zone = iterator.next();
-            if (zone.getSeverity() == FireSeverity.NO_FIRE) {
-                iterator.remove();
-                clearZones.put(zone.getId(), zone);
-            }
-        }
-        if (fireZones.isEmpty()) {
-            System.out.println("[" + Thread.currentThread().getName() + "]: " + "No fires have been found");
-        }
-
-        // sleep polling thread to allow other threads to run
-        try {
-            sleep(5000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**
@@ -312,12 +302,5 @@ public class FireIncidentSubsystem implements Runnable {
 
     public HashMap<Integer, Zone> getFireZones() {
         return fireZones;
-    }
-
-    public static void main(String[] args) {
-//        FireIncidentSubsystem fireIncidentSubsystem = new FireIncidentSubsystem(new Scheduler());
-//        fireIncidentSubsystem.readSimZoneFile(new File("./sample_input_files/zones.csv"));
-//        fireIncidentSubsystem.readSimEventFile(new File("./sample_input_files/events.csv"));
-//        fireIncidentSubsystem.run();
     }
 }

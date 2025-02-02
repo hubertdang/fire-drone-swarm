@@ -1,5 +1,7 @@
 import java.io.File;
 
+import static java.lang.Thread.sleep;
+
 /**
  * Main Class
  * A class in the fire drone swarm system designed to run the application.
@@ -31,6 +33,21 @@ public class Main {
         fireSubsystemThread.start();
         schedulerThread.start();
         droneThread.start();
+
+        // exit program when Fire Incident Subsystem indicates no more events to service
+        while (fireSubsystemThread.isAlive()) {
+            try {
+                sleep(5000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        // catch any exceptions they may throw when forcefully shut
+        try {
+            schedulerThread.interrupt();
+            droneThread.interrupt();
+        } catch (Exception e) {}
 
     }
 }
