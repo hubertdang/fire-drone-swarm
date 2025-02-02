@@ -15,7 +15,7 @@ public class Drone implements Runnable {
     private static final float ARRIVAL_DISTANCE_THRESHOLD = 25.0f;  //25m  which means if the distance is less than 20m assume it is arrived
     private final int id;
     private final AgentTank agentTank;
-    private final Position position;
+    private Position position;
     //private float rating;           //for scheduling algorithm later
     private Zone zoneToService; // The zone assigned by the Scheduler. The drone won't pick tasks itself
     private FireSeverity zoneSeverity;
@@ -51,24 +51,6 @@ public class Drone implements Runnable {
      */
     public int getId() {
         return id;
-    }
-
-    /**
-     * Gets the current amount of agent in the tank
-     *
-     * @return current agent quantity in liters
-     */
-    public float getTankCapacity() {
-        return agentTank.getCurrAgentAmount();
-    }
-
-    /**
-     * Gets the currently assigned zone
-     *
-     * @return Zone object representing current destination, could be null
-     */
-    public Zone getZoneToService() {
-        return zoneToService;
     }
 
     /**
@@ -110,7 +92,7 @@ public class Drone implements Runnable {
         long currentTime;
         float deltaTime;
         float agentToDrop;
-
+        agentTank.openNozzle();
         while (true) {
             //the status will change if agent is empty or call stopAgent()
             if (getStatus() != DroneStatus.DROPPING_AGENT) {
@@ -129,14 +111,14 @@ public class Drone implements Runnable {
             }
 
             //check how much agent can drop vs how much agent left
-            agentToDrop = Math.min(agentTank.getCurrAgentAmount(), AgentTank.AGENT_DROP_RATE * deltaTime);
+            agentToDrop = AgentTank.AGENT_DROP_RATE * deltaTime;
 
             agentTank.decreaseAgent(agentToDrop);
             zoneToService.setRequiredAgentAmount(zoneToService.getRequiredAgentAmount() - agentToDrop);
+            System.out.println("[Drone#" + id + "] Releasing " + agentToDrop + "L. Tank="
+                    + agentTank.getCurrAgentAmount());
 
-            System.out.println("[Drone#" + id + "] Releasing " + agentToDrop + "L. Tank=" + getTankCapacity()); // + ", zoneNeed=" + zoneToService.getRequiredAgentAmount());
-
-            if (agentToDrop < AgentTank.FINISHED_THRESHOLD) {
+            if (zoneToService.getRequiredAgentAmount() <= 0) {
                 this.setStatus(DroneStatus.FIRE_STOPPED);
                 System.out.println("[Drone#" + id + "]:" + " Fire Extinguished.");
             }

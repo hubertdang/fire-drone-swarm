@@ -78,10 +78,8 @@ public class FireIncidentSubsystem implements Runnable {
                 int zoneId = Integer.parseInt(eventData[1].trim());
                 String eventType = eventData[2].trim();
                 String severity = eventData[3].trim();
-                Position zonePosition = fireZones.containsKey(zoneId) ? fireZones.get(zoneId).getPosition() :
-                        clearZones.get(zoneId).getPosition();
 
-                SimEvent event = new SimEvent(time, zoneId, eventType, severity, zonePosition);
+                SimEvent event = new SimEvent(time, zoneId, eventType, severity);
                 events.add(event);
             }
             sortEventsByTime(events);

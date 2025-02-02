@@ -6,7 +6,6 @@ public class SimEvent {
     private final int zoneId;
     private final String eventType;
     private final FireSeverity severity;
-    private final Position zonePosition;
 
     /**
      * Constructs a new Event with the given time, zone ID, event type, and severity.
@@ -15,15 +14,13 @@ public class SimEvent {
      * @param zoneId       the ID of the zone where the event occurred
      * @param eventType    the type of the event
      * @param severity     the severity of the event
-     * @param zonePosition the center location (x,y) of the Zone
      */
-    public SimEvent(long time, int zoneId, String eventType, String severity, Position zonePosition) {
+    public SimEvent(long time, int zoneId, String eventType, String severity) {
         this.time = time;
         this.zoneId = zoneId;
         this.eventType = eventType;
         // convert string to enum
         this.severity = FireSeverity.valueOf(severity.toUpperCase());
-        this.zonePosition = zonePosition;
     }
 
     /**
@@ -63,15 +60,6 @@ public class SimEvent {
     }
 
     /**
-     * Returns the position of the Zone.
-     *
-     * @return the position of a Zone
-     */
-    public Position getZonePosition() {
-        return zonePosition;
-    }
-
-    /**
      * Returns a string representation of the event.
      *
      * @return a string representation of the event
@@ -79,6 +67,6 @@ public class SimEvent {
     @Override
     public String toString() {
         return "Event[Time=" + time + ", ZoneID=" + zoneId + ", Type=" + eventType + ", Severity=" + severity +
-                ", Location=" + zonePosition + "]";
+                ", Location=" + "]";
     }
 }
