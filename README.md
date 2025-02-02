@@ -15,13 +15,13 @@ A control system and simulator for a firefighting drone swarm.
 | `Drone.java`                     | Represents a drone in the simulation.                                                           |
 | `DroneBuffer.java`               | Represents the buffer used between drone adn scheduler.                                         |
 | `DroneStatus.java`               | Enum defining the possible statuses the drone can be in.                                        |
+| `TimeUtils.java`                 | Utility class for formatting time.                                                              |
 | `Zone.java`                      | Represents a zone, including position and severity of any fire occurring there.                 |
 | `AgentTank.java`                 | Represents the tank of the drone.                                                               |
 | `Position.java`                  | Represents x, y coordinates of a zone.                                                          |
 | `FireSeverity.java`              | Enum defining `NO_FIRE`, `LOW`, `MODERATE`, and `HIGH` severity levels.                         |
 | `Main.java`                      | Entry point for running the simulation.                                                         |
-| `FireIncidentSubsystemTest.java` | Unit tests for `FireIncidentSubsystem`.                                                         |
-| `SchedulerTest.java`             | Unit tests for `Scheduler`.                                                                     |
+| `FireIncidentSubsystemTest.java` | Unit tests for `FireIncidentSubsystem`.                                                         | 
 | `ZoneTest.java`                  | Unit tests for `Zone`.                                                                          |
 | `AgentTankTest.java`             | Unit tests for `AgentTank`.                                                                     |
 | `PositionTest.java`              | Unit tests for `Position`.                                                                      |
@@ -108,8 +108,8 @@ In general, the team approached the project collaboratively, working together to
 The breakdown of responsibilities is as follows:
 - Amilesh: `FireIncidentSubsystem`, `FireIncidentSubsystemTest`, `SimEvent`
 - Hubert: System Design and UML Diagrams, reviewing PRs, supported development of 
-`Drone`, `Task`, `DroneBuffer`, `FireIncidentBuffer`
-- David: System Design and UML Diagrams, `Task`, `DroneBuffer`, `FireIncidentBuffer`
+`Drone`, `Task`, `DroneBuffer`, `FireIncidentBuffer`, `TimeUtils`
+- David: System Design and UML Diagrams, `Task`, `DroneBuffer`, `FireIncidentBuffer`,`TimeUtils`
 - Aashna: `Zone`, `ZoneTest`, `Position`, `PositionTest`, `AgentTank`, `AgentTankTest`
 - Shenhao Gong: `Drone`, `DroneStatus`, `FireSeverity`
 - Manit: `Scheduler`, `MissionQueue`, `SchedulerTest`
