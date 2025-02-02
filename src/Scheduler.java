@@ -107,7 +107,7 @@ public class Scheduler implements Runnable {
      *
      * @param zone a Zone object
      */
-    private void handleFireReq(Zone zone) {
+    public void handleFireReq(Zone zone) {
         missionQueue.queue(zone);
     }
 
@@ -167,4 +167,14 @@ public class Scheduler implements Runnable {
 //            return false;
 //        }
 //    }
+
+    /**
+     * Returns the mission queue of the scheduler
+     *
+     * @return MissionQueue
+     */
+    public MissionQueue getMissionQueue() {
+        return this.missionQueue;
+    }
+
 }
