@@ -15,13 +15,13 @@ public class Drone implements Runnable {
     private static final float ARRIVAL_DISTANCE_THRESHOLD = 25.0f;  //25m  which means if the distance is less than 20m assume it is arrived
     private final int id;
     private final AgentTank agentTank;
+    private final DroneBuffer droneBuffer;
     private Position position;
     //private float rating;           //for scheduling algorithm later
     private Zone zoneToService; // The zone assigned by the Scheduler. The drone won't pick tasks itself
     private FireSeverity zoneSeverity;
     private volatile DroneStatus status;  // make sure thread will check status everytime
     private float currentSpeed = 0f;
-    private final DroneBuffer droneBuffer;
 
 
     public Drone(int id, DroneBuffer droneBuffer) {
@@ -54,6 +54,13 @@ public class Drone implements Runnable {
     }
 
     /**
+     * Get current zoneToService
+     */
+    public Zone getZoneToService() {
+        return this.zoneToService;
+    }
+
+    /**
      * Assigns a new zone to this drone
      *
      * @param zone Target zone for firefighting operations.
@@ -78,6 +85,15 @@ public class Drone implements Runnable {
      */
     public synchronized void setStatus(DroneStatus status) {
         this.status = status;
+    }
+
+    /**
+     * Retrieves the severity of the zone to be serviced.
+     *
+     * @return FireSeverity enum
+     */
+    private FireSeverity getZoneSeverity() {
+        return this.zoneSeverity;
     }
 
 
@@ -115,8 +131,7 @@ public class Drone implements Runnable {
 
             agentTank.decreaseAgent(agentToDrop);
             zoneToService.setRequiredAgentAmount(zoneToService.getRequiredAgentAmount() - agentToDrop);
-            System.out.println("[Drone#" + id + "] Releasing " + agentToDrop + "L. Tank="
-                    + agentTank.getCurrAgentAmount());
+            System.out.println("[Drone#" + id + "] Releasing " + agentToDrop + "L. Tank=" + agentTank.getCurrAgentAmount());
 
             if (zoneToService.getRequiredAgentAmount() <= 0) {
                 this.setStatus(DroneStatus.FIRE_STOPPED);
@@ -229,14 +244,6 @@ public class Drone implements Runnable {
         }
     }
 
-    /**
-     * Retrieves the severity of the zone to be serviced.
-     *
-     * @return FireSeverity enum
-     */
-    private FireSeverity getZoneSeverity() {
-        return this.zoneSeverity;
-    }
 
     @Override
     public boolean equals(Object obj) {
@@ -261,8 +268,7 @@ public class Drone implements Runnable {
             // process tasks received
             Task taskToDo = droneBuffer.popSchedulerTask();
 
-            System.out.println("[" + Thread.currentThread().getName() + "]: Drone " +
-                    this.id + " received a new task to: " + taskToDo.getDroneStatus());
+            System.out.println("[" + Thread.currentThread().getName() + "]: Drone " + this.id + " received a new task to: " + taskToDo.getDroneStatus());
 
             switch (taskToDo.getDroneStatus()) {
                 case BASE -> {
