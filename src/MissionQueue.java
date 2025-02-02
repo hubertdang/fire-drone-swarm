@@ -86,4 +86,32 @@ public class MissionQueue {
     public boolean isEmpty() {
         return missions.get(HIGH_SEVERITY).isEmpty() && missions.get(MODERATE_SEVERITY).isEmpty() && missions.get(LOW_SEVERITY).isEmpty();
     }
+
+    /**
+     * Returns the missions hashmap of the mission queue
+     *
+     * @return the missions hashmap
+     */
+    public Map<Integer, ArrayList<Zone>> getMissions() {
+        return this.missions;
+    }
+
+    /**
+     * Checks if two mission queues are equal.
+     * Two MissionQueue objects are equal if they have the same key and value pairs.
+     *
+     * @param obj, the mission queue to compare
+     * @return true if mission queues are equal, false otherwise
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+
+        MissionQueue missionQueue = (MissionQueue) obj;
+        return this.getMissions().size() == missionQueue.getMissions().size()
+                && this.getMissions().get(0).equals(missionQueue.getMissions().get(0))
+                && this.getMissions().get(1).equals(missionQueue.getMissions().get(1))
+                && this.getMissions().get(2).equals(missionQueue.getMissions().get(2));
+    }
 }
