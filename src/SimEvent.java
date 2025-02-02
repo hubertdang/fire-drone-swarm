@@ -2,19 +2,19 @@
  * SimEvent class represents an event that occurs in the simulation.
  */
 public class SimEvent {
-    private long time;
-    private int zoneId;
-    private String eventType;
-    private FireSeverity severity;
-    private Position zonePosition;
+    private final long time;
+    private final int zoneId;
+    private final String eventType;
+    private final FireSeverity severity;
+    private final Position zonePosition;
 
     /**
      * Constructs a new Event with the given time, zone ID, event type, and severity.
      *
-     * @param time      the time the event occurred
-     * @param zoneId    the ID of the zone where the event occurred
-     * @param eventType the type of the event
-     * @param severity  the severity of the event
+     * @param time         the time the event occurred
+     * @param zoneId       the ID of the zone where the event occurred
+     * @param eventType    the type of the event
+     * @param severity     the severity of the event
      * @param zonePosition the center location (x,y) of the Zone
      */
     public SimEvent(long time, int zoneId, String eventType, String severity, Position zonePosition) {
@@ -67,7 +67,9 @@ public class SimEvent {
      *
      * @return the position of a Zone
      */
-    public Position getZonePosition() { return zonePosition; }
+    public Position getZonePosition() {
+        return zonePosition;
+    }
 
     /**
      * Returns a string representation of the event.

@@ -7,8 +7,8 @@ import java.util.ArrayList;
  */
 
 public class FireIncidentBuffer {
-    private ArrayList<Zone> eventMessages;
-    private ArrayList<Zone> acknowledgmentMessages;
+    private final ArrayList<Zone> eventMessages;
+    private final ArrayList<Zone> acknowledgmentMessages;
 
     /**
      * Constructs a shared buffer used for message passing.
@@ -20,6 +20,7 @@ public class FireIncidentBuffer {
 
     /**
      * Retrieves an event message from the buffer.
+     *
      * @return an event object
      */
     public synchronized Zone popEventMessage() {
@@ -30,6 +31,7 @@ public class FireIncidentBuffer {
 
     /**
      * Retrieves an acknowledgement message from the buffer.
+     *
      * @return a String describing what event is now being acknowledged as completed
      */
     public synchronized Zone popAcknowledgementMessage() {
@@ -40,6 +42,7 @@ public class FireIncidentBuffer {
 
     /**
      * Adds acknowledgement message to buffer.
+     *
      * @param zoneMessage the message to be added to buffer
      */
     public synchronized void addAcknowledgementMessage(Zone zoneMessage) {
@@ -49,6 +52,7 @@ public class FireIncidentBuffer {
 
     /**
      * Adds event message to buffer.
+     *
      * @param event the message to be added to buffer
      */
     public synchronized void addEventMessage(Zone event) {
@@ -58,6 +62,7 @@ public class FireIncidentBuffer {
 
     /**
      * newEvent signifies if there are any additions to event list
+     *
      * @return true if eventMessages not empty, false otherwise
      */
     public synchronized boolean newEvent() {
@@ -66,6 +71,7 @@ public class FireIncidentBuffer {
 
     /**
      * newAcknowledgement signifies if there are any additions to event list
+     *
      * @return true if acknowledgementMessages not empty, false otherwise
      */
     public synchronized boolean newAcknowledgement() {

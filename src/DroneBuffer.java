@@ -7,8 +7,8 @@ import java.util.ArrayList;
 
 public class DroneBuffer {
 
-    private ArrayList<Task> acknowledgementFromDrone;
-    private ArrayList<Task> tasksFromScheduler;
+    private final ArrayList<Task> acknowledgementFromDrone;
+    private final ArrayList<Task> tasksFromScheduler;
 
     /**
      * Constructs a shared priority buffer used for message passing.
@@ -20,6 +20,7 @@ public class DroneBuffer {
 
     /**
      * Retrieves an acknowledgement message from the buffer.
+     *
      * @return a Task object
      */
     public synchronized Task popDroneAcknowledgement() {
@@ -35,6 +36,7 @@ public class DroneBuffer {
 
     /**
      * Retrieves the highest priority task from the buffer.
+     *
      * @return a Task object
      */
     public synchronized Task popSchedulerTask() {
@@ -52,6 +54,7 @@ public class DroneBuffer {
 
     /**
      * Adds task message to buffer.
+     *
      * @param task the message to be added to buffer
      */
     public synchronized void addDroneTask(Task task) {
@@ -61,6 +64,7 @@ public class DroneBuffer {
 
     /**
      * Adds task acknowledgement message to buffer.
+     *
      * @param task the message to be added to buffer
      */
     public synchronized void addSchedulerAcknowledgement(Task task) {
@@ -83,6 +87,7 @@ public class DroneBuffer {
 
     /**
      * newAcknowledgement signifies if there are any additions to event list
+     *
      * @return true if acknowledgementMessages not empty, false otherwise
      */
     public synchronized boolean newAcknowledgement() {

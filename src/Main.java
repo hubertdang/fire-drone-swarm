@@ -42,12 +42,5 @@ public class Main {
                 throw new RuntimeException(e);
             }
         }
-
-        // catch any exceptions they may throw when forcefully shut
-        try {
-            schedulerThread.interrupt();
-            droneThread.interrupt();
-        } catch (Exception e) {}
-
     }
 }

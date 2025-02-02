@@ -3,8 +3,8 @@ import static java.lang.Thread.sleep;
 public class Scheduler implements Runnable {
     private static final Position BASE = new Position(0, 0);
     private final MissionQueue missionQueue;
-    private DroneBuffer droneBuffer;
-    private FireIncidentBuffer fireBuffer;
+    private final DroneBuffer droneBuffer;
+    private final FireIncidentBuffer fireBuffer;
 
     /**
      * Constructs a scheduler for the system.
@@ -30,7 +30,7 @@ public class Scheduler implements Runnable {
         DroneStatus previousDroneStatus = null;
         boolean droneOnMission = false;
 
-        while(true) {
+        while (true) {
 
             // check fireBuffer for new messages, add to mission queue
             if (fireBuffer.newEvent()) {
@@ -57,13 +57,13 @@ public class Scheduler implements Runnable {
                 switch (currentDroneStatus) {
                     case ARRIVED -> {
                         // drop agent, to location
-                        if ( previousDroneStatus == DroneStatus.ENROUTE ) {
+                        if (previousDroneStatus == DroneStatus.ENROUTE) {
                             droneBuffer.addDroneTask(new Task(DroneStatus.DROPPING_AGENT));
                         }
                     }
                     case FIRE_STOPPED -> {
                         // close nozzle
-                        if ( previousDroneStatus == DroneStatus.ARRIVED) {
+                        if (previousDroneStatus == DroneStatus.ARRIVED) {
                             droneBuffer.addDroneTask(new Task(DroneStatus.STOP_DROPPING_AGENT));
                         }
                     }
@@ -82,7 +82,7 @@ public class Scheduler implements Runnable {
             // handle missions from the mission queue
             if (!missionQueue.isEmpty() && (currentDroneStatus == DroneStatus.IDLE
                     || currentDroneStatus == DroneStatus.BASE)
-                        && !droneOnMission) {
+                    && !droneOnMission) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Scheduler is requesting drone to handle a fire " +
                         "from the mission queue.");

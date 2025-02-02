@@ -3,8 +3,8 @@
  * and required agent amount for firefighting.
  */
 public class Zone {
-    private int id;
-    private Position position;
+    private final int id;
+    private final Position position;
     private FireSeverity severity;
     private float requiredAgentAmount;
 
@@ -12,28 +12,19 @@ public class Zone {
      * Constructs a Zone with a given ID, required agent amount, and boundaries.
      * The center position is calculated as the midpoint of the given coordinates.
      *
-     * @param id the unique identifier of the zone
+     * @param id                  the unique identifier of the zone
      * @param requiredAgentAmount the amount of agent required for firefighting
-     * @param startX the starting x-coordinate of the zone
-     * @param endX the ending x-coordinate of the zone
-     * @param startY the starting y-coordinate of the zone
-     * @param endY the ending y-coordinate of the zone
+     * @param startX              the starting x-coordinate of the zone
+     * @param endX                the ending x-coordinate of the zone
+     * @param startY              the starting y-coordinate of the zone
+     * @param endY                the ending y-coordinate of the zone
      */
     public Zone(int id, float requiredAgentAmount, int startX, int endX, int startY, int endY) {
         this.id = id;
         this.requiredAgentAmount = requiredAgentAmount;
-        float centerX = (float)(startX + endX) / 2;
-        float centerY = (float)(startY + endY) / 2;
+        float centerX = (float) (startX + endX) / 2;
+        float centerY = (float) (startY + endY) / 2;
         this.position = new Position(centerX, centerY);
-    }
-
-    /**
-     * Sets the severity level of the fire in this zone.
-     *
-     * @param severity the fire severity level
-     */
-    public synchronized void setSeverity(FireSeverity severity) {
-        this.severity = severity;
     }
 
     /**
@@ -44,7 +35,15 @@ public class Zone {
     public synchronized FireSeverity getSeverity() {
         return this.severity;
     }
-    
+
+    /**
+     * Sets the severity level of the fire in this zone.
+     *
+     * @param severity the fire severity level
+     */
+    public synchronized void setSeverity(FireSeverity severity) {
+        this.severity = severity;
+    }
 
     /**
      * Gets the center position of this zone.
@@ -65,21 +64,21 @@ public class Zone {
     }
 
     /**
-     * Sets the required amount of agent needed for firefighting in this zone.
-     *
-     * @param requiredAgentAmount the amount of agent required
-     */
-    public synchronized void setRequiredAgentAmount(float requiredAgentAmount) {
-        this.requiredAgentAmount = requiredAgentAmount;
-    }
-
-    /**
      * Gets the required amount of agent needed for firefighting in this zone.
      *
      * @return the required agent amount
      */
     public synchronized float getRequiredAgentAmount() {
         return this.requiredAgentAmount;
+    }
+
+    /**
+     * Sets the required amount of agent needed for firefighting in this zone.
+     *
+     * @param requiredAgentAmount the amount of agent required
+     */
+    public synchronized void setRequiredAgentAmount(float requiredAgentAmount) {
+        this.requiredAgentAmount = requiredAgentAmount;
     }
 
     /**

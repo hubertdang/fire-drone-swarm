@@ -1,26 +1,25 @@
-import java.io.File;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import static java.lang.Thread.sleep;
 
 
 public class FireIncidentSubsystem implements Runnable {
-    private FireIncidentBuffer fireBuffer;
-    private HashMap<Integer, Zone> clearZones;
-    private HashMap<Integer, Zone> fireZones;
-    private ArrayList<SimEvent> events;
     public static final HashMap<FireSeverity, Integer> AGENT_AMOUNT = new HashMap<FireSeverity, Integer>() {{ // Amount of agents required in liters for each fire severity
         put(FireSeverity.NO_FIRE, 0);
         put(FireSeverity.LOW, 10);
         put(FireSeverity.MODERATE, 20);
         put(FireSeverity.HIGH, 30);
     }};
+    private final FireIncidentBuffer fireBuffer;
+    private final HashMap<Integer, Zone> clearZones;
+    private final HashMap<Integer, Zone> fireZones;
+    private final ArrayList<SimEvent> events;
 
     /**
      * Constructs a FireIncidentSubsystem with the given fireBuffer.
@@ -171,7 +170,7 @@ public class FireIncidentSubsystem implements Runnable {
                     clearZones.put(servicedZone.getId(), servicedZone);
                     fireZones.remove(servicedZone.getId());
                     System.out.println("FireIncidentSubsystem: Zone: " + servicedZone.getId()
-                        + "'s fire has been extinguished.");
+                            + "'s fire has been extinguished.");
                 }
             }
 
@@ -230,7 +229,7 @@ public class FireIncidentSubsystem implements Runnable {
         if (eventType.equals("FIRE_DETECTED")) {
             trackFire(zone, eventTime);
         } else if (eventType.equals("DRONE_REQUEST")) {
-            manualReqDrone(zone, eventTime,"DRONE_REQUEST");
+            manualReqDrone(zone, eventTime, "DRONE_REQUEST");
         } else {
             System.out.println("[" + Thread.currentThread().getName() + "]: " + "Invalid event type: " + eventType);
         }
