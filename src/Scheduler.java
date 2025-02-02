@@ -34,9 +34,7 @@ public class Scheduler implements Runnable {
 
             // check fireBuffer for new messages, add to mission queue
             if (fireBuffer.newEvent()) {
-                System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Scheduler has received a new event.\n\t" +
-                        "adding to mission queue.");
+                System.out.println("[" + Thread.currentThread().getName() + "]: " + "Scheduler has received a new event.\n\t" + "adding to mission queue.");
                 Zone zoneToService = fireBuffer.popEventMessage();
                 handleFireReq(zoneToService);
             }
@@ -44,9 +42,7 @@ public class Scheduler implements Runnable {
             // check for drone acknowledgements
             if (droneBuffer.newAcknowledgement()) {
                 Task acknowledgementStatus = droneBuffer.popDroneAcknowledgement();
-                System.out.println("[" + Thread.currentThread().getName() + "]: Scheduler " +
-                        "a drone has sent back an acknowledgement\n\t" +
-                        "Status: " + acknowledgementStatus.getDroneStatus());
+                System.out.println("[" + Thread.currentThread().getName() + "]: Scheduler " + "a drone has sent back an acknowledgement\n\t" + "Status: " + acknowledgementStatus.getDroneStatus());
 
                 previousDroneStatus = currentDroneStatus;
                 currentDroneStatus = acknowledgementStatus.getDroneStatus();
@@ -80,12 +76,8 @@ public class Scheduler implements Runnable {
             }
 
             // handle missions from the mission queue
-            if (!missionQueue.isEmpty() && (currentDroneStatus == DroneStatus.IDLE
-                    || currentDroneStatus == DroneStatus.BASE)
-                    && !droneOnMission) {
-                System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Scheduler is requesting drone to handle a fire " +
-                        "from the mission queue.");
+            if (!missionQueue.isEmpty() && (currentDroneStatus == DroneStatus.IDLE || currentDroneStatus == DroneStatus.BASE) && !droneOnMission) {
+                System.out.println("[" + Thread.currentThread().getName() + "]: " + "Scheduler is requesting drone to handle a fire " + "from the mission queue.");
                 Task newMission = new Task(DroneStatus.ENROUTE, missionQueue.pop());
                 droneBuffer.addDroneTask(newMission);
                 droneOnMission = true;

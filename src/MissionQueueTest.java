@@ -17,7 +17,7 @@ public class MissionQueueTest {
 
     @Test
     public void testQueue() {
-        Zone zone = new Zone(1,50.0F, 0, 60, 0, 80);
+        Zone zone = new Zone(1, 50.0F, 0, 60, 0, 80);
         zone.setSeverity(FireSeverity.LOW);
         assertTrue(missionQueue.isEmpty());
         missionQueue.queue(zone);
@@ -27,11 +27,11 @@ public class MissionQueueTest {
 
     @Test
     public void testPeek() {
-        Zone zone1 = new Zone(1,50.0F, 0, 60, 0, 80);
+        Zone zone1 = new Zone(1, 50.0F, 0, 60, 0, 80);
         zone1.setSeverity(FireSeverity.LOW);
         missionQueue.queue(zone1);
 
-        Zone zone2 = new Zone(2,40.0F, 60, 90, 80, 100);
+        Zone zone2 = new Zone(2, 40.0F, 60, 90, 80, 100);
         zone2.setSeverity(FireSeverity.HIGH);
         missionQueue.queue(zone2);
 
@@ -40,11 +40,11 @@ public class MissionQueueTest {
 
     @Test
     public void testPop() {
-        Zone zone1 = new Zone(1,50.0F, 0, 60, 0, 80);
+        Zone zone1 = new Zone(1, 50.0F, 0, 60, 0, 80);
         zone1.setSeverity(FireSeverity.HIGH);
         missionQueue.queue(zone1);
 
-        Zone zone2 = new Zone(2,40.0F, 60, 90, 80, 100);
+        Zone zone2 = new Zone(2, 40.0F, 60, 90, 80, 100);
         zone2.setSeverity(FireSeverity.LOW);
         missionQueue.queue(zone2);
 
@@ -56,7 +56,7 @@ public class MissionQueueTest {
     @Test
     public void testIsEmpty() {
         assertTrue(missionQueue.isEmpty());
-        Zone zone1 = new Zone(1,50.0F, 0, 60, 0, 80);
+        Zone zone1 = new Zone(1, 50.0F, 0, 60, 0, 80);
         zone1.setSeverity(FireSeverity.LOW);
         missionQueue.queue(zone1);
         assertFalse(missionQueue.isEmpty());
@@ -66,7 +66,7 @@ public class MissionQueueTest {
 
     @Test
     public void testGetMissions() {
-        Zone zone1 = new Zone(1,50.0F, 0, 60, 0, 80);
+        Zone zone1 = new Zone(1, 50.0F, 0, 60, 0, 80);
         zone1.setSeverity(FireSeverity.LOW);
         missionQueue.queue(zone1);
 
@@ -83,7 +83,7 @@ public class MissionQueueTest {
 
     @Test
     public void testEquals() {
-        Zone zone1 = new Zone(1,50.0F, 0, 60, 0, 80);
+        Zone zone1 = new Zone(1, 50.0F, 0, 60, 0, 80);
         zone1.setSeverity(FireSeverity.LOW);
         missionQueue.queue(zone1);
 

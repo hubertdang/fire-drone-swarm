@@ -109,9 +109,6 @@ public class MissionQueue {
         if (obj == null || getClass() != obj.getClass()) return false;
 
         MissionQueue missionQueue = (MissionQueue) obj;
-        return this.getMissions().size() == missionQueue.getMissions().size()
-                && this.getMissions().get(0).equals(missionQueue.getMissions().get(0))
-                && this.getMissions().get(1).equals(missionQueue.getMissions().get(1))
-                && this.getMissions().get(2).equals(missionQueue.getMissions().get(2));
+        return this.getMissions().size() == missionQueue.getMissions().size() && this.getMissions().get(0).equals(missionQueue.getMissions().get(0)) && this.getMissions().get(1).equals(missionQueue.getMissions().get(1)) && this.getMissions().get(2).equals(missionQueue.getMissions().get(2));
     }
 }
