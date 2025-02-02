@@ -27,6 +27,6 @@ public class SimEventTest {
 
     @Test
     public void testGetSeverity() {
-        assertEquals("High", simEvent.getSeverity());
+        assertEquals(FireSeverity.HIGH, simEvent.getSeverity());
     }
 }

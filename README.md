@@ -23,7 +23,13 @@ A control system and simulator for a firefighting drone swarm.
 | `Main.java`                      | Entry point for running the simulation.                                                         |
 | `FireIncidentSubsystemTest.java` | Unit tests for `FireIncidentSubsystem`.                                                         | 
 | `ZoneTest.java`                  | Unit tests for `Zone`.                                                                          |
+| `DroneTest.java`                 | Unit tests for `Drone`.                                                                         |
+| `SchedulerTest.java`             | Unit tests for `Scheduler`.                                                                     |
+| `MissionQueueTest.java`          | Unit tests for `MissionQueue`.                                                                  |
 | `AgentTankTest.java`             | Unit tests for `AgentTank`.                                                                     |
+| `DroneBufferTest.java`           | Unit tests for `DroneBuffer`.                                                                   |
+| `FireIncidentBufferTest.java`    | Unit tests for `FireIncidentBuffer`.                                                            |
+| `SimEventTest.java`              | Unit tests for `SimEvent`.                                                                      |
 | `PositionTest.java`              | Unit tests for `Position`.                                                                      |
 | `sample_input_files/zones.csv`   | Sample test file containing zone definitions.                                                   |
 | `sample_input_files/events.csv`  | Sample test file containing fire incident events.                                               |
@@ -32,6 +38,7 @@ A control system and simulator for a firefighting drone swarm.
 
 ### **Prerequisites**
 - Java 11+ installed.
+- JUnit 5.7.2 or higher.
 - IntelliJ IDEA or any Java IDE.
 - Ensure that the following test files exist in sample_input_files/: `zones.csv`, `events.csv`.
 
@@ -43,7 +50,7 @@ cd fire-drone-swarm
 ### **2. Open the Project in IntelliJ IDEA**
 1. Open IntelliJ IDEA.
 2. Click on `Open`.
-3. Compile and run `Main.java` inside your IDE.
+3. Compile and run `Main.java` inside your IDE to run the simulation.
 4. To run unit tests, click on unit test file and run the test
 
 ## Developer Workflow
@@ -106,11 +113,12 @@ cd fire-drone-swarm
 ## Breakdown of Responsibilities
 In general, the team approached the project collaboratively, working together to solve problems and make decisions. However, each team member was responsible for specific tasks and components of the project. 
 The breakdown of responsibilities is as follows:
-- Amilesh: `FireIncidentSubsystem`, `FireIncidentSubsystemTest`, `SimEvent`
+- Amilesh: `FireIncidentSubsystem`, `FireIncidentSubsystemTest`, `SimEvent`, `SimEventTest`, `DroneBufferTest`, 
+`FireIncidentBufferTest`
 - Hubert: System Design and UML Diagrams, reviewing PRs, supported development of 
 `Drone`, `Task`, `DroneBuffer`, `FireIncidentBuffer`, `TimeUtils`
 - David: System Design and UML Diagrams, `Task`, `DroneBuffer`, `FireIncidentBuffer`,`TimeUtils`
 - Aashna: `Zone`, `ZoneTest`, `Position`, `PositionTest`, `AgentTank`, `AgentTankTest`
-- Shenhao Gong: `Drone`, `DroneStatus`, `FireSeverity`
+- Shenhao Gong: `Drone`, `DroneStatus`, `FireSeverity`, `DroneTest`
 - Manit: `Scheduler`, `MissionQueue`, `SchedulerTest`
 
