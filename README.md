@@ -107,8 +107,9 @@ cd fire-drone-swarm
 In general, the team approached the project collaboratively, working together to solve problems and make decisions. However, each team member was responsible for specific tasks and components of the project. 
 The breakdown of responsibilities is as follows:
 - Amilesh: `FireIncidentSubsystem`, `FireIncidentSubsystemTest`, `SimEvent`
-- Hubert: UML Diagrams
-- David: UML Diagrams, `Task`, `DroneBuffer`, `FireIncidentBuffer`
+- Hubert: System Design and UML Diagrams, reviewing PRs, supported development of 
+`Drone`, `Task`, `DroneBuffer`, `FireIncidentBuffer`
+- David: System Design and UML Diagrams, `Task`, `DroneBuffer`, `FireIncidentBuffer`
 - Aashna: `Zone`, `ZoneTest`, `Position`, `PositionTest`, `AgentTank`, `AgentTankTest`
 - Shenhao Gong: `Drone`, `DroneStatus`, `FireSeverity`
 - Manit: `Scheduler`, `MissionQueue`, `SchedulerTest`
