@@ -1,3 +1,5 @@
+import static java.lang.Thread.sleep;
+
 /**
  * <p>Drone</p>
  *
@@ -10,24 +12,26 @@ public class Drone implements Runnable {
     private static final float TOP_SPEED = 20.0f;     // 20m/s
     private static final float TAKEOFF_ACCEL_RATE = 3.0f;  //3m/s^2
     private static final float LAND_DECEL_RATE = 5.0f;   //5m/s^2
-    private static final float ARRIVAL_DISTANCE_THRESHOLD = 0.1f;  //0.1m  which means if the distance is less than 20m assume it is arrived
+    private static final float ARRIVAL_DISTANCE_THRESHOLD = 25.0f;  //25m  which means if the distance is less than 20m assume it is arrived
     private final int id;
-    private final Scheduler scheduler;
     private final AgentTank agentTank;
     private Position position;
     //private float rating;           //for scheduling algorithm later
-    private Zone zoneToService;       // The zone assigned by the Scheduler. The drone won't pick tasks itself
+    private Zone zoneToService; // The zone assigned by the Scheduler. The drone won't pick tasks itself
+    private FireSeverity zoneSeverity;
     private volatile DroneStatus status;  // make sure thread will check status everytime
     private float currentSpeed = 0f;
+    private final DroneBuffer droneBuffer;
 
 
-    public Drone(int id, Scheduler scheduler) {
+    public Drone(int id, DroneBuffer droneBuffer) {
         this.id = id;
-        this.scheduler = scheduler;
         this.position = new Position(BASE_POSITION.getX(), BASE_POSITION.getY());
         this.currentSpeed = 0f;
         this.status = DroneStatus.BASE;
         this.agentTank = new AgentTank();
+        this.droneBuffer = droneBuffer;
+        this.zoneToService = null;
     }
 
 
@@ -47,24 +51,6 @@ public class Drone implements Runnable {
      */
     public int getId() {
         return id;
-    }
-
-    /**
-     * Gets the current amount of agent in the tank
-     *
-     * @return current agent quantity in liters
-     */
-    public float getTankCapacity() {
-        return agentTank.getCurrAgentAmount();
-    }
-
-    /**
-     * Gets the currently assigned zone
-     *
-     * @return Zone object representing current destination, could be null
-     */
-    public Zone getZoneToService() {
-        return zoneToService;
     }
 
     /**
@@ -100,21 +86,19 @@ public class Drone implements Runnable {
      */
     public void releaseAgent() {
         setStatus(DroneStatus.DROPPING_AGENT);
-        scheduler.droneStatusUpdated(getStatus());
         System.out.println("[Drone#" + id + "] Starting agent release.");
 
         long previousTime = System.nanoTime();
         long currentTime;
         float deltaTime;
         float agentToDrop;
-
+        agentTank.openNozzle();
         while (true) {
             //the status will change if agent is empty or call stopAgent()
             if (getStatus() != DroneStatus.DROPPING_AGENT) {
                 System.out.println("[Drone#" + id + "] Release agent stopped. Current status: " + getStatus());
                 break;
             }
-
 
             currentTime = System.nanoTime();
             deltaTime = (currentTime - previousTime) / 1_000_000_000f; // convert to second
@@ -127,13 +111,23 @@ public class Drone implements Runnable {
             }
 
             //check how much agent can drop vs how much agent left
-            agentToDrop = Math.min(agentTank.getCurrAgentAmount(), AgentTank.AGENT_DROP_RATE * deltaTime);
+            agentToDrop = AgentTank.AGENT_DROP_RATE * deltaTime;
 
             agentTank.decreaseAgent(agentToDrop);
             zoneToService.setRequiredAgentAmount(zoneToService.getRequiredAgentAmount() - agentToDrop);
+            System.out.println("[Drone#" + id + "] Releasing " + agentToDrop + "L. Tank="
+                    + agentTank.getCurrAgentAmount());
 
-            System.out.println("[Drone#" + id + "] Releasing " + agentToDrop + "L. Tank=" + getTankCapacity() + ", zoneNeed=" + zoneToService.getRequiredAgentAmount());
-
+            if (zoneToService.getRequiredAgentAmount() <= 0) {
+                this.setStatus(DroneStatus.FIRE_STOPPED);
+                System.out.println("[Drone#" + id + "]:" + " Fire Extinguished.");
+            }
+            // sleep thread to allow other threads to run/ not flood logs
+            try {
+                sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -143,7 +137,7 @@ public class Drone implements Runnable {
      */
     public void stopAgent() {
         System.out.println("[Drone#" + id + "] handleStopAgent() called.");
-        if (status == DroneStatus.DROPPING_AGENT) {
+        if (status == DroneStatus.FIRE_STOPPED) {
             agentTank.closeNozzle();
             System.out.println("[Drone#" + id + "] Stopped releasing agent.");
             setStatus(DroneStatus.IDLE);
@@ -172,7 +166,6 @@ public class Drone implements Runnable {
         float stoppingDistance;
 
         while (true) {
-
             currentTime = System.nanoTime();
             deltaTime = (currentTime - previousTime) / 1_000_000_000f; // convert into seconds
             previousTime = currentTime;
@@ -185,10 +178,8 @@ public class Drone implements Runnable {
                 currentSpeed = 0;
                 if (destination.equals(BASE_POSITION)) {
                     setStatus(DroneStatus.BASE);
-                    scheduler.droneStatusUpdated(getStatus());
                 } else {
                     setStatus(DroneStatus.ARRIVED);
-                    scheduler.droneStatusUpdated(getStatus());
                 }
                 return;
             }
@@ -215,7 +206,7 @@ public class Drone implements Runnable {
 
 
             stepDist = currentSpeed * deltaTime;
-            angle = (float) Math.atan2(destination.getX() - position.getX(), destination.getY() - position.getY());
+            angle = (float) Math.atan2(destination.getY() - position.getY(), destination.getX() - position.getX());
 
             if (stepDist > distanceFromDestination) {
                 stepDist = distanceFromDestination;
@@ -227,7 +218,24 @@ public class Drone implements Runnable {
 
 
             System.out.println("[Drone#" + id + "] Flying: pos=(" + newX + "," + newY + "), speed=" + currentSpeed + " m/s, distance=" + distanceFromDestination + " m");
+
+            // sleep to minimize logs
+            // threshold must be >= 20m to account for this sleep call
+            try {
+                sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
+    }
+
+    /**
+     * Retrieves the severity of the zone to be serviced.
+     *
+     * @return FireSeverity enum
+     */
+    private FireSeverity getZoneSeverity() {
+        return this.zoneSeverity;
     }
 
     @Override
@@ -246,7 +254,54 @@ public class Drone implements Runnable {
     @Override
     public void run() {
 
-    }
+        while (true) {
+            // wait until given a directive by scheduler
+            droneBuffer.waitForTask();
 
+            // process tasks received
+            Task taskToDo = droneBuffer.popSchedulerTask();
+
+            System.out.println("[" + Thread.currentThread().getName() + "]: Drone " +
+                    this.id + " received a new task to: " + taskToDo.getDroneStatus());
+
+            switch (taskToDo.getDroneStatus()) {
+                case BASE -> {
+                    this.setStatus(DroneStatus.ENROUTE);
+                    fly(BASE_POSITION);
+                }
+                case ENROUTE -> {
+                    this.setStatus(DroneStatus.ENROUTE);
+                    // need to inform scheduler drone is enroute
+                    // for state change ENROUTE -> ARRIVED in scheduler
+                    droneBuffer.addSchedulerAcknowledgement(new Task(this.getStatus()));
+                    fly(taskToDo.getZone().getPosition());
+                    setZoneToService(taskToDo.getZone());
+                }
+                case DROPPING_AGENT -> {
+                    this.setStatus(DroneStatus.DROPPING_AGENT);
+                    releaseAgent();
+                }
+                case STOP_DROPPING_AGENT -> {
+                    this.stopAgent();
+                }
+                case STATUS_UPDATE -> {
+                    break;
+                }
+                case IDLE -> {
+                    setStatus(DroneStatus.IDLE);
+                }
+            }
+
+            // tell scheduler drones current state after executing task
+            droneBuffer.addSchedulerAcknowledgement(new Task(this.getStatus(), zoneToService));
+
+            // allow scheduler time to receive and compute acknowledgement
+            try {
+                sleep(2000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 }
 

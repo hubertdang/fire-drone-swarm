@@ -3,10 +3,9 @@
  * to release the agent at a specified rate.
  */
 public class AgentTank {
-    public static final float CAPACITY = 11.0f;       // 11 L
+    public static final float CAPACITY = 100.0f;       // 100 L -> reality = 11L, change in iteration 5
     public static final float AGENT_DROP_RATE = 1.0f; // 1 L/sec
     public static final long NOZZLE_TIME = 2000;     // 2 sec
-
     private float currAgentAmount;
     private boolean isNozzleOpen;
 
@@ -23,7 +22,7 @@ public class AgentTank {
      */
     public synchronized void openNozzle() {
         try {
-            Thread.sleep(this.NOZZLE_TIME);
+            Thread.sleep(NOZZLE_TIME);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -35,7 +34,7 @@ public class AgentTank {
      */
     public synchronized void closeNozzle() {
         try {
-            Thread.sleep(this.NOZZLE_TIME);
+            Thread.sleep(NOZZLE_TIME);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -80,7 +79,7 @@ public class AgentTank {
      * Decreases the amount of agent in the tank by a specified amount.
      * The agent is released at a rate of 1 liter per second, meaning the function
      * will wait proportionally based on the amount of agent being released.
-     *
+     * <p>
      * If the nozzle is closed or the tank is empty, no agent will be released.
      *
      * @param amount The amount to decrease in liters.

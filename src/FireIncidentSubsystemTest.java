@@ -9,11 +9,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class FireIncidentSubsystemTest {
     private FireIncidentSubsystem fireIncidentSubsystem;
-    private Scheduler scheduler;
 
     @BeforeEach
     public void setUp() {
-        fireIncidentSubsystem = new FireIncidentSubsystem(scheduler);
+        fireIncidentSubsystem = new FireIncidentSubsystem(new FireIncidentBuffer());
     }
 
     @Test
@@ -59,24 +58,6 @@ public class FireIncidentSubsystemTest {
         assertEquals(14 * 3600 * 1000 + 3 * 60 * 1000 + 15 * 1000, event1.getTime());
         assertEquals("FIRE_DETECTED", event1.getEventType());
         assertEquals("High", event1.getSeverity());
-    }
-
-    @Test
-    void testPollFireZones() {
-        // Add a zone to fireZones
-        Zone zone = new Zone(1, 0, 0, 700, 0, 600);
-        zone.setSeverity(FireSeverity.HIGH);
-        fireIncidentSubsystem.getFireZones().put(1, zone);
-
-        // Simulate the fire being extinguished
-        zone.setSeverity(FireSeverity.NO_FIRE);
-
-        // Poll fire zones
-        fireIncidentSubsystem.pollFireZones();
-
-        // Verify the fire zone is cleared and added back to clear zones
-        assertFalse(fireIncidentSubsystem.getFireZones().containsKey(1));
-        assertTrue(fireIncidentSubsystem.getClearZones().containsKey(1));
     }
 
     @Test

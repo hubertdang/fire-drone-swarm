@@ -1,25 +1,26 @@
 /**
- * Event class represents an event that occurs in the simulation.
+ * SimEvent class represents an event that occurs in the simulation.
  */
 public class SimEvent {
-    private long time;
-    private int zoneId;
-    private String eventType;
-    private String severity;
+    private final long time;
+    private final int zoneId;
+    private final String eventType;
+    private final FireSeverity severity;
 
     /**
      * Constructs a new Event with the given time, zone ID, event type, and severity.
      *
-     * @param time      the time the event occurred
-     * @param zoneId    the ID of the zone where the event occurred
-     * @param eventType the type of the event
-     * @param severity  the severity of the event
+     * @param time         the time the event occurred
+     * @param zoneId       the ID of the zone where the event occurred
+     * @param eventType    the type of the event
+     * @param severity     the severity of the event
      */
     public SimEvent(long time, int zoneId, String eventType, String severity) {
         this.time = time;
         this.zoneId = zoneId;
         this.eventType = eventType;
-        this.severity = severity;
+        // convert string to enum
+        this.severity = FireSeverity.valueOf(severity.toUpperCase());
     }
 
     /**
@@ -54,7 +55,7 @@ public class SimEvent {
      *
      * @return the severity of the event
      */
-    public String getSeverity() {
+    public FireSeverity getSeverity() {
         return severity;
     }
 
@@ -65,6 +66,7 @@ public class SimEvent {
      */
     @Override
     public String toString() {
-        return "Event[Time=" + time + ", ZoneID=" + zoneId + ", Type=" + eventType + ", Severity=" + severity + "]";
+        return "Event[Time=" + time + ", ZoneID=" + zoneId + ", Type=" + eventType + ", Severity=" + severity +
+                ", Location=" + "]";
     }
 }

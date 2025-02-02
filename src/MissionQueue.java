@@ -26,7 +26,7 @@ public class MissionQueue {
     }
 
     /**
-     * Adds a zone to the correct position in the mission queue
+     * Adds an event to the correct position in the mission queue
      *
      * @param zone
      */
@@ -44,35 +44,35 @@ public class MissionQueue {
     }
 
     /**
-     * Returns the zone with the highest severity and highest required agent amount
+     * Returns the event with the highest severity and highest required agent amount
      * from the mission queue without removing it.
      *
-     * @return zone with highest severity and required agent amount
+     * @return event with highest severity and required agent amount
      */
     public Zone peek() {
         if (!missions.get(HIGH_SEVERITY).isEmpty()) {
-            return missions.get(HIGH_SEVERITY).getFirst();
+            return missions.get(HIGH_SEVERITY).get(0);
         } else if (!missions.get(MODERATE_SEVERITY).isEmpty()) {
-            return missions.get(MODERATE_SEVERITY).getFirst();
+            return missions.get(MODERATE_SEVERITY).get(0);
         } else if (!missions.get(LOW_SEVERITY).isEmpty()) {
-            return missions.get(LOW_SEVERITY).getFirst();
+            return missions.get(LOW_SEVERITY).get(0);
         } else {
             return null;
         }
     }
 
     /**
-     * Removes the zone with the highest priority and highest required agent amount
+     * Removes the SimEvent with the highest priority and highest required agent amount
      *
-     * @return zone with highest severity and required agent amount
+     * @return event with highest severity and required agent amount
      */
     public Zone pop() {
         if (!missions.get(HIGH_SEVERITY).isEmpty()) {
-            return missions.get(HIGH_SEVERITY).removeFirst();
+            return missions.get(HIGH_SEVERITY).remove(0);
         } else if (!missions.get(MODERATE_SEVERITY).isEmpty()) {
-            return missions.get(MODERATE_SEVERITY).removeFirst();
+            return missions.get(MODERATE_SEVERITY).remove(0);
         } else if (!missions.get(LOW_SEVERITY).isEmpty()) {
-            return missions.get(LOW_SEVERITY).removeFirst();
+            return missions.get(LOW_SEVERITY).remove(0);
         } else {
             return null;
         }
