@@ -3,6 +3,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -41,6 +42,7 @@ public class FireIncidentSubsystemTest {
     @Test
     public void testReadSimEventFile() throws Exception {
         // Create a temporary event file for testing
+        testReadSimZoneFile();
         Path tempFile = Files.createTempFile("events", ".csv");
         Files.writeString(tempFile, """
                     Time,Zone ID,Event type,Severity
@@ -52,12 +54,20 @@ public class FireIncidentSubsystemTest {
         fireIncidentSubsystem.readSimEventFile(tempFile.toFile());
 
         // Verify that events are added correctly
-        assertEquals(2, fireIncidentSubsystem.getEvents().size());
-        SimEvent event1 = fireIncidentSubsystem.getEvents().get(0);
+        ArrayList<SimEvent> events = fireIncidentSubsystem.getEvents();
+        assertEquals(2, events.size());
+
+        SimEvent event1 = events.get(0);
         assertEquals(1, event1.getZoneId());
-        assertEquals(14 * 3600 * 1000 + 3 * 60 * 1000 + 15 * 1000, event1.getTime());
+        assertEquals(195, event1.getTime());
         assertEquals("FIRE_DETECTED", event1.getEventType());
-        assertEquals("High", event1.getSeverity());
+        assertEquals(FireSeverity.HIGH, event1.getSeverity());
+
+        SimEvent event2 = events.get(1);
+        assertEquals(2, event2.getZoneId());
+        assertEquals(600, event2.getTime());
+        assertEquals("DRONE_REQUEST", event2.getEventType());
+        assertEquals(FireSeverity.MODERATE, event2.getSeverity());
     }
 
     @Test
