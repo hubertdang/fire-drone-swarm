@@ -25,9 +25,9 @@ public class Main {
 
 
         // Instantiate threads
-        Thread fireSubsystemThread = new Thread(fireIncidentSubsystem);
-        Thread schedulerThread = new Thread(scheduler);
-        Thread droneThread = new Thread(drone);
+        Thread fireSubsystemThread = new Thread(fireIncidentSubsystem, "FIS");
+        Thread schedulerThread = new Thread(scheduler, "SD");
+        Thread droneThread = new Thread(drone, "D");
 
         // run threads
         fireSubsystemThread.start();
