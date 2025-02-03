@@ -33,8 +33,8 @@ A control system and simulator for a firefighting drone swarm.
 | `PositionTest.java`              | Unit tests for `Position`.                                                                      |
 | `sample_input_files/zones.csv`   | Sample test file containing zone definitions.                                                   |
 | `sample_input_files/events.csv`  | Sample test file containing fire incident events.                                               |
-| `docs/UML_Class_Diagram.png`     | UML Class diagram of the system.                                                                |
-| `docs/UML_Sequence_Diagram.png`  | UML Sequence diagram of the system.                                                             |
+| `docs/UML_Class_Diagram.pdf`     | UML Class diagram of the system.                                                                |
+| `docs/UML_Sequence_Diagram.pdf`  | UML Sequence diagram of the system.                                                             |
 
 ## ⚙️ Setup Instructions
 
