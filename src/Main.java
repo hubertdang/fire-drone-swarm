@@ -25,6 +25,7 @@ public class Main {
 
 
         // Instantiate threads
+        System.out.println("--- \nNote: \nFIS-fireSubsystemThread \nSD-schedulerThread \nD-droneThread \n---");
         Thread fireSubsystemThread = new Thread(fireIncidentSubsystem, "FIS");
         Thread schedulerThread = new Thread(scheduler, "SD");
         Thread droneThread = new Thread(drone, "D");
