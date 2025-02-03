@@ -14,7 +14,7 @@ public class AgentTank {
      */
     public AgentTank() {
         this.refill();
-        this.closeNozzle();
+        this.isNozzleOpen = false;
     }
 
     /**

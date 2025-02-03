@@ -58,7 +58,7 @@ public class FireIncidentSubsystem implements Runnable {
      * @param eventTime the time the event occurred
      */
     private void trackFire(Zone zone, long eventTime) {
-        System.out.println("[" + Thread.currentThread().getName() + "]: " + "Fire detected at zone: " + zone.getId());
+        System.out.println("[" + Thread.currentThread().getName() + "]: " + "🔥Fire detected at zone: " + zone.getId());
         clearZones.remove(zone.getId());
         fireZones.put(zone.getId(), zone);
         fireBuffer.addEventMessage(zone);
