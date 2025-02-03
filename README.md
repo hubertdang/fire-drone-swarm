@@ -33,6 +33,8 @@ A control system and simulator for a firefighting drone swarm.
 | `PositionTest.java`              | Unit tests for `Position`.                                                                      |
 | `sample_input_files/zones.csv`   | Sample test file containing zone definitions.                                                   |
 | `sample_input_files/events.csv`  | Sample test file containing fire incident events.                                               |
+| `docs/UML_Class_Diagram.png`     | UML Class diagram of the system.                                                                |
+| `docs/UML_Sequence_Diagram.png`  | UML Sequence diagram of the system.                                                             |
 
 ## ⚙️ Setup Instructions
 
@@ -120,5 +122,5 @@ The breakdown of responsibilities is as follows:
 - David: System Design and UML Diagrams, `Task`, `DroneBuffer`, `FireIncidentBuffer`,`TimeUtils`
 - Aashna: `Zone`, `ZoneTest`, `Position`, `PositionTest`, `AgentTank`, `AgentTankTest`
 - Shenhao Gong: `Drone`, `DroneStatus`, `FireSeverity`, `DroneTest`
-- Manit: `Scheduler`, `MissionQueue`, `SchedulerTest`
+- Manit: `Scheduler`, `MissionQueue`, `SchedulerTest`, `MissionQueueTest`
 
