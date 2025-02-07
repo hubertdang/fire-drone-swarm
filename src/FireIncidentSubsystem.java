@@ -42,12 +42,12 @@ public class FireIncidentSubsystem implements Runnable {
      */
     private void manualReqDrone(Zone zone, long eventTime, String eventType) {
         if (!isOnFire(zone)) {
-            System.out.println("[" + Thread.currentThread().getName() + "]: " + "Manual request for drone at zone: " + zone.getId());
+            System.out.println("[" + Thread.currentThread().getName() + "]: " + "🤖Manual request for drone at zone: " + zone.getId());
             clearZones.remove(zone.getId());
             fireZones.put(zone.getId(), zone);
             fireBuffer.addEventMessage(zone);
         } else {
-            System.out.println("[" + Thread.currentThread().getName() + "]: " + "Zone " + zone.getId() + " is already on fire");
+            System.out.println("[" + Thread.currentThread().getName() + "]: " + "🔥Zone " + zone.getId() + " is already on fire");
         }
     }
 
@@ -85,9 +85,9 @@ public class FireIncidentSubsystem implements Runnable {
             sortEventsByTime(events);
             System.out.println("[" + Thread.currentThread().getName() + "]: " + "Events added successfully from event file");
         } catch (IOException e) {
-            System.err.println("[" + Thread.currentThread().getName() + "]: " + "Error reading zone file: " + e.getMessage());
+            System.err.println("[" + Thread.currentThread().getName() + "]: " + "‼️Error reading zone file: " + e.getMessage());
         } catch (NumberFormatException e) {
-            System.err.println("[" + Thread.currentThread().getName() + "]: " + "Error parsing event data: " + e.getMessage());
+            System.err.println("[" + Thread.currentThread().getName() + "]: " + "‼️Error parsing event data: " + e.getMessage());
         }
     }
 
