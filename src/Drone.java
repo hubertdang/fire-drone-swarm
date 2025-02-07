@@ -102,7 +102,7 @@ public class Drone implements Runnable {
      */
     public void releaseAgent() {
         setStatus(DroneStatus.DROPPING_AGENT);
-        System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "Starting agent release.");
+        System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "💦Starting agent release.");
 
         long previousTime = System.nanoTime();
         long currentTime;
@@ -112,7 +112,7 @@ public class Drone implements Runnable {
         while (true) {
             //the status will change if agent is empty or call stopAgent()
             if (getStatus() != DroneStatus.DROPPING_AGENT) {
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "Release agent stopped. Current status: " + getStatus());
+                System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "💦Release agent stopped. Current status: " + getStatus());
                 break;
             }
 
@@ -131,11 +131,11 @@ public class Drone implements Runnable {
 
             agentTank.decreaseAgent(agentToDrop);
             zoneToService.setRequiredAgentAmount(zoneToService.getRequiredAgentAmount() - agentToDrop);
-            System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "Releasing " + agentToDrop + "L. Tank=" + agentTank.getCurrAgentAmount());
+            System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "💧Releasing " + agentToDrop + "L. Tank=" + agentTank.getCurrAgentAmount());
 
             if (zoneToService.getRequiredAgentAmount() <= 0) {
                 this.setStatus(DroneStatus.FIRE_STOPPED);
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: " + ":" + " Fire Extinguished.");
+                System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "🧯Fire Extinguished.");
             }
             // sleep thread to allow other threads to run/ not flood logs
             try {
@@ -232,7 +232,7 @@ public class Drone implements Runnable {
             position.update(newX, newY);
 
 
-            System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "Flying: pos=(" + newX + "," + newY + "), speed=" + currentSpeed + " m/s, distance=" + distanceFromDestination + " m");
+            System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "🛸Flying: pos=(" + newX + "," + newY + "), speed=" + currentSpeed + " m/s, distance=" + distanceFromDestination + " m");
 
             // sleep to minimize logs
             // threshold must be >= 20m to account for this sleep call
