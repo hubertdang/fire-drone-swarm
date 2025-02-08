@@ -50,14 +50,16 @@ public class DroneBufferTest {
 
         try {
             Thread.sleep(1000); // Ensure the thread is waiting
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         droneBuffer.addDroneTask(testTask);
         try {
             thread.join();
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             e.printStackTrace();
         }
     }

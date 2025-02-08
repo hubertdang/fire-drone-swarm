@@ -27,7 +27,8 @@ public class DroneBuffer {
         Task message = null;
         if (!acknowledgementFromDrone.isEmpty()) {
             message = acknowledgementFromDrone.remove(0);
-        } else if (!acknowledgementFromDrone.isEmpty()) {
+        }
+        else if (!acknowledgementFromDrone.isEmpty()) {
             message = acknowledgementFromDrone.remove(0);
         }
         notifyAll();
@@ -44,7 +45,8 @@ public class DroneBuffer {
 
         if (!tasksFromScheduler.isEmpty()) {
             message = tasksFromScheduler.remove(0);
-        } else if (!tasksFromScheduler.isEmpty()) {
+        }
+        else if (!tasksFromScheduler.isEmpty()) {
             message = tasksFromScheduler.remove(0);
         }
 
@@ -79,7 +81,8 @@ public class DroneBuffer {
         while (tasksFromScheduler.isEmpty() && tasksFromScheduler.isEmpty()) {
             try {
                 wait();
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }

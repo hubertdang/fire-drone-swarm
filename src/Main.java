@@ -39,7 +39,8 @@ public class Main {
         while (fireSubsystemThread.isAlive()) {
             try {
                 sleep(5000);
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }

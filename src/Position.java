@@ -67,7 +67,8 @@ public class Position {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true; // Check if the same reference
-        if (obj == null || getClass() != obj.getClass()) return false; // Ensure the object is of type Position
+        if (obj == null || getClass() != obj.getClass())
+            return false; // Ensure the object is of type Position
 
         Position position = (Position) obj;
         return Float.compare(position.x, x) == 0 &&

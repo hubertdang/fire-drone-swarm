@@ -16,7 +16,7 @@ public class Drone implements Runnable {
     private final int id;
     private final AgentTank agentTank;
     private final DroneBuffer droneBuffer;
-    private Position position;
+    private final Position position;
     //private float rating;           //for scheduling algorithm later
     private Zone zoneToService; // The zone assigned by the Scheduler. The drone won't pick tasks itself
     private FireSeverity zoneSeverity;
@@ -140,7 +140,8 @@ public class Drone implements Runnable {
             // sleep thread to allow other threads to run/ not flood logs
             try {
                 sleep(1000);
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -156,7 +157,8 @@ public class Drone implements Runnable {
             agentTank.closeNozzle();
             System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "Stopped releasing agent.");
             setStatus(DroneStatus.IDLE);
-        } else {
+        }
+        else {
             System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "Not currently releasing agent. No action taken.");
         }
     }
@@ -193,7 +195,8 @@ public class Drone implements Runnable {
                 currentSpeed = 0;
                 if (destination.equals(BASE_POSITION)) {
                     setStatus(DroneStatus.BASE);
-                } else {
+                }
+                else {
                     setStatus(DroneStatus.ARRIVED);
                 }
                 return;
@@ -208,7 +211,8 @@ public class Drone implements Runnable {
                 if (currentSpeed < 0) {
                     currentSpeed = 0;
                 }
-            } else {
+            }
+            else {
                 if (currentSpeed < TOP_SPEED) {
                     currentSpeed += TAKEOFF_ACCEL_RATE * deltaTime;
                     if (currentSpeed > TOP_SPEED) {
@@ -238,7 +242,8 @@ public class Drone implements Runnable {
             // threshold must be >= 20m to account for this sleep call
             try {
                 sleep(1000);
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -304,7 +309,8 @@ public class Drone implements Runnable {
             // allow scheduler time to receive and compute acknowledgement
             try {
                 sleep(2000);
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }

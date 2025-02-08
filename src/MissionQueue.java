@@ -34,10 +34,12 @@ public class MissionQueue {
         if (zone.getSeverity() == FireSeverity.HIGH) {
             missions.get(HIGH_SEVERITY).add(zone);
             //Collections.sort(missions.get(HIGH_SEVERITY)); --need to add a compareTo method in zone class for sorting zones by required agent amount
-        } else if (zone.getSeverity() == FireSeverity.MODERATE) {
+        }
+        else if (zone.getSeverity() == FireSeverity.MODERATE) {
             missions.get(MODERATE_SEVERITY).add(zone);
             //Collections.sort(missions.get(MODERATE));
-        } else if (zone.getSeverity() == FireSeverity.LOW) {
+        }
+        else if (zone.getSeverity() == FireSeverity.LOW) {
             missions.get(LOW_SEVERITY).add(zone);
             //Collections.sort(missions.get(LOW));
         }
@@ -52,11 +54,14 @@ public class MissionQueue {
     public Zone peek() {
         if (!missions.get(HIGH_SEVERITY).isEmpty()) {
             return missions.get(HIGH_SEVERITY).get(0);
-        } else if (!missions.get(MODERATE_SEVERITY).isEmpty()) {
+        }
+        else if (!missions.get(MODERATE_SEVERITY).isEmpty()) {
             return missions.get(MODERATE_SEVERITY).get(0);
-        } else if (!missions.get(LOW_SEVERITY).isEmpty()) {
+        }
+        else if (!missions.get(LOW_SEVERITY).isEmpty()) {
             return missions.get(LOW_SEVERITY).get(0);
-        } else {
+        }
+        else {
             return null;
         }
     }
@@ -69,11 +74,14 @@ public class MissionQueue {
     public Zone pop() {
         if (!missions.get(HIGH_SEVERITY).isEmpty()) {
             return missions.get(HIGH_SEVERITY).remove(0);
-        } else if (!missions.get(MODERATE_SEVERITY).isEmpty()) {
+        }
+        else if (!missions.get(MODERATE_SEVERITY).isEmpty()) {
             return missions.get(MODERATE_SEVERITY).remove(0);
-        } else if (!missions.get(LOW_SEVERITY).isEmpty()) {
+        }
+        else if (!missions.get(LOW_SEVERITY).isEmpty()) {
             return missions.get(LOW_SEVERITY).remove(0);
-        } else {
+        }
+        else {
             return null;
         }
     }

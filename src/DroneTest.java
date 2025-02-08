@@ -1,8 +1,8 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class DroneTest {
     private Drone drone;
@@ -66,7 +66,6 @@ class DroneTest {
         drone.setStatus(DroneStatus.ENROUTE);
         assertEquals("[Drone#1, status=ENROUTE, pos=(0.0,0.0)]", drone.toString());
     }
-
 
 
 }
