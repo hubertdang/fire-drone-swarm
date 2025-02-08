@@ -23,7 +23,8 @@ public class AgentTank {
     public synchronized void openNozzle() {
         try {
             Thread.sleep(NOZZLE_TIME);
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
         this.isNozzleOpen = true;
@@ -35,7 +36,8 @@ public class AgentTank {
     public synchronized void closeNozzle() {
         try {
             Thread.sleep(NOZZLE_TIME);
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
         this.isNozzleOpen = false;
@@ -88,7 +90,8 @@ public class AgentTank {
         if (this.isNozzleOpen() && !this.isEmpty()) {
             if (this.currAgentAmount < amount) {
                 this.currAgentAmount = 0.0f;
-            } else {
+            }
+            else {
                 this.currAgentAmount -= amount;
             }
         }

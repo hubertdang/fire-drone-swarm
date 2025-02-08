@@ -1,10 +1,6 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashMap;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SchedulerTest {

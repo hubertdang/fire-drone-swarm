@@ -10,7 +10,7 @@ public class FireIncidentBufferTest {
     @BeforeEach
     public void setUp() {
         fireIncidentBuffer = new FireIncidentBuffer();
-        testZone = new Zone(1,0,0,0, 700, 600);
+        testZone = new Zone(1, 0, 0, 0, 700, 600);
     }
 
     @Test

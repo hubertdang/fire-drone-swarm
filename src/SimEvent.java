@@ -10,10 +10,10 @@ public class SimEvent {
     /**
      * Constructs a new Event with the given time, zone ID, event type, and severity.
      *
-     * @param time         the time the event occurred
-     * @param zoneId       the ID of the zone where the event occurred
-     * @param eventType    the type of the event
-     * @param severity     the severity of the event
+     * @param time      the time the event occurred
+     * @param zoneId    the ID of the zone where the event occurred
+     * @param eventType the type of the event
+     * @param severity  the severity of the event
      */
     public SimEvent(long time, int zoneId, String eventType, String severity) {
         this.time = time;

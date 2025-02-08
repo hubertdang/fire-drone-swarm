@@ -94,7 +94,8 @@ public class Scheduler implements Runnable {
             // give other threads oppurtunity to access shared buffers
             try {
                 sleep(3000);
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }

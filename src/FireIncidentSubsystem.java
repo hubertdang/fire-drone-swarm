@@ -46,7 +46,8 @@ public class FireIncidentSubsystem implements Runnable {
             clearZones.remove(zone.getId());
             fireZones.put(zone.getId(), zone);
             fireBuffer.addEventMessage(zone);
-        } else {
+        }
+        else {
             System.out.println("[" + Thread.currentThread().getName() + "]: " + "🔥Zone " + zone.getId() + " is already on fire");
         }
     }
@@ -84,9 +85,11 @@ public class FireIncidentSubsystem implements Runnable {
             }
             sortEventsByTime(events);
             System.out.println("[" + Thread.currentThread().getName() + "]: " + "Events added successfully from event file");
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             System.err.println("[" + Thread.currentThread().getName() + "]: " + "‼️Error reading zone file: " + e.getMessage());
-        } catch (NumberFormatException e) {
+        }
+        catch (NumberFormatException e) {
             System.err.println("[" + Thread.currentThread().getName() + "]: " + "‼️Error parsing event data: " + e.getMessage());
         }
     }
@@ -114,7 +117,8 @@ public class FireIncidentSubsystem implements Runnable {
                 clearZones.put(id, new Zone(id, 0, startX, endX, startY, endY));
             }
             System.out.println("[" + Thread.currentThread().getName() + "]: " + "Zones added successfully from zone file");
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             System.err.println("[" + Thread.currentThread().getName() + "]: " + "Error reading zone file: " + e.getMessage());
         }
     }
@@ -175,7 +179,8 @@ public class FireIncidentSubsystem implements Runnable {
             // sleep polling thread to allow other threads to run
             try {
                 sleep(5000);
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -226,9 +231,11 @@ public class FireIncidentSubsystem implements Runnable {
 
         if (eventType.equals("FIRE_DETECTED")) {
             trackFire(zone, eventTime);
-        } else if (eventType.equals("DRONE_REQUEST")) {
+        }
+        else if (eventType.equals("DRONE_REQUEST")) {
             manualReqDrone(zone, eventTime, "DRONE_REQUEST");
-        } else {
+        }
+        else {
             System.out.println("[" + Thread.currentThread().getName() + "]: " + "Invalid event type: " + eventType);
         }
     }
