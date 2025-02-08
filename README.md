@@ -4,37 +4,37 @@ A control system and simulator for a firefighting drone swarm.
 
 ## 📂 Project Structure
 
-| **File**                         | **Description**                                                                                 |
-|----------------------------------|-------------------------------------------------------------------------------------------------|
-| `FireIncidentSubsystem.java`     | Handles fire events and drone requests, communicating with `Scheduler`                          |
-| `FireIncidentBuffer.java`        | Represents the buffer used between the fire incident subsystem and the scheduler.               |
-| `Scheduler.java`                 | Processes fire incidents and drone requests.                                                    |
-| `MissionQueue.java`              | Represents the queue of missions for the drones.                                                |
-| `SimEvent.java`                  | Represents a fire event message.                                                                |
-| `Task.java`                      | Represents a task used to aid in the generation of messages passed between scheduler and drone. |
-| `Drone.java`                     | Represents a drone in the simulation.                                                           |
-| `DroneBuffer.java`               | Represents the buffer used between drone adn scheduler.                                         |
-| `DroneStatus.java`               | Enum defining the possible statuses the drone can be in.                                        |
-| `TimeUtils.java`                 | Utility class for formatting time.                                                              |
-| `Zone.java`                      | Represents a zone, including position and severity of any fire occurring there.                 |
-| `AgentTank.java`                 | Represents the tank of the drone.                                                               |
-| `Position.java`                  | Represents x, y coordinates of a zone.                                                          |
-| `FireSeverity.java`              | Enum defining `NO_FIRE`, `LOW`, `MODERATE`, and `HIGH` severity levels.                         |
-| `Main.java`                      | Entry point for running the simulation.                                                         |
-| `FireIncidentSubsystemTest.java` | Unit tests for `FireIncidentSubsystem`.                                                         | 
-| `ZoneTest.java`                  | Unit tests for `Zone`.                                                                          |
-| `DroneTest.java`                 | Unit tests for `Drone`.                                                                         |
-| `SchedulerTest.java`             | Unit tests for `Scheduler`.                                                                     |
-| `MissionQueueTest.java`          | Unit tests for `MissionQueue`.                                                                  |
-| `AgentTankTest.java`             | Unit tests for `AgentTank`.                                                                     |
-| `DroneBufferTest.java`           | Unit tests for `DroneBuffer`.                                                                   |
-| `FireIncidentBufferTest.java`    | Unit tests for `FireIncidentBuffer`.                                                            |
-| `SimEventTest.java`              | Unit tests for `SimEvent`.                                                                      |
-| `PositionTest.java`              | Unit tests for `Position`.                                                                      |
-| `sample_input_files/zones.csv`   | Sample test file containing zone definitions.                                                   |
-| `sample_input_files/events.csv`  | Sample test file containing fire incident events.                                               |
-| `docs/UML_Class_Diagram.pdf`     | UML Class diagram of the system.                                                                |
-| `docs/UML_Sequence_Diagram.pdf`  | UML Sequence diagram of the system.                                                             |
+| **File**                               | **Description**                                                                                 |
+|----------------------------------------|-------------------------------------------------------------------------------------------------|
+| `FireIncidentSubsystem.java`           | Handles fire events and drone requests, communicating with `Scheduler`                          |
+| `FireIncidentBuffer.java`              | Represents the buffer used between the fire incident subsystem and the scheduler.               |
+| `Scheduler.java`                       | Processes fire incidents and drone requests.                                                    |
+| `MissionQueue.java`                    | Represents the queue of missions for the drones.                                                |
+| `SimEvent.java`                        | Represents a fire event message.                                                                |
+| `Task.java`                            | Represents a task used to aid in the generation of messages passed between scheduler and drone. |
+| `Drone.java`                           | Represents a drone in the simulation.                                                           |
+| `DroneBuffer.java`                     | Represents the buffer used between drone adn scheduler.                                         |
+| `DroneStatus.java`                     | Enum defining the possible statuses the drone can be in.                                        |
+| `TimeUtils.java`                       | Utility class for formatting time.                                                              |
+| `Zone.java`                            | Represents a zone, including position and severity of any fire occurring there.                 |
+| `AgentTank.java`                       | Represents the tank of the drone.                                                               |
+| `Position.java`                        | Represents x, y coordinates of a zone.                                                          |
+| `FireSeverity.java`                    | Enum defining `NO_FIRE`, `LOW`, `MODERATE`, and `HIGH` severity levels.                         |
+| `Main.java`                            | Entry point for running the simulation.                                                         |
+| `tests/FireIncidentSubsystemTest.java` | Unit tests for `FireIncidentSubsystem`.                                                         | 
+| `tests/ZoneTest.java`                  | Unit tests for `Zone`.                                                                          |
+| `tests/DroneTest.java`                 | Unit tests for `Drone`.                                                                         |
+| `tests/SchedulerTest.java`             | Unit tests for `Scheduler`.                                                                     |
+| `tests/MissionQueueTest.java`          | Unit tests for `MissionQueue`.                                                                  |
+| `tests/AgentTankTest.java`             | Unit tests for `AgentTank`.                                                                     |
+| `tests/DroneBufferTest.java`           | Unit tests for `DroneBuffer`.                                                                   |
+| `tests/FireIncidentBufferTest.java`    | Unit tests for `FireIncidentBuffer`.                                                            |
+| `tests/SimEventTest.java`              | Unit tests for `SimEvent`.                                                                      |
+| `tests/PositionTest.java`              | Unit tests for `Position`.                                                                      |
+| `sample_input_files/zones.csv`         | Sample test file containing zone definitions.                                                   |
+| `sample_input_files/events.csv`        | Sample test file containing fire incident events.                                               |
+| `docs/UML_Class_Diagram.pdf`           | UML Class diagram of the system.                                                                |
+| `docs/UML_Sequence_Diagram.pdf`        | UML Sequence diagram of the system.                                                             |
 
 ## ⚙️ Setup Instructions
 
