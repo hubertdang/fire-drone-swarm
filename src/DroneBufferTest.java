@@ -5,18 +5,18 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class DroneBufferTest {
     private DroneBuffer droneBuffer;
-    private Task testTask;
+    private DroneTask testTask;
 
     @BeforeEach
     public void setUp() {
         droneBuffer = new DroneBuffer();
-        testTask = new Task(DroneStatus.IDLE, new Zone(1, 0, 0, 0, 700, 600));
+        testTask = new DroneTask(DroneStatus.IDLE, new Zone(1, 0, 0, 0, 700, 600));
     }
 
     @Test
     public void testAddAndPopDroneTask() {
         droneBuffer.addDroneTask(testTask);
-        Task poppedTask = droneBuffer.popSchedulerTask();
+        DroneTask poppedTask = droneBuffer.popSchedulerTask();
         assertEquals(testTask, poppedTask);
         assertFalse(droneBuffer.newAcknowledgement());
     }
@@ -25,7 +25,7 @@ public class DroneBufferTest {
     public void testAddAndPopSchedulerAcknowledgement() {
         droneBuffer.addSchedulerAcknowledgement(testTask);
         assertTrue(droneBuffer.newAcknowledgement());
-        Task poppedTask = droneBuffer.popDroneAcknowledgement();
+        DroneTask poppedTask = droneBuffer.popDroneAcknowledgement();
         assertEquals(testTask, poppedTask);
         assertFalse(droneBuffer.newAcknowledgement());
     }

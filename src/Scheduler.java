@@ -43,7 +43,7 @@ public class Scheduler implements Runnable {
 
             // check for drone acknowledgements
             if (droneBuffer.newAcknowledgement()) {
-                Task acknowledgementStatus = droneBuffer.popDroneAcknowledgement();
+                DroneTask acknowledgementStatus = droneBuffer.popDroneAcknowledgement();
                 System.out.println("[" + Thread.currentThread().getName() + "]: Scheduler " +
                         "a drone has sent back an acknowledgement\n\t" +
                         "Status: " + acknowledgementStatus.getDroneStatus());
@@ -58,13 +58,13 @@ public class Scheduler implements Runnable {
                     case ARRIVED -> {
                         // drop agent, to location
                         if (previousDroneStatus == DroneStatus.ENROUTE) {
-                            droneBuffer.addDroneTask(new Task(DroneStatus.DROPPING_AGENT));
+                            droneBuffer.addDroneTask(new DroneTask(DroneStatus.DROPPING_AGENT));
                         }
                     }
                     case FIRE_STOPPED -> {
                         // close nozzle
                         if (previousDroneStatus == DroneStatus.ARRIVED) {
-                            droneBuffer.addDroneTask(new Task(DroneStatus.STOP_DROPPING_AGENT));
+                            droneBuffer.addDroneTask(new DroneTask(DroneStatus.STOP_DROPPING_AGENT));
                         }
                     }
                     case IDLE -> {
@@ -86,7 +86,7 @@ public class Scheduler implements Runnable {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Scheduler is requesting drone to handle a fire " +
                         "from the mission queue.");
-                Task newMission = new Task(DroneStatus.ENROUTE, missionQueue.pop());
+                DroneTask newMission = new DroneTask(DroneStatus.ENROUTE, missionQueue.pop());
                 droneBuffer.addDroneTask(newMission);
                 droneOnMission = true;
             }
