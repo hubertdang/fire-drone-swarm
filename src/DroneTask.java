@@ -4,7 +4,7 @@
  * of messages passed between the scheduler and the drone.
  */
 
-public class Task {
+public class DroneTask {
 
     private final DroneStatus droneStatus;
     private final Zone zone;
@@ -15,7 +15,7 @@ public class Task {
      *
      * @param droneStatus the status message to be interpreted by a Drone.
      */
-    public Task(DroneStatus droneStatus) {
+    public DroneTask(DroneStatus droneStatus) {
         this.droneStatus = droneStatus;
         this.zone = null;
     }
@@ -26,7 +26,7 @@ public class Task {
      * @param zone        the Zone to service.
      * @param droneStatus the status message to be interpreted by a Drone.
      */
-    public Task(DroneStatus droneStatus, Zone zone) {
+    public DroneTask(DroneStatus droneStatus, Zone zone) {
         this.droneStatus = droneStatus;
         this.zone = zone;
     }
