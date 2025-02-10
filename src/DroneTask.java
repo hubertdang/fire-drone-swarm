@@ -6,17 +6,17 @@
 
 public class DroneTask {
 
-    private final DroneStatus droneStatus;
+    private final DroneTaskType droneTaskType;
     private final Zone zone;
 
     /**
      * Task constructor 1 takes a desired task, and sets the event to a default value;
      * to convey message between scheduler and drone.
      *
-     * @param droneStatus the status message to be interpreted by a Drone.
+     * @param droneTaskType the status message to be interpreted by a Drone.
      */
-    public DroneTask(DroneStatus droneStatus) {
-        this.droneStatus = droneStatus;
+    public DroneTask(DroneTaskType droneTaskType) {
+        this.droneTaskType = droneTaskType;
         this.zone = null;
     }
 
@@ -24,10 +24,10 @@ public class DroneTask {
      * Task constructor 2 takes a desired task, and Zone to convey message between scheduler and drone
      *
      * @param zone        the Zone to service.
-     * @param droneStatus the status message to be interpreted by a Drone.
+     * @param droneTaskType the status message to be interpreted by a Drone.
      */
-    public DroneTask(DroneStatus droneStatus, Zone zone) {
-        this.droneStatus = droneStatus;
+    public DroneTask(DroneTaskType droneTaskType, Zone zone) {
+        this.droneTaskType = droneTaskType;
         this.zone = zone;
     }
 
@@ -36,8 +36,8 @@ public class DroneTask {
      *
      * @return a status enum representing the desired state scheduler wants the drone to be.
      */
-    public DroneStatus getDroneStatus() {
-        return this.droneStatus;
+    public DroneTaskType getDroneStatus() {
+        return this.droneTaskType;
     }
 
     /**
@@ -47,6 +47,10 @@ public class DroneTask {
      */
     public Zone getZone() {
         return this.zone;
+    }
+
+    public DroneTaskType getTaskType() {
+        return droneTaskType;
     }
 
 }

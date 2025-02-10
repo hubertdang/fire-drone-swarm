@@ -7,29 +7,27 @@ import java.util.ArrayList;
 
 public class DroneBuffer {
 
-    private final ArrayList<DroneTask> acknowledgementFromDrone;
+    private final ArrayList<DroneState> droneStateMessage;
     private final ArrayList<DroneTask> tasksFromScheduler;
 
     /**
      * Constructs a shared priority buffer used for message passing.
      */
     public DroneBuffer() {
-        acknowledgementFromDrone = new ArrayList<>();
+        droneStateMessage = new ArrayList<>();
         tasksFromScheduler = new ArrayList<>();
     }
+
 
     /**
      * Retrieves an acknowledgement message from the buffer.
      *
-     * @return a Task object
+     * @return a DroneState
      */
-    public synchronized DroneTask popDroneAcknowledgement() {
-        DroneTask message = null;
-        if (!acknowledgementFromDrone.isEmpty()) {
-            message = acknowledgementFromDrone.remove(0);
-        }
-        else if (!acknowledgementFromDrone.isEmpty()) {
-            message = acknowledgementFromDrone.remove(0);
+    public synchronized DroneState popDroneState() {
+        DroneState message = null;
+        if (!droneStateMessage.isEmpty()) {
+            message = droneStateMessage.remove(0);
         }
         notifyAll();
         return message;
@@ -44,9 +42,6 @@ public class DroneBuffer {
         DroneTask message = null;
 
         if (!tasksFromScheduler.isEmpty()) {
-            message = tasksFromScheduler.remove(0);
-        }
-        else if (!tasksFromScheduler.isEmpty()) {
             message = tasksFromScheduler.remove(0);
         }
 
@@ -67,10 +62,10 @@ public class DroneBuffer {
     /**
      * Adds task acknowledgement message to buffer.
      *
-     * @param task the message to be added to buffer
+     * @param state the DroneState to be added to buffer
      */
-    public synchronized void addSchedulerAcknowledgement(DroneTask task) {
-        acknowledgementFromDrone.add(task);
+    public synchronized void addDroneState(DroneState state) {
+        droneStateMessage.add(state);
         notifyAll();
     }
 
@@ -78,7 +73,7 @@ public class DroneBuffer {
      * Disables drone thread while waiting for a new fire event to service.
      */
     public synchronized void waitForTask() {
-        while (tasksFromScheduler.isEmpty() && tasksFromScheduler.isEmpty()) {
+        while (tasksFromScheduler.isEmpty()) {
             try {
                 wait();
             }
@@ -91,9 +86,18 @@ public class DroneBuffer {
     /**
      * newAcknowledgement signifies if there are any additions to event list
      *
-     * @return true if acknowledgementMessages not empty, false otherwise
+     * @return true if droneStateMessage is not empty, false otherwise
      */
     public synchronized boolean newAcknowledgement() {
-        return !acknowledgementFromDrone.isEmpty();
+        return !droneStateMessage.isEmpty();
+    }
+
+    /**
+     * new Tasks signifies if there are any additions to event list
+     *
+     * @return true if buffer has tasks from scheduler, false otherwise
+     */
+    public boolean hasSchedulerTask() {
+        return !tasksFromScheduler.isEmpty();
     }
 }

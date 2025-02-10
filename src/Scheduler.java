@@ -26,8 +26,8 @@ public class Scheduler implements Runnable {
      */
     @Override
     public void run() {
-        DroneStatus currentDroneStatus = DroneStatus.BASE;
-        DroneStatus previousDroneStatus = null;
+        DroneState currentDroneState = DroneState.BASE;
+        DroneState previousDroneState = null;
         boolean droneOnMission = false;
 
         while (true) {
@@ -43,50 +43,41 @@ public class Scheduler implements Runnable {
 
             // check for drone acknowledgements
             if (droneBuffer.newAcknowledgement()) {
-                DroneTask acknowledgementStatus = droneBuffer.popDroneAcknowledgement();
+                DroneState acknowledgementState = droneBuffer.popDroneState();
                 System.out.println("[" + Thread.currentThread().getName() + "]: Scheduler " +
                         "a drone has sent back an acknowledgement\n\t" +
-                        "Status: " + acknowledgementStatus.getDroneStatus());
+                        "Status: " + acknowledgementState);
 
-                previousDroneStatus = currentDroneStatus;
-                currentDroneStatus = acknowledgementStatus.getDroneStatus();
+                previousDroneState = currentDroneState;
+                currentDroneState = acknowledgementState;
 
-                System.out.println("DEBUG: Previous Status: " + previousDroneStatus);
-                System.out.println("DEBUG: Current Status: " + currentDroneStatus);
+                System.out.println("DEBUG: Previous State: " + previousDroneState);
+                System.out.println("DEBUG: Current State: " + currentDroneState);
 
-                switch (currentDroneStatus) {
+                switch (currentDroneState) {
                     case ARRIVED -> {
                         // drop agent, to location
-                        if (previousDroneStatus == DroneStatus.ENROUTE) {
-                            droneBuffer.addDroneTask(new DroneTask(DroneStatus.DROPPING_AGENT));
+                        if (previousDroneState == DroneState.EN_ROUTE) {
+                            droneBuffer.addDroneTask(new DroneTask(DroneTaskType.RELEASE_AGENT));
                         }
                     }
-                    case FIRE_STOPPED -> {
-                        // close nozzle
-                        if (previousDroneStatus == DroneStatus.ARRIVED) {
-                            droneBuffer.addDroneTask(new DroneTask(DroneStatus.STOP_DROPPING_AGENT));
-                        }
-                    }
+
                     case IDLE -> {
                         droneOnMission = false; // open to receiving new missions
-                        if (previousDroneStatus == DroneStatus.FIRE_STOPPED) {
+                        if (previousDroneState == DroneState.RELEASING_AGENT) {
                             // indicate fire has been put out to the fire incident subsystem
-                            Zone servicedZone = acknowledgementStatus.getZone();
-                            servicedZone.setSeverity(FireSeverity.NO_FIRE); // where should this code be?
-                            fireBuffer.addAcknowledgementMessage(servicedZone);
+                            //Zone servicedZone = acknowledgementState.getZone();
+                          //  servicedZone.setSeverity(FireSeverity.NO_FIRE); // where should this code be?
+                           // fireBuffer.addAcknowledgementMessage(servicedZone);
                         }
                     }
                 }
             }
 
             // handle missions from the mission queue
-            if (!missionQueue.isEmpty() && (currentDroneStatus == DroneStatus.IDLE
-                    || currentDroneStatus == DroneStatus.BASE)
-                    && !droneOnMission) {
-                System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Scheduler is requesting drone to handle a fire " +
-                        "from the mission queue.");
-                DroneTask newMission = new DroneTask(DroneStatus.ENROUTE, missionQueue.pop());
+            if (!missionQueue.isEmpty() && ((currentDroneState == DroneState.IDLE) || (currentDroneState == DroneState.BASE)) && !droneOnMission) {
+                Zone missionZone = missionQueue.pop();
+                DroneTask newMission = new DroneTask(DroneTaskType.SERVICE_ZONE, missionZone);
                 droneBuffer.addDroneTask(newMission);
                 droneOnMission = true;
             }

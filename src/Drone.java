@@ -13,9 +13,9 @@ public class Drone implements Runnable {
     private static final float TAKEOFF_ACCEL_RATE = 3.0f;  //3m/s^2
     private static final float LAND_DECEL_RATE = 5.0f;   //5m/s^2
     private static final float ARRIVAL_DISTANCE_THRESHOLD = 25.0f;  //25m  which means if the distance is less than 20m assume it is arrived
+
     private final int id;
     private final AgentTank agentTank;
-    private final DroneBuffer droneBuffer;
     private final Position position;
     //private float rating;           //for scheduling algorithm later
     private Zone zoneToService; // The zone assigned by the Scheduler. The drone won't pick tasks itself
@@ -24,13 +24,12 @@ public class Drone implements Runnable {
     private float currentSpeed = 0f;
 
 
-    public Drone(int id, DroneBuffer droneBuffer) {
+    public Drone(int id) {
         this.id = id;
         this.position = new Position(BASE_POSITION.getX(), BASE_POSITION.getY());
         this.currentSpeed = 0f;
         this.status = DroneStatus.BASE;
         this.agentTank = new AgentTank();
-        this.droneBuffer = droneBuffer;
         this.zoneToService = null;
     }
 
@@ -85,6 +84,27 @@ public class Drone implements Runnable {
      */
     public synchronized void setStatus(DroneStatus status) {
         this.status = status;
+    }
+
+
+    /**
+     * Based on Drone status, return Drone state send to Dronebuffer
+     */
+    public DroneState getState() {
+        switch (status) {
+            case BASE:
+                return DroneState.BASE;
+            case ENROUTE:
+                return DroneState.EN_ROUTE;
+            case ARRIVED:
+                return DroneState.ARRIVED;
+            case DROPPING_AGENT:
+                return DroneState.RELEASING_AGENT;
+            case IDLE:
+                return DroneState.IDLE;
+            default:
+                return DroneState.IDLE;
+        }
     }
 
     /**
@@ -169,7 +189,7 @@ public class Drone implements Runnable {
      *
      * @param destination the destination for drone to go
      */
-    private void fly(Position destination) {
+    public void fly(Position destination) {
         setStatus(DroneStatus.ENROUTE);
         System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "Starting flight.");
 
@@ -266,7 +286,7 @@ public class Drone implements Runnable {
     @Override
     public void run() {
 
-        while (true) {
+        /*while (true) {
             // wait until given a directive by scheduler
             droneBuffer.waitForTask();
 
@@ -313,7 +333,7 @@ public class Drone implements Runnable {
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-        }
+        }*/
     }
 }
 
