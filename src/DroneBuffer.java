@@ -7,8 +7,8 @@ import java.util.ArrayList;
 
 public class DroneBuffer {
 
-    private final ArrayList<Task> acknowledgementFromDrone;
-    private final ArrayList<Task> tasksFromScheduler;
+    private final ArrayList<DroneTask> acknowledgementFromDrone;
+    private final ArrayList<DroneTask> tasksFromScheduler;
 
     /**
      * Constructs a shared priority buffer used for message passing.
@@ -23,8 +23,8 @@ public class DroneBuffer {
      *
      * @return a Task object
      */
-    public synchronized Task popDroneAcknowledgement() {
-        Task message = null;
+    public synchronized DroneTask popDroneAcknowledgement() {
+        DroneTask message = null;
         if (!acknowledgementFromDrone.isEmpty()) {
             message = acknowledgementFromDrone.remove(0);
         }
@@ -40,8 +40,8 @@ public class DroneBuffer {
      *
      * @return a Task object
      */
-    public synchronized Task popSchedulerTask() {
-        Task message = null;
+    public synchronized DroneTask popSchedulerTask() {
+        DroneTask message = null;
 
         if (!tasksFromScheduler.isEmpty()) {
             message = tasksFromScheduler.remove(0);
@@ -59,7 +59,7 @@ public class DroneBuffer {
      *
      * @param task the message to be added to buffer
      */
-    public synchronized void addDroneTask(Task task) {
+    public synchronized void addDroneTask(DroneTask task) {
         tasksFromScheduler.add(task);
         notifyAll();
     }
@@ -69,7 +69,7 @@ public class DroneBuffer {
      *
      * @param task the message to be added to buffer
      */
-    public synchronized void addSchedulerAcknowledgement(Task task) {
+    public synchronized void addSchedulerAcknowledgement(DroneTask task) {
         acknowledgementFromDrone.add(task);
         notifyAll();
     }

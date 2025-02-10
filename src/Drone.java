@@ -271,7 +271,7 @@ public class Drone implements Runnable {
             droneBuffer.waitForTask();
 
             // process tasks received
-            Task taskToDo = droneBuffer.popSchedulerTask();
+            DroneTask taskToDo = droneBuffer.popSchedulerTask();
 
             System.out.println("[" + Thread.currentThread().getName() + "]: Drone " + this.id + " received a new task to: " + taskToDo.getDroneStatus());
 
@@ -284,7 +284,7 @@ public class Drone implements Runnable {
                     this.setStatus(DroneStatus.ENROUTE);
                     // need to inform scheduler drone is enroute
                     // for state change ENROUTE -> ARRIVED in scheduler
-                    droneBuffer.addSchedulerAcknowledgement(new Task(this.getStatus()));
+                    droneBuffer.addSchedulerAcknowledgement(new DroneTask(this.getStatus()));
                     fly(taskToDo.getZone().getPosition());
                     setZoneToService(taskToDo.getZone());
                 }
@@ -304,7 +304,7 @@ public class Drone implements Runnable {
             }
 
             // tell scheduler drones current state after executing task
-            droneBuffer.addSchedulerAcknowledgement(new Task(this.getStatus(), zoneToService));
+            droneBuffer.addSchedulerAcknowledgement(new DroneTask(this.getStatus(), zoneToService));
 
             // allow scheduler time to receive and compute acknowledgement
             try {
