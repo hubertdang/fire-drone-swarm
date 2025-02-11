@@ -1,3 +1,4 @@
+import java.util.HashMap;
 import java.util.Map;
 
 import static java.lang.Thread.sleep;
@@ -30,6 +31,8 @@ public class Drone implements Runnable {
         this.droneBuffer = droneBuffer;
         this.zoneToService = null;
 
+        states = new HashMap<>();
+
         addState(DroneStateID.BASE, new Base());
         addState(DroneStateID.TAKEOFF, new Takeoff());
         addState(DroneStateID.ACCELERATING, new Accelerating());
@@ -38,6 +41,8 @@ public class Drone implements Runnable {
         addState(DroneStateID.ARRIVED, new Arrived());
         addState(DroneStateID.IDLE, new Idle());
         /* TODO: add LANDING state */
+
+        setCurrState(DroneStateID.BASE);
     }
 
     /**
@@ -76,6 +81,78 @@ public class Drone implements Runnable {
      */
     public void setCurrState(DroneStateID stateID) {
         currState = getState(stateID);
+    }
+
+    /**
+     * Triggers the event of being requested to service a zone in the current state.
+     *
+     * @return true if the state was valid, false otherwise.
+     */
+    public boolean reqServiceZone() {
+        return currState.reqServiceZone(this);
+    }
+
+    /**
+     * Triggers the event of reaching max height in the current state.
+     *
+     * @return true if the state was valid, false otherwise.
+     */
+    public boolean reachMaxHeight() {
+        return currState.reachMaxHeight(this);
+    }
+
+    /**
+     * Triggers the event of reaching top speed in the current state.
+     *
+     * @return true if the state was valid, false otherwise.
+     */
+    public boolean reachTopSpeed() {
+        return currState.reachTopSpeed(this);
+    }
+
+    /**
+     * Triggers the event of reaching deceleration range in the current state.
+     *
+     * @return true if the state was valid, false otherwise.
+     */
+    public boolean reachDecelRange() {
+        return currState.reachDecelRange(this);
+    }
+
+    /**
+     * Triggers the event of arriving at its destination in the current state.
+     *
+     * @return true if the state was valid, false otherwise.
+     */
+    public boolean arrived() {
+        return currState.arrived(this);
+    }
+
+    /**
+     * Triggers the event of being requested to release agent in the current state.
+     *
+     * @return true if the state was valid, false otherwise.
+     */
+    public boolean reqRelAgent() {
+        return currState.reqRelAgent(this);
+    }
+
+    /**
+     * Triggers the event of the drone's zone to service's fire extinguishing in the current state.
+     *
+     * @return true if the state was valid, false otherwise.
+     */
+    public boolean fireExtinguished() {
+        return currState.fireExtinguished(this);
+    }
+
+    /**
+     * Triggers the event of being requested to recall in the current state.
+     *
+     * @return true if the state was valid, false otherwise.
+     */
+    public boolean reqRecall() {
+        return currState.reqRecall(this);
     }
 
     /**

@@ -6,7 +6,7 @@ public class Base implements DroneState {
      * @return true if the event was valid, false otherwise.
      */
     @Override
-    public boolean acceptMission(Drone context) {
+    public boolean reqServiceZone(Drone context) {
         context.setCurrState(DroneStateID.TAKEOFF);
         /* TODO: call takeoff method */
         return true;
@@ -19,7 +19,7 @@ public class Base implements DroneState {
      * @return true if the event was valid, false otherwise.
      */
     @Override
-    public boolean releaseAgent(Drone context) {
+    public boolean reqRelAgent(Drone context) {
         return false;
     }
 
@@ -30,7 +30,7 @@ public class Base implements DroneState {
      * @return true if the event was valid, false otherwise.
      */
     @Override
-    public boolean recall(Drone context) {
+    public boolean reqRecall(Drone context) {
         return false;
     }
 

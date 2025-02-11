@@ -6,7 +6,7 @@ public class Idle implements DroneState {
      * @return true if the event was valid, false otherwise.
      */
     @Override
-    public boolean acceptMission(Drone context) {
+    public boolean reqServiceZone(Drone context) {
         context.setCurrState(DroneStateID.ACCELERATING);
         /* TODO call accelerate() method */
         return true;
@@ -19,7 +19,7 @@ public class Idle implements DroneState {
      * @return true if the event was valid, false otherwise.
      */
     @Override
-    public boolean releaseAgent(Drone context) {
+    public boolean reqRelAgent(Drone context) {
         return false;
     }
 
@@ -30,8 +30,10 @@ public class Idle implements DroneState {
      * @return true if the event was valid, false otherwise.
      */
     @Override
-    public boolean recall(Drone context) {
-        return false;
+    public boolean reqRecall(Drone context) {
+        context.setCurrState(DroneStateID.ACCELERATING);
+        /* TODO: set destination to BASE */
+        return true;
     }
 
     /**

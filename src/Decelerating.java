@@ -6,7 +6,7 @@ public class Decelerating implements DroneState {
      * @return true if the event was valid, false otherwise.
      */
     @Override
-    public boolean acceptMission(Drone context) {
+    public boolean reqServiceZone(Drone context) {
         return false;
     }
 
@@ -17,7 +17,7 @@ public class Decelerating implements DroneState {
      * @return true if the event was valid, false otherwise.
      */
     @Override
-    public boolean releaseAgent(Drone context) {
+    public boolean reqRelAgent(Drone context) {
         return false;
     }
 
@@ -28,7 +28,7 @@ public class Decelerating implements DroneState {
      * @return true if the event was valid, false otherwise.
      */
     @Override
-    public boolean recall(Drone context) {
+    public boolean reqRecall(Drone context) {
         return false;
     }
 

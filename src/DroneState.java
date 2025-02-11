@@ -5,7 +5,7 @@ public interface DroneState {
      * @param context The context of the drone.
      * @return true if the event was valid, false otherwise.
      */
-    boolean acceptMission(Drone context);
+    boolean reqServiceZone(Drone context);
 
     /**
      * Handles the event when a request to release agent is made.
@@ -13,7 +13,7 @@ public interface DroneState {
      * @param context The context of the drone.
      * @return true if the event was valid, false otherwise.
      */
-    boolean releaseAgent(Drone context);
+    boolean reqRelAgent(Drone context);
 
     /**
      * Handles the event when a request to recall to base is made.
@@ -21,7 +21,7 @@ public interface DroneState {
      * @param context The context of the drone.
      * @return true if the event was valid, false otherwise.
      */
-    boolean recall(Drone context);
+    boolean reqRecall(Drone context);
 
     /**
      * Handles the event when the drone is out of agent.
