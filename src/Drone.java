@@ -72,7 +72,7 @@ public class Drone implements Runnable {
     /**
      * Gets the current operational status of the drone
      *
-     * @return DroneStatus enum value indicating current state
+     * @return DroneStatus enum value indicating current status
      */
     public synchronized DroneStatus getStatus() {
         return status;
@@ -89,25 +89,6 @@ public class Drone implements Runnable {
     }
 
 
-    /**
-     * Based on Drone status, return Drone state send to Dronebuffer
-     */
-    public DroneState getState() {
-        switch (status) {
-            case BASE:
-                return DroneState.BASE;
-            case ENROUTE:
-                return DroneState.EN_ROUTE;
-            case ARRIVED:
-                return DroneState.ARRIVED;
-            case DROPPING_AGENT:
-                return DroneState.RELEASING_AGENT;
-            case IDLE:
-                return DroneState.IDLE;
-            default:
-                return DroneState.IDLE;
-        }
-    }
 
     /**
      * @return agentTank object
@@ -314,37 +295,9 @@ public class Drone implements Runnable {
                     task = currentTask;
                     currentTask = null; //reset flag right the way
                 }
+                System.out.println("Drone has received an new task: " + task.getTaskType());
 
-                switch (task.getTaskType()) {
-                    case SERVICE_ZONE:
-                        if (task.getZone() != null) {
-                            System.out.println("Drone" + id + "going to service zone");
-                            setStatus(DroneStatus.ENROUTE);
-                            fly(zoneToService.getPosition());
-                            setStatus(DroneStatus.ARRIVED);
-                        }
-                        break;
-                    case RELEASE_AGENT:
-                        System.out.println("Drone" + id + "going to release agent");
-                        setStatus(DroneStatus.DROPPING_AGENT);
-                        releaseAgent();
-                        break;
-                    case STOP_AGENT:
-                        System.out.println("Drone" + id + "going to stop agent");
-                        stopAgent();
-                        setStatus(DroneStatus.IDLE);
-                        break;
-                    case RECALL:
-                        System.out.println("Drone" + id + "going to recall");
-                        //no status for RECALL now
-                        fly(BASE_POSITION);
-                        setStatus(DroneStatus.BASE);
-                        break;
-                    default:
-                        System.out.println("Drone" + id + "get unknown task");
-                }
             }
-            System.out.println("Drone#" + id + " current state: " + getStatus() + ", position: (" + position.getX() + "," + position.getY() + ")" + ", agentTank=" + agentTank.getCurrAgentAmount());
             try {
                 sleep(2000);
             }
@@ -354,7 +307,6 @@ public class Drone implements Runnable {
             }
         }
         System.out.println("Drone#" + id + " Thread stopped.");
-
     }
 }
 

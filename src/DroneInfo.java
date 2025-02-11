@@ -5,13 +5,11 @@
 
 public class DroneInfo {
     int droneID;
-    DroneState droneState;
     Position position;
     float agentTankAmount;
 
-    public DroneInfo(int droneID, DroneState droneState, Position position, float agentTankAmount) {
+    public DroneInfo(int droneID, Position position, float agentTankAmount) {
         this.droneID = droneID;
-        this.droneState = droneState;
         this.position = position;
         this.agentTankAmount = agentTankAmount;
     }
@@ -20,13 +18,7 @@ public class DroneInfo {
         return droneID;
     }
 
-    public DroneState getDroneState() {
-        return droneState;
-    }
 
-    public void setDroneState(DroneState droneState) {
-        this.droneState = droneState;
-    }
 
     public Position getPosition() {
         return position;
@@ -37,7 +29,7 @@ public class DroneInfo {
     }
 
     public String toString() {
-        return "[DroneInfo: ID=" + droneID + ", state=" + droneState + ", position=(" + position.getX() + "," + position.getY() + ")" + ", agentTank=" + agentTankAmount + "]";
+        return "[DroneInfo: ID=" + droneID + ", position=(" + position.getX() + "," + position.getY() + ")" + ", agentTank=" + agentTankAmount + "]";
     }
 
 }

@@ -21,14 +21,14 @@ public class DroneSubsystem implements Runnable {
     }
 
     /**
-     * Retrieves the state of a specific drone by its ID and sends it to the shared buffer.
+     * Retrieves the Info of a specific drone by its ID and sends it to the shared buffer.
      *
      * @param droneID The ID of the drone whose info needs to pass to DroneBuffer.
      */
     public void sendDroneInfoToBuffer(int droneID) {
         for (Drone drone : drones) {
             if (drone.getId() == droneID) {
-                DroneInfo info = new DroneInfo(drone.getId(), drone.getState(), drone.getPosition(), drone.getAgentTankAmount());
+                DroneInfo info = new DroneInfo(drone.getId(), drone.getPosition(), drone.getAgentTankAmount());
                 droneBuffer.addDroneInfo(info);
                 System.out.println("DroneSubsystem: Sent drone info " + info + " to buffer.");
                 break;
