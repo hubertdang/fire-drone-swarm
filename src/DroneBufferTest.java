@@ -18,13 +18,13 @@ public class DroneBufferTest {
         droneBuffer.addDroneTask(testTask);
         DroneTask poppedTask = droneBuffer.popSchedulerTask();
         assertEquals(testTask, poppedTask);
-        assertFalse(droneBuffer.newAcknowledgement());
+        assertFalse(droneBuffer.hasDroneInfo());
     }
 
 
     @Test
-    public void testPopDroneStateFromEmptyBuffer() {
-        assertNull(droneBuffer.popDroneState());
+    public void testPopDroneInfoFromEmptyBuffer() {
+        assertNull(droneBuffer.popDroneInfo());
     }
 
     @Test
@@ -36,7 +36,7 @@ public class DroneBufferTest {
     public void testWaitForTask() {
         Thread thread = new Thread(() -> {
             droneBuffer.waitForTask();
-            assertTrue(droneBuffer.newAcknowledgement());
+            assertTrue(droneBuffer.hasDroneInfo());
         });
         thread.start();
 

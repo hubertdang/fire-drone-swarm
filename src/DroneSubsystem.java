@@ -23,14 +23,14 @@ public class DroneSubsystem implements Runnable {
     /**
      * Retrieves the state of a specific drone by its ID and sends it to the shared buffer.
      *
-     * @param droneID The ID of the drone whose state needs to be updated in the buffer.
+     * @param droneID The ID of the drone whose info needs to pass to DroneBuffer.
      */
-    public void sendDroneStatesToBuffer(int droneID) {
+    public void sendDroneInfoToBuffer(int droneID) {
         for (Drone drone : drones) {
             if (drone.getId() == droneID) {
-                DroneState state = drone.getState();
-                droneBuffer.addDroneState(state);
-                System.out.println("DroneSubsystem: Sent drone state " + state + " to buffer.");
+                DroneInfo info = new DroneInfo(drone.getId(), drone.getState(), drone.getPosition(), drone.getAgentTankAmount());
+                droneBuffer.addDroneInfo(info);
+                System.out.println("DroneSubsystem: Sent drone info " + info + " to buffer.");
                 break;
             }
         }
@@ -63,7 +63,7 @@ public class DroneSubsystem implements Runnable {
                 if (task.getZone() != null) {
                     System.out.println("DroneSubsystem: Dispatching SERVICE_ZONE task to drone " + drone.getId());
                     drone.setZoneToService(task.getZone());
-                    drone.fly(task.getZone().getPosition());   //mistake here, still busy waiting, shouldn't let DroneSubsystem run it
+                    drone.setCurrentTask(task);
                 }
                 else {
                     System.out.println("DroneSubsystem: SERVICE_ZONE task missing Zone information.");
@@ -71,16 +71,15 @@ public class DroneSubsystem implements Runnable {
                 break;
             case RELEASE_AGENT:
                 System.out.println("DroneSubsystem: Dispatching RELEASE_AGENT task to drone " + drone.getId());
-                drone.releaseAgent();    //mistake here, still busy waiting, shouldn't let DroneSubsystem run it
+                drone.setCurrentTask(task);    //mistake here, still busy waiting, shouldn't let DroneSubsystem run it
                 break;
             case STOP_AGENT:
                 System.out.println("DroneSubsystem: Dispatching STOP_AGENT task to drone " + drone.getId());
-                drone.stopAgent();
+                drone.setCurrentTask(task);
                 break;
             case RECALL:
                 System.out.println("DroneSubsystem: Dispatching RECALL task to drone " + drone.getId());
-
-                drone.fly(new Position(0, 0));
+                drone.setCurrentTask(task);
                 break;
             default:
                 System.out.println("DroneSubsystem: Unknown task type.");
@@ -94,7 +93,7 @@ public class DroneSubsystem implements Runnable {
 
             processSchedulerTasks();
 
-            sendDroneStatesToBuffer(1);
+            sendDroneInfoToBuffer(1);
 
 
             try {

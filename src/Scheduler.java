@@ -34,22 +34,19 @@ public class Scheduler implements Runnable {
 
             // check fireBuffer for new messages, add to mission queue
             if (fireBuffer.newEvent()) {
-                System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Scheduler has received a new event.\n\t" +
-                        "adding to mission queue.");
+                System.out.println("[" + Thread.currentThread().getName() + "]: " + "Scheduler has received a new event.\n\t" + "adding to mission queue.");
                 Zone zoneToService = fireBuffer.popEventMessage();
                 handleFireReq(zoneToService);
             }
 
             // check for drone acknowledgements
-            if (droneBuffer.newAcknowledgement()) {
-                DroneState acknowledgementState = droneBuffer.popDroneState();
-                System.out.println("[" + Thread.currentThread().getName() + "]: Scheduler " +
-                        "a drone has sent back an acknowledgement\n\t" +
-                        "Status: " + acknowledgementState);
+            if (droneBuffer.hasDroneInfo()) {
+                DroneInfo droneInfo = droneBuffer.popDroneInfo();
+                DroneState newState = droneInfo.getDroneState();
+                System.out.println("[" + Thread.currentThread().getName() + "]: Scheduler " + "drone#" + droneInfo.droneID + " has sent back an new Info\n\t" + "State: " + newState + " Position: (" + droneInfo.getPosition().getX() + "," + droneInfo.getPosition().getY() + ")" + " AgentLeft: " + droneInfo.getAgentTankAmount());
 
                 previousDroneState = currentDroneState;
-                currentDroneState = acknowledgementState;
+                currentDroneState = newState;
 
                 System.out.println("DEBUG: Previous State: " + previousDroneState);
                 System.out.println("DEBUG: Current State: " + currentDroneState);
@@ -67,8 +64,8 @@ public class Scheduler implements Runnable {
                         if (previousDroneState == DroneState.RELEASING_AGENT) {
                             // indicate fire has been put out to the fire incident subsystem
                             //Zone servicedZone = acknowledgementState.getZone();
-                          //  servicedZone.setSeverity(FireSeverity.NO_FIRE); // where should this code be?
-                           // fireBuffer.addAcknowledgementMessage(servicedZone);
+                            //  servicedZone.setSeverity(FireSeverity.NO_FIRE); // where should this code be?
+                            // fireBuffer.addAcknowledgementMessage(servicedZone);
                         }
                     }
                 }
@@ -84,7 +81,7 @@ public class Scheduler implements Runnable {
 
             // give other threads oppurtunity to access shared buffers
             try {
-                sleep(3000);
+                sleep(2000);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
