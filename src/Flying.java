@@ -1,11 +1,14 @@
-public interface DroneState {
+public class Flying implements DroneState {
     /**
      * Handles the event when a new mission is assigned.
      *
      * @param context The context of the drone.
      * @return true if the event was valid, false otherwise.
      */
-    boolean acceptMission(Drone context);
+    @Override
+    public boolean acceptMission(Drone context) {
+        return false;
+    }
 
     /**
      * Handles the event when a request to release agent is made.
@@ -13,7 +16,10 @@ public interface DroneState {
      * @param context The context of the drone.
      * @return true if the event was valid, false otherwise.
      */
-    boolean releaseAgent(Drone context);
+    @Override
+    public boolean releaseAgent(Drone context) {
+        return false;
+    }
 
     /**
      * Handles the event when a request to recall to base is made.
@@ -21,7 +27,10 @@ public interface DroneState {
      * @param context The context of the drone.
      * @return true if the event was valid, false otherwise.
      */
-    boolean recall(Drone context);
+    @Override
+    public boolean recall(Drone context) {
+        return false;
+    }
 
     /**
      * Handles the event when the drone is out of agent.
@@ -29,7 +38,10 @@ public interface DroneState {
      * @param context The context of the drone.
      * @return true if the event was valid, false otherwise.
      */
-    boolean emptyTank(Drone context);
+    @Override
+    public boolean emptyTank(Drone context) {
+        return false;
+    }
 
     /**
      * Handles the event when the drone's zone to service's fire is extinguished.
@@ -37,7 +49,10 @@ public interface DroneState {
      * @param context The context of the drone.
      * @return true if the event was valid, false otherwise.
      */
-    boolean fireExtinguished(Drone context);
+    @Override
+    public boolean fireExtinguished(Drone context) {
+        return false;
+    }
 
     /**
      * Handles the event when the drone reaches the range where it can start to decelerating.
@@ -45,7 +60,12 @@ public interface DroneState {
      * @param context The context of the drone.
      * @return true if the event was valid, false otherwise.
      */
-    boolean reachDecelRange(Drone context);
+    @Override
+    public boolean reachDecelRange(Drone context) {
+        context.setCurrState(DroneStateID.DECELERATING);
+        /* TODO: call decelerate() method */
+        return true;
+    }
 
     /**
      * Handles the event when the drone arrives, meaning it is within its arrival distance
@@ -54,7 +74,10 @@ public interface DroneState {
      * @param context The context of the drone.
      * @return true if the event was valid, false otherwise.
      */
-    boolean arrived(Drone context);
+    @Override
+    public boolean arrived(Drone context) {
+        return false;
+    }
 
     /**
      * Handles the event when the drone reaches max height.
@@ -62,7 +85,10 @@ public interface DroneState {
      * @param context The context of the drone.
      * @return true if the event was valid, false otherwise.
      */
-    boolean reachMaxHeight(Drone context);
+    @Override
+    public boolean reachMaxHeight(Drone context) {
+        return false;
+    }
 
     /**
      * Handles the event when the drone lands.
@@ -70,7 +96,10 @@ public interface DroneState {
      * @param context The context of the drone.
      * @return true if the event was valid, false otherwise.
      */
-    boolean landed(Drone context);
+    @Override
+    public boolean landed(Drone context) {
+        return false;
+    }
 
     /**
      * Handles the event when the drone reaches top speed.
@@ -78,7 +107,10 @@ public interface DroneState {
      * @param context The context of the drone.
      * @return true if the event was valid, false otherwise.
      */
-    boolean reachTopSpeed(Drone context);
+    @Override
+    public boolean reachTopSpeed(Drone context) {
+        return false;
+    }
 
     /**
      * Handles the event when the drone is halted (speed = 0).
@@ -86,5 +118,8 @@ public interface DroneState {
      * @param context The context of the drone.
      * @return true if the event was valid, false otherwise.
      */
-    boolean halted(Drone context);
+    @Override
+    public boolean halted(Drone context) {
+        return false;
+    }
 }

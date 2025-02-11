@@ -1,18 +1,13 @@
+import java.util.Map;
+
 import static java.lang.Thread.sleep;
 
-/**
- * <p>Drone</p>
- *
- * @author Shenhao Gong
- * @version 2025-Jan-29th
- */
-
 public class Drone implements Runnable {
-    private static final Position BASE_POSITION = new Position(0, 0);
+    public static final Position BASE_POSITION = new Position(0, 0);
+    public static final float ARRIVAL_DISTANCE_THRESHOLD = 25.0f;  //25m  which means if the distance is less than 20m assume it is arrived
     private static final float TOP_SPEED = 20.0f;     // 20m/s
     private static final float TAKEOFF_ACCEL_RATE = 3.0f;  //3m/s^2
     private static final float LAND_DECEL_RATE = 5.0f;   //5m/s^2
-    private static final float ARRIVAL_DISTANCE_THRESHOLD = 25.0f;  //25m  which means if the distance is less than 20m assume it is arrived
     private final int id;
     private final AgentTank agentTank;
     private final DroneBuffer droneBuffer;
@@ -22,6 +17,8 @@ public class Drone implements Runnable {
     private FireSeverity zoneSeverity;
     private volatile DroneStatus status;  // make sure thread will check status everytime
     private float currentSpeed = 0f;
+    private Map<DroneStateID, DroneState> states;
+    private DroneState currState;
 
 
     public Drone(int id, DroneBuffer droneBuffer) {
@@ -32,8 +29,61 @@ public class Drone implements Runnable {
         this.agentTank = new AgentTank();
         this.droneBuffer = droneBuffer;
         this.zoneToService = null;
+
+        addState(DroneStateID.BASE, new Base());
+        addState(DroneStateID.TAKEOFF, new Takeoff());
+        addState(DroneStateID.ACCELERATING, new Accelerating());
+        addState(DroneStateID.FLYING, new Flying());
+        addState(DroneStateID.DECELERATING, new Decelerating());
+        addState(DroneStateID.ARRIVED, new Arrived());
+        addState(DroneStateID.IDLE, new Idle());
+        /* TODO: add LANDING state */
     }
 
+    /**
+     * Adds a state to the drone.
+     *
+     * @param stateID The enum ID of the state.
+     * @param state   The state to be added.
+     */
+    private void addState(DroneStateID stateID, DroneState state) {
+        states.put(stateID, state);
+    }
+
+    /**
+     * Retrieves a state from the drone. Not necessarily the current state.
+     *
+     * @param stateID The enum ID of the state.
+     * @return The state corresponding to the given state ID.
+     */
+    private DroneState getState(DroneStateID stateID) {
+        return states.get(stateID);
+    }
+
+    /**
+     * Gets the current state of the drone.
+     *
+     * @return The current state of the drone.
+     */
+    public DroneState getCurrState() {
+        return currState;
+    }
+
+    /**
+     * Sets the current state of the drone.
+     *
+     * @param stateID The enum ID of the state.
+     */
+    public void setCurrState(DroneStateID stateID) {
+        currState = getState(stateID);
+    }
+
+    /**
+     * Refills the drone's agent tank.
+     */
+    public void refillAgentTank() {
+        agentTank.refill();
+    }
 
     /**
      * return current position of the drone
@@ -102,7 +152,8 @@ public class Drone implements Runnable {
      */
     public void releaseAgent() {
         setStatus(DroneStatus.DROPPING_AGENT);
-        System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "💦Starting agent release.");
+        System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                + "💦Starting agent release.");
 
         long previousTime = System.nanoTime();
         long currentTime;
@@ -112,7 +163,8 @@ public class Drone implements Runnable {
         while (true) {
             //the status will change if agent is empty or call stopAgent()
             if (getStatus() != DroneStatus.DROPPING_AGENT) {
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "💦Release agent stopped. Current status: " + getStatus());
+                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                        + "💦Release agent stopped. Current status: " + getStatus());
                 break;
             }
 
@@ -121,7 +173,8 @@ public class Drone implements Runnable {
             previousTime = currentTime;
 
             if (agentTank.isEmpty()) {
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "Tank is empty. Stopping agent release.");
+                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                        + "Tank is empty. Stopping agent release.");
                 setStatus(DroneStatus.EMPTY);
                 break;
             }
@@ -130,12 +183,15 @@ public class Drone implements Runnable {
             agentToDrop = AgentTank.AGENT_DROP_RATE * deltaTime;
 
             agentTank.decreaseAgent(agentToDrop);
-            zoneToService.setRequiredAgentAmount(zoneToService.getRequiredAgentAmount() - agentToDrop);
-            System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "💧Releasing " + agentToDrop + "L. Tank=" + agentTank.getCurrAgentAmount());
+            zoneToService.setRequiredAgentAmount(zoneToService.getRequiredAgentAmount()
+                    - agentToDrop);
+            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                    + "💧Releasing " + agentToDrop + "L. Tank=" + agentTank.getCurrAgentAmount());
 
             if (zoneToService.getRequiredAgentAmount() <= 0) {
                 this.setStatus(DroneStatus.FIRE_STOPPED);
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "🧯Fire Extinguished.");
+                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                        + "🧯Fire Extinguished.");
             }
             // sleep thread to allow other threads to run/ not flood logs
             try {
@@ -152,14 +208,17 @@ public class Drone implements Runnable {
      * The scheduler can ask drone stopAgent, it will close the agent nozzle and set agentStatus to IDLE
      */
     public void stopAgent() {
-        System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "handleStopAgent() called.");
+        System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                + "handleStopAgent() called.");
         if (status == DroneStatus.FIRE_STOPPED) {
             agentTank.closeNozzle();
-            System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "Stopped releasing agent.");
+            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                    + "Stopped releasing agent.");
             setStatus(DroneStatus.IDLE);
         }
         else {
-            System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "Not currently releasing agent. No action taken.");
+            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                    + "Not currently releasing agent. No action taken.");
         }
     }
 
@@ -169,7 +228,7 @@ public class Drone implements Runnable {
      *
      * @param destination the destination for drone to go
      */
-    private void fly(Position destination) {
+    public void fly(Position destination) {
         setStatus(DroneStatus.ENROUTE);
         System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "Starting flight.");
 
@@ -191,7 +250,8 @@ public class Drone implements Runnable {
 
             // If arrived (close enough ), stop, and check if Drone is at base or arrived at destination
             if (distanceFromDestination < ARRIVAL_DISTANCE_THRESHOLD) {
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "handleFly: Arrived at dest. speed=" + currentSpeed);
+                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                        + "handleFly: Arrived at dest. speed=" + currentSpeed);
                 currentSpeed = 0;
                 if (destination.equals(BASE_POSITION)) {
                     setStatus(DroneStatus.BASE);
@@ -201,8 +261,8 @@ public class Drone implements Runnable {
                 }
                 return;
             }
-
-            stoppingDistance = (currentSpeed * currentSpeed) / (2 * LAND_DECEL_RATE); //use s=(v^2/2a) calculate stop distance, when hit this distance, start to decelerate
+            /* use s=(v^2/2a) calculate stop distance, when hit this distance, start to decelerate */
+            stoppingDistance = (currentSpeed * currentSpeed) / (2 * LAND_DECEL_RATE);
 
             //when get in stoppingDistance -> decelerate OR  if not hit TOP_SPEED -> accelerate
 
@@ -225,7 +285,8 @@ public class Drone implements Runnable {
 
 
             stepDist = currentSpeed * deltaTime;
-            angle = (float) Math.atan2(destination.getY() - position.getY(), destination.getX() - position.getX());
+            angle = (float) Math.atan2(destination.getY() - position.getY(), destination.getX()
+                    - position.getX());
 
             if (stepDist > distanceFromDestination) {
                 stepDist = distanceFromDestination;
@@ -236,7 +297,9 @@ public class Drone implements Runnable {
             position.update(newX, newY);
 
 
-            System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "🛸Flying: pos=(" + newX + "," + newY + "), speed=" + currentSpeed + " m/s, distance=" + distanceFromDestination + " m");
+            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                    + "🛸Flying: pos=(" + newX + "," + newY + "), speed=" + currentSpeed
+                    + " m/s, distance=" + distanceFromDestination + " m");
 
             // sleep to minimize logs
             // threshold must be >= 20m to account for this sleep call
@@ -249,7 +312,6 @@ public class Drone implements Runnable {
         }
     }
 
-
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof Drone) && ((Drone) obj).id == this.id;
@@ -257,7 +319,8 @@ public class Drone implements Runnable {
 
     @Override
     public String toString() {
-        return "[Drone#" + id + ", status=" + status + ", pos=(" + position.getX() + "," + position.getY() + ")]";
+        return "[Drone#" + id + ", status=" + status + ", pos=(" + position.getX() + ","
+                + position.getY() + ")]";
     }
 
     /**
@@ -273,7 +336,8 @@ public class Drone implements Runnable {
             // process tasks received
             DroneTask taskToDo = droneBuffer.popSchedulerTask();
 
-            System.out.println("[" + Thread.currentThread().getName() + "]: Drone " + this.id + " received a new task to: " + taskToDo.getDroneStatus());
+            System.out.println("[" + Thread.currentThread().getName() + "]: Drone " + this.id
+                    + " received a new task to: " + taskToDo.getDroneStatus());
 
             switch (taskToDo.getDroneStatus()) {
                 case BASE -> {
