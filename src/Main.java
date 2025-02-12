@@ -27,17 +27,17 @@ public class Main {
 
 
         // Instantiate threads
-        System.out.println("--- \nNote: \nFIS-fireSubsystemThread \nSD-schedulerThread \nD-droneThread \n---");
-        Thread droneThread = new Thread(drone);
+        System.out.println("--- \nNote: \nFIS-fireSubsystemThread \nDSS-droneSubsystemThread \nSD-schedulerThread \nD-droneThread \n---");
+        Thread droneThread = new Thread(drone, "D");
         Thread fireSubsystemThread = new Thread(fireIncidentSubsystem, "FIS");
         Thread schedulerThread = new Thread(scheduler, "SD");
-        Thread droneSubsystemThread = new Thread(droneSubsystem, "D");
+        Thread droneSubsystemThread = new Thread(droneSubsystem, "DSS");
 
         // run threads
         fireSubsystemThread.start();
         schedulerThread.start();
-        droneThread.start();
         droneSubsystemThread.start();
+        droneThread.start();
 
         // exit program when Fire Incident Subsystem indicates no more events to service
         while (fireSubsystemThread.isAlive()) {

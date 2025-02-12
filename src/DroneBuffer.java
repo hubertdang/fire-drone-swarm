@@ -7,28 +7,27 @@ import java.util.ArrayList;
 
 public class DroneBuffer {
 
-    private final ArrayList<DroneInfo> droneInfoMessages;
-    private final ArrayList<DroneTask> tasksFromScheduler;
+    private final ArrayList<DroneInfo> droneInfos;
+    private final ArrayList<DroneTask> droneTasks;
 
     /**
      * Constructs a shared priority buffer used for message passing.
      */
     public DroneBuffer() {
-        droneInfoMessages = new ArrayList<>();
-        tasksFromScheduler = new ArrayList<>();
+        droneInfos = new ArrayList<>();
+        droneTasks = new ArrayList<>();
     }
 
 
     /**
-     * Retrieves an DroneInformation message from the buffer.
+     * Removes and returns a DroneInfo message from the buffer.
      *
-     * @return a DroneInfo
+     * @return DroneInfo object from droneInfos buffer if not empty, otherwise, returns null
      */
     public synchronized DroneInfo popDroneInfo() {
         DroneInfo message = null;
-        if (!droneInfoMessages.isEmpty()) {
-            message = droneInfoMessages.remove(0);
-            System.out.println("A DroneInfo has been removed from the buffer and send to Scheduler");
+        if (!droneInfos.isEmpty()) {
+            message = droneInfos.remove(0);
         }
         notifyAll();
         return message;
@@ -42,9 +41,8 @@ public class DroneBuffer {
     public synchronized DroneTask popSchedulerTask() {
         DroneTask message = null;
 
-        if (!tasksFromScheduler.isEmpty()) {
-            message = tasksFromScheduler.remove(0);
-            System.out.println("A SchedulerTask has been removed from the buffer and send to DroneSubsystem");
+        if (!droneTasks.isEmpty()) {
+            message = droneTasks.remove(0);
         }
 
         notifyAll();
@@ -57,7 +55,7 @@ public class DroneBuffer {
      * @param task the message to be added to buffer
      */
     public synchronized void addDroneTask(DroneTask task) {
-        tasksFromScheduler.add(task);
+        droneTasks.add(task);
         notifyAll();
     }
 
@@ -67,7 +65,7 @@ public class DroneBuffer {
      * @param info the Drone information to be added to buffer
      */
     public synchronized void addDroneInfo(DroneInfo info) {
-        droneInfoMessages.add(info);
+        droneInfos.add(info);
         notifyAll();
     }
 
@@ -75,7 +73,7 @@ public class DroneBuffer {
      * Disables drone thread while waiting for a new fire event to service.
      */
     public synchronized void waitForTask() {
-        while (tasksFromScheduler.isEmpty()) {
+        while (droneTasks.isEmpty()) {
             try {
                 wait();
             }
@@ -91,7 +89,7 @@ public class DroneBuffer {
      * @return true if droneStateMessage is not empty, false otherwise
      */
     public synchronized boolean hasDroneInfo() {
-        return !droneInfoMessages.isEmpty();
+        return !droneInfos.isEmpty();
     }
 
     /**
@@ -99,7 +97,7 @@ public class DroneBuffer {
      *
      * @return true if buffer has tasks from scheduler, false otherwise
      */
-    public boolean hasSchedulerTask() {
-        return !tasksFromScheduler.isEmpty();
+    public boolean hasDroneTask() {
+        return !droneTasks.isEmpty();
     }
 }

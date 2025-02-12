@@ -89,7 +89,6 @@ public class Drone implements Runnable {
     }
 
 
-
     /**
      * @return agentTank object
      */
@@ -128,9 +127,8 @@ public class Drone implements Runnable {
         float agentToDrop;
         agentTank.openNozzle();
         while (true) {
-            //check if there is new task call stopAgent() or the agent is empty
-            if (currentTask != null || getStatus() != DroneStatus.DROPPING_AGENT) {
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: Agent release interrupted.");
+            if (getStatus() != DroneStatus.DROPPING_AGENT) {
+                System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "💦Release agent stopped. Current status: " + getStatus());
                 break;
             }
 
@@ -187,24 +185,20 @@ public class Drone implements Runnable {
      *
      * @param destination the destination for drone to go
      */
-    public void fly(Position destination) {
+    private void fly(Position destination) {
         setStatus(DroneStatus.ENROUTE);
         System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "Starting flight.");
 
-        long previousTime = System.nanoTime(); //get current system time before get into while loop
+        long previousTime = System.nanoTime();  // get current system time before get into while loop
         long currentTime;
-        float deltaTime;  //time duration
+        float deltaTime;    // time duration
         float distanceFromDestination;
-        float stepDist;  //distance traveled each time duration
+        float stepDist;     // distance traveled each time duration
         float newX, newY;
         float angle;
         float stoppingDistance;
 
         while (true) {
-            if (currentTask != null) {
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: Flight interrupted by new task."); //check if task flag has been changed
-                return;
-            }
             currentTime = System.nanoTime();
             deltaTime = (currentTime - previousTime) / 1_000_000_000f; // convert into seconds
             previousTime = currentTime;
@@ -226,7 +220,7 @@ public class Drone implements Runnable {
 
             stoppingDistance = (currentSpeed * currentSpeed) / (2 * LAND_DECEL_RATE); //use s=(v^2/2a) calculate stop distance, when hit this distance, start to decelerate
 
-            //when get in stoppingDistance -> decelerate OR  if not hit TOP_SPEED -> accelerate
+            // when get in stoppingDistance -> decelerate OR  if not hit TOP_SPEED -> accelerate
 
             if (distanceFromDestination <= stoppingDistance) {
                 currentSpeed -= LAND_DECEL_RATE * deltaTime;
@@ -287,26 +281,23 @@ public class Drone implements Runnable {
      */
     @Override
     public void run() {
-        System.out.println("Drone" + id + "Thread started");
         while (true) {
             if (currentTask != null) {
                 DroneTask task;
+                //DroneSubsystem could change currentTask
                 synchronized (this) {
                     task = currentTask;
-                    currentTask = null; //reset flag right the way
+                    currentTask = null;                 // reset flag right the way
                 }
-                System.out.println("Drone has received an new task: " + task.getTaskType());
-
+                System.out.println("[" + Thread.currentThread().getName() + "]: " + "Drone has received an new task: " + task.getTaskType());
             }
             try {
                 sleep(2000);
             }
             catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
+                throw new RuntimeException(e);
             }
         }
-        System.out.println("Drone#" + id + " Thread stopped.");
     }
 }
 

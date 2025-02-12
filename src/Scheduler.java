@@ -26,15 +26,15 @@ public class Scheduler implements Runnable {
      */
     @Override
     public void run() {
-        DroneState currentDroneState = DroneState.BASE;
-        DroneState previousDroneState = null;
+        DroneStatus currentDroneStatus = DroneStatus.BASE;
+        DroneStatus previousDroneStatus = null;
         boolean droneOnMission = false;
 
         while (true) {
 
             // check fireBuffer for new messages, add to mission queue
             if (fireBuffer.newEvent()) {
-                System.out.println("[" + Thread.currentThread().getName() + "]: " + "Scheduler has received a new event.\n\t" + "adding to mission queue.");
+                System.out.println("[" + Thread.currentThread().getName() + "]: " + "Scheduler has received a new event.\n\t" + " adding to mission queue.");
                 Zone zoneToService = fireBuffer.popEventMessage();
                 handleFireReq(zoneToService);
             }
@@ -42,8 +42,9 @@ public class Scheduler implements Runnable {
             // check for drone acknowledgements
             if (droneBuffer.hasDroneInfo()) {
                 DroneInfo droneInfo = droneBuffer.popDroneInfo();
-                System.out.println("[" + Thread.currentThread().getName() + "]: Scheduler " + "drone#" + droneInfo.droneID + " has sent back an new Info\n\t" + " Position: (" + droneInfo.getPosition().getX() + "," + droneInfo.getPosition().getY() + ")" + " AgentLeft: " + droneInfo.getAgentTankAmount());
-
+                System.out.println("[" + Thread.currentThread().getName()
+                        + "]: Scheduler has received a drone info from" + " drone#" + droneInfo.droneID + ": Position: (" + droneInfo.getPosition().getX()
+                        + "," + droneInfo.getPosition().getY() + ")" + " AgentLeft: " + droneInfo.getAgentTankAmount());
             }
 
             // handle missions from the mission queue
@@ -56,7 +57,7 @@ public class Scheduler implements Runnable {
 
             // give other threads oppurtunity to access shared buffers
             try {
-                sleep(2000);
+                sleep(3000);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
