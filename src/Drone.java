@@ -185,7 +185,7 @@ public class Drone implements Runnable {
      *
      * @param destination the destination for drone to go
      */
-    private void fly(Position destination) {
+    public void fly(Position destination) {
         setStatus(DroneStatus.ENROUTE);
         System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "Starting flight.");
 
@@ -284,7 +284,7 @@ public class Drone implements Runnable {
         while (true) {
             if (currentTask != null) {
                 DroneTask task;
-                //DroneSubsystem could change currentTask
+                // DroneSubsystem could change currentTask
                 synchronized (this) {
                     task = currentTask;
                     currentTask = null;                 // reset flag right the way
