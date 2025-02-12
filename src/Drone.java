@@ -26,7 +26,7 @@ public class Drone implements Runnable {
     private FireSeverity zoneSeverity;
     private volatile DroneStatus status;  // make sure thread will check status everytime
     private float currentSpeed;
-    private float altitude;
+    private float currentAltitude;
     private float decelerationDistance;
 
 
@@ -34,7 +34,7 @@ public class Drone implements Runnable {
         this.id = id;
         this.position = new Position(BASE_POSITION.getX(), BASE_POSITION.getY());
         this.currentSpeed = 0f;
-        this.altitude = 0f;
+        this.currentAltitude = 0f;
         this.status = DroneStatus.BASE;
         this.agentTank = new AgentTank();
         this.droneBuffer = droneBuffer;
@@ -218,27 +218,27 @@ public class Drone implements Runnable {
      * Raises the aircraft from ground level to the designated cruise altitude.
      */
     public void takeoff() {
-        System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+        System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                 + "Taking off..."
-                + "| ALTITUDE = " + this.altitude + "m");
+                + "| ALTITUDE = " + this.currentAltitude + "m");
 
         long previousTime = System.nanoTime();
-        while (this.altitude < CRUISE_ALTITUDE) {
+        while (this.currentAltitude < CRUISE_ALTITUDE) {
             long currentTime = System.nanoTime();
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
             previousTime = currentTime;
 
             // Increase altitude at a constant vertical speed
-            this.altitude += VERTICAL_SPEED * deltaTime;
+            this.currentAltitude += VERTICAL_SPEED * deltaTime;
 
             // Clamp altitude so we do not overshoot
-            if (this.altitude > CRUISE_ALTITUDE) {
-                this.altitude = CRUISE_ALTITUDE;
+            if (this.currentAltitude > CRUISE_ALTITUDE) {
+                this.currentAltitude = CRUISE_ALTITUDE;
             }
 
-            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+            System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                     + "Climbing... "
-                    + "| ALTITUDE = " + this.altitude + "m");
+                    + "| ALTITUDE = " + this.currentAltitude + "m");
 
             // Sleep 1s to simulate speed
             try {
@@ -247,9 +247,9 @@ public class Drone implements Runnable {
                 throw new RuntimeException(e);
             }
         }
-        System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+        System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                 + "Takeoff complete. "
-                + "| ALTITUDE = " + this.altitude + "m");
+                + "| ALTITUDE = " + this.currentAltitude + "m");
     }
 
     /**
@@ -257,13 +257,13 @@ public class Drone implements Runnable {
      * or the required deceleration distance.
      */
     public void accelerate() {
-        System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+        System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                 + "Start Accelerating... "
                 + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
 
         float distance, initialVelocity;
         long previousTime = System.nanoTime();
-
+        
         while (true) {
             long currentTime = System.nanoTime();
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
@@ -273,23 +273,23 @@ public class Drone implements Runnable {
 
             // 1. If we're already within the deceleration distance, don't try to reach max speed.
             if (this.getDistanceFromDestination() <= this.getDecelerationDistance()) {
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                         + "Reached deceleration distance, cannot reach max speed. Stopping acceleration. "
                         + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
                 break;
             }
 
             // 2. We haven't reached top speed yet, so accelerate. v = vᵢ +at
-            initialVelocity = currentSpeed;
-            currentSpeed += TAKEOFF_ACCEL_RATE * deltaTime;
-            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
-                    + "Accelerating... "
+            initialVelocity = this.currentSpeed;
+            this.currentSpeed += TAKEOFF_ACCEL_RATE * deltaTime;
+            System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
+                    + "Accelerating... " 
                     + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
 
             // 3. If this acceleration pushes us to or beyond top speed, cap it and break.
-            if (currentSpeed >= TOP_SPEED) {
-                currentSpeed = TOP_SPEED;
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+            if (this.currentSpeed >= TOP_SPEED) {
+                this.currentSpeed = TOP_SPEED;
+                System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                         + "Reached Max Speed. Stopping acceleration. "
                         + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
                 break;
@@ -402,25 +402,25 @@ public class Drone implements Runnable {
     public void land () {
         System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                 + "Begin Landing..."
-                + "| ALTITUDE = " + altitude + "m");
+                + "| ALTITUDE = " + currentAltitude + "m");
 
         long previousTime = System.nanoTime();
-        while (altitude <= 0f) {
+        while (currentAltitude <= 0f) {
             long currentTime = System.nanoTime();
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
             previousTime = currentTime;
 
             // Increase altitude at a constant vertical speed
-            altitude -= VERTICAL_SPEED * deltaTime;
+            currentAltitude -= VERTICAL_SPEED * deltaTime;
 
             // Clamp altitude so we do not overshoot
-            if (altitude <= 0f) {
-                altitude = 0f;
+            if (currentAltitude <= 0f) {
+                currentAltitude = 0f;
             }
 
             System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                     + "Descending ... "
-                    + "| ALTITUDE = " + altitude + "m");
+                    + "| ALTITUDE = " + currentAltitude + "m");
 
             // Sleep 1s to simulate speed
             try {
@@ -431,7 +431,7 @@ public class Drone implements Runnable {
         }
         System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                 + "Landing complete. "
-                + "| ALTITUDE = " + altitude + "m");
+                + "| ALTITUDE = " + currentAltitude + "m");
     }
 
     /**
