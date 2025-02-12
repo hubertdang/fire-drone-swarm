@@ -12,7 +12,7 @@ class DroneTest {
     void testSetUp() {
         DroneBuffer buffer = new DroneBuffer();
 
-        drone = new Drone(1, buffer);
+        drone = new Drone(1);
 
     }
 
@@ -53,7 +53,7 @@ class DroneTest {
     @Test
     void testEquals() {
         Drone sameDrone = drone;
-        Drone diffDrone = new Drone(2, new DroneBuffer());
+        Drone diffDrone = new Drone(2);
 
         assertEquals(drone, sameDrone, "Drones with same ID should be equal.");
 
