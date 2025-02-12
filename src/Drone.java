@@ -70,7 +70,7 @@ public class Drone implements Runnable {
     }
 
     /**
-     * Returns the distance required for the aircraft to decelerate to zero speed.
+     * Returns the distance required for the drone to decelerate to zero speed.
      *
      * @return the current deceleration distance
      */
@@ -79,7 +79,7 @@ public class Drone implements Runnable {
     }
 
     /**
-     * Calculates and sets the deceleration distance based on the aircraft's
+     * Calculates and sets the deceleration distance based on the drone's
      * current speed and the land deceleration rate.
      */
     public void setDecelerationDistance(){
@@ -88,7 +88,7 @@ public class Drone implements Runnable {
     }
 
     /**
-     * Returns the distance from the current position to the aircraft's destination.
+     * Returns the distance from the current position to the drone's destination.
      *
      * @return the distance to the destination
      */
@@ -215,7 +215,7 @@ public class Drone implements Runnable {
     }
 
     /**
-     * Raises the aircraft from ground level to the designated cruise altitude.
+     * Raises the drone from ground level to the designated cruise altitude.
      */
     public void takeoff() {
         System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
@@ -240,12 +240,6 @@ public class Drone implements Runnable {
                     + "Climbing... "
                     + "| ALTITUDE = " + this.currentAltitude + "m");
 
-            // Sleep 1s to simulate speed
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
         }
         System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                 + "Takeoff complete. "
@@ -253,7 +247,7 @@ public class Drone implements Runnable {
     }
 
     /**
-     * Accelerates the aircraft from its current speed until it reaches top speed
+     * Accelerates the drone from its current speed until it reaches top speed
      * or the required deceleration distance.
      */
     public void accelerate() {
@@ -299,17 +293,11 @@ public class Drone implements Runnable {
             distance = (float) ((initialVelocity * deltaTime) + (0.5 * TAKEOFF_ACCEL_RATE * Math.pow(deltaTime, 2)));
             this.updatePosition(distance);
 
-            // sleep to minimize logs
-            try {
-                sleep(1000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 
     /**
-     * Maintains forward movement at the current speed until the aircraft is ready to decelerate.
+     * Maintains forward movement at the current speed until the drone is ready to decelerate.
      */
     public void fly() {
         System.out.println("[" + Thread.currentThread().getName() + id + "]: "
@@ -333,17 +321,11 @@ public class Drone implements Runnable {
             float distance = currentSpeed * deltaTime;
             this.updatePosition(distance);
 
-            // sleep to minimize logs
-            try {
-                sleep(1000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 
     /**
-     * Gradually reduces the aircraft's speed as it approaches the destination, eventually stopping.
+     * Gradually reduces the drone's speed as it approaches the destination, eventually stopping.
      */
     public void decelerate() {
         System.out.println("[" + Thread.currentThread().getName() + id + "]: "
@@ -362,7 +344,7 @@ public class Drone implements Runnable {
             if (this.getDistanceFromDestination() < 1.0f) {
                 currentSpeed = 0;
                 System.out.println("[" + Thread.currentThread().getName() + id + "]: "
-                        + "Close enough to the destination. Ending deceleration. "
+                        + "At the destination. Ending deceleration. "
                         + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
                 break;
             }
@@ -386,18 +368,11 @@ public class Drone implements Runnable {
             // d = Vᵢt + 0.5at²
             float distance = (float) ((initialVelocity * deltaTime) + (0.5 * LAND_DECEL_RATE * Math.pow(deltaTime, 2)));
             this.updatePosition(distance);
-
-            // sleep to minimize logs
-            try {
-                sleep(1000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 
     /**
-     * Lowers the aircraft altitude until it completes the landing process.
+     * Lowers the drone altitude until it completes the landing process.
      */
     public void land () {
         System.out.println("[" + Thread.currentThread().getName() + id + "]: "
@@ -422,12 +397,6 @@ public class Drone implements Runnable {
                     + "Descending ... "
                     + "| ALTITUDE = " + currentAltitude + "m");
 
-            // Sleep 1s to simulate speed
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
         }
         System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                 + "Landing complete. "
@@ -435,9 +404,9 @@ public class Drone implements Runnable {
     }
 
     /**
-     * Updates the aircraft's position based on the given distance in the current flight direction.
+     * Updates the drone's position based on the given distance in the current flight direction.
      *
-     * @param distance the distance to move the aircraft.
+     * @param distance the distance to move the drone.
      */
     public void updatePosition(float distance) {
         float angle = (float) Math.atan2(
