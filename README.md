@@ -11,7 +11,7 @@ A control system and simulator for a firefighting drone swarm.
 | `Scheduler.java`                 | Processes fire incidents and drone requests.                                                    |
 | `MissionQueue.java`              | Represents the queue of missions for the drones.                                                |
 | `SimEvent.java`                  | Represents a fire event message.                                                                |
-| `DroneTask.java`                      | Represents a task used to aid in the generation of messages passed between scheduler and drone. |
+| `DroneTask.java`                 | Represents a task used to aid in the generation of messages passed between scheduler and drone. |
 | `Drone.java`                     | Represents a drone in the simulation.                                                           |
 | `DroneBuffer.java`               | Represents the buffer used between drone adn scheduler.                                         |
 | `DroneStatus.java`               | Enum defining the possible statuses the drone can be in.                                        |
