@@ -10,9 +10,9 @@ import static java.lang.Thread.sleep;
 public class Drone implements Runnable {
     private static final Position BASE_POSITION = new Position(0, 0);
     private static final float TOP_SPEED = 20.0f;     // 20m/s
-    private static final float TAKEOFF_ACCEL_RATE = 3.0f;  //3m/s^2
-    private static final float LAND_DECEL_RATE = -5.0f;   //-5m/s^2
-    private static final float ARRIVAL_DISTANCE_THRESHOLD = 25.0f;  //25m  which means if the distance is less than 20m assume it is arrived
+    private static final float ACCEL_RATE = 3.0f;  //3m/s^2
+    private static final float DECEL_RATE = -5.0f;   //-5m/s^2
+    private static final float ARRIVAL_DISTANCE_THRESHOLD = 10.0f;  //25m  which means if the distance is less than 20m assume it is arrived
     private static final float CRUISE_ALTITUDE = 50.0f; // arbitrary choice for demo
     private static final float VERTICAL_SPEED = 5.0f;   // m/s upward/downward
 
@@ -84,7 +84,7 @@ public class Drone implements Runnable {
      */
     public void setDecelerationDistance(){
         // d = v² / 2a
-        this.decelerationDistance = (float) (Math.pow(this.currentSpeed, 2) / (2 * LAND_DECEL_RATE));
+        this.decelerationDistance = (float) (Math.pow(this.currentSpeed, 2) / (2 * DECEL_RATE));
     }
 
     /**
@@ -275,7 +275,7 @@ public class Drone implements Runnable {
 
             // 2. We haven't reached top speed yet, so accelerate. v = vᵢ +at
             initialVelocity = this.currentSpeed;
-            this.currentSpeed += TAKEOFF_ACCEL_RATE * deltaTime;
+            this.currentSpeed += ACCEL_RATE * deltaTime;
             System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                     + "Accelerating... " 
                     + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
@@ -290,7 +290,7 @@ public class Drone implements Runnable {
             }
 
             // d = Vᵢt + 0.5at²
-            distance = (float) ((initialVelocity * deltaTime) + (0.5 * TAKEOFF_ACCEL_RATE * Math.pow(deltaTime, 2)));
+            distance = (float) ((initialVelocity * deltaTime) + (0.5 * ACCEL_RATE * Math.pow(deltaTime, 2)));
             this.updatePosition(distance);
 
         }
@@ -341,7 +341,7 @@ public class Drone implements Runnable {
             previousTime = currentTime;
 
             // 1. If we're basically at the destination, stop.
-            if (this.getDistanceFromDestination() < 1.0f) {
+            if (this.getDistanceFromDestination() < ARRIVAL_DISTANCE_THRESHOLD) {
                 currentSpeed = 0;
                 System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                         + "At the destination. Ending deceleration. "
@@ -351,7 +351,7 @@ public class Drone implements Runnable {
 
             // 2. We haven't reached destination yet, so decelerate. v = vᵢ +at
             initialVelocity = currentSpeed;
-            currentSpeed += LAND_DECEL_RATE * deltaTime;
+            currentSpeed += DECEL_RATE * deltaTime;
             System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                     + "Decelerating ..."
                     + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
@@ -366,7 +366,7 @@ public class Drone implements Runnable {
             }
 
             // d = Vᵢt + 0.5at²
-            float distance = (float) ((initialVelocity * deltaTime) + (0.5 * LAND_DECEL_RATE * Math.pow(deltaTime, 2)));
+            float distance = (float) ((initialVelocity * deltaTime) + (0.5 * DECEL_RATE * Math.pow(deltaTime, 2)));
             this.updatePosition(distance);
         }
     }
