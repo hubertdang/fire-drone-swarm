@@ -10,7 +10,7 @@ public class DroneBufferTest {
     @BeforeEach
     public void setUp() {
         droneBuffer = new DroneBuffer();
-        testTask = new DroneTask(DroneStatus.IDLE, new Zone(1, 0, 0, 0, 700, 600));
+        testTask = new DroneTask(DroneTaskType.SERVICE_ZONE, new Zone(1, 0, 0, 0, 700, 600));
     }
 
     @Test
@@ -18,21 +18,13 @@ public class DroneBufferTest {
         droneBuffer.addDroneTask(testTask);
         DroneTask poppedTask = droneBuffer.popSchedulerTask();
         assertEquals(testTask, poppedTask);
-        assertFalse(droneBuffer.newAcknowledgement());
+        assertFalse(droneBuffer.hasDroneInfo());
     }
 
-    @Test
-    public void testAddAndPopSchedulerAcknowledgement() {
-        droneBuffer.addSchedulerAcknowledgement(testTask);
-        assertTrue(droneBuffer.newAcknowledgement());
-        DroneTask poppedTask = droneBuffer.popDroneAcknowledgement();
-        assertEquals(testTask, poppedTask);
-        assertFalse(droneBuffer.newAcknowledgement());
-    }
 
     @Test
-    public void testPopDroneAcknowledgementFromEmptyBuffer() {
-        assertNull(droneBuffer.popDroneAcknowledgement());
+    public void testPopDroneInfoFromEmptyBuffer() {
+        assertNull(droneBuffer.popDroneInfo());
     }
 
     @Test
@@ -44,7 +36,7 @@ public class DroneBufferTest {
     public void testWaitForTask() {
         Thread thread = new Thread(() -> {
             droneBuffer.waitForTask();
-            assertTrue(droneBuffer.newAcknowledgement());
+            assertTrue(droneBuffer.hasDroneInfo());
         });
         thread.start();
 
