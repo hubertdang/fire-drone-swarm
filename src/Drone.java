@@ -10,24 +10,31 @@ import static java.lang.Thread.sleep;
 public class Drone implements Runnable {
     private static final Position BASE_POSITION = new Position(0, 0);
     private static final float TOP_SPEED = 20.0f;     // 20m/s
-    private static final float TAKEOFF_ACCEL_RATE = 3.0f;  //3m/s^2
-    private static final float LAND_DECEL_RATE = 5.0f;   //5m/s^2
-    private static final float ARRIVAL_DISTANCE_THRESHOLD = 25.0f;  //25m  which means if the distance is less than 20m assume it is arrived
+    private static final float ACCEL_RATE = 3.0f;  //3m/s^2
+    private static final float DECEL_RATE = -5.0f;   //-5m/s^2
+    private static final float ARRIVAL_DISTANCE_THRESHOLD = 10.0f;  //25m  which means if the distance is less than 20m assume it is arrived
+    private static final float CRUISE_ALTITUDE = 50.0f; // arbitrary choice for demo
+    private static final float VERTICAL_SPEED = 5.0f;   // m/s upward/downward
+
     private final int id;
     private final AgentTank agentTank;
     private final DroneBuffer droneBuffer;
     private final Position position;
+    private Position destination;
     //private float rating;           //for scheduling algorithm later
     private Zone zoneToService; // The zone assigned by the Scheduler. The drone won't pick tasks itself
     private FireSeverity zoneSeverity;
     private volatile DroneStatus status;  // make sure thread will check status everytime
-    private float currentSpeed = 0f;
+    private float currentSpeed;
+    private float currentAltitude;
+    private float decelerationDistance;
 
 
     public Drone(int id, DroneBuffer droneBuffer) {
         this.id = id;
         this.position = new Position(BASE_POSITION.getX(), BASE_POSITION.getY());
         this.currentSpeed = 0f;
+        this.currentAltitude = 0f;
         this.status = DroneStatus.BASE;
         this.agentTank = new AgentTank();
         this.droneBuffer = droneBuffer;
@@ -42,6 +49,51 @@ public class Drone implements Runnable {
      */
     public Position getPosition() {
         return position;
+    }
+
+    /**
+     * Return the destination the drone is flying to
+     *
+     * @return the destination the drone is flying to
+     */
+    public Position getDestination() {
+        return destination;
+    }
+
+    /**
+     * Set the position the drone will fly to
+     *
+     * @param position the drone will fly to
+     */
+    public void setDestination(Position position) {
+        this.destination = position;
+    }
+
+    /**
+     * Returns the distance required for the drone to decelerate to zero speed.
+     *
+     * @return the current deceleration distance
+     */
+    public float getDecelerationDistance(){
+        return this.decelerationDistance;
+    }
+
+    /**
+     * Calculates and sets the deceleration distance based on the drone's
+     * current speed and the land deceleration rate.
+     */
+    public void setDecelerationDistance(){
+        // d = v² / 2a
+        this.decelerationDistance = (float) (Math.pow(this.currentSpeed, 2) / (2 * DECEL_RATE));
+    }
+
+    /**
+     * Returns the distance from the current position to the drone's destination.
+     *
+     * @return the distance to the destination
+     */
+    public float getDistanceFromDestination(){
+        return position.distanceFrom(this.getDestination());
     }
 
     /**
@@ -147,7 +199,6 @@ public class Drone implements Runnable {
         }
     }
 
-
     /**
      * The scheduler can ask drone stopAgent, it will close the agent nozzle and set agentStatus to IDLE
      */
@@ -164,94 +215,216 @@ public class Drone implements Runnable {
     }
 
     /**
-     * Incremental approach to flight. If no destination is set, do nothing.
-     * If arrived, set status=ARRIVED or BASE if the destination was BASE_POSITION.
-     *
-     * @param destination the destination for drone to go
+     * Raises the drone from ground level to the designated cruise altitude.
+     * This only affects the z plane.
      */
-    private void fly(Position destination) {
-        setStatus(DroneStatus.ENROUTE);
-        System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "Starting flight.");
+    public void takeoff() {
+        System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
+                + "Taking off..."
+                + "| ALTITUDE = " + this.currentAltitude + "m");
 
-        long previousTime = System.nanoTime(); //get current system time before get into while loop
-        long currentTime;
-        float deltaTime;  //time duration
-        float distanceFromDestination;
-        float stepDist;  //distance traveled each time duration
-        float newX, newY;
-        float angle;
-        float stoppingDistance;
-
-        while (true) {
-            currentTime = System.nanoTime();
-            deltaTime = (currentTime - previousTime) / 1_000_000_000f; // convert into seconds
+        long previousTime = System.nanoTime();
+        while (this.currentAltitude < CRUISE_ALTITUDE) {
+            long currentTime = System.nanoTime();
+            float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
             previousTime = currentTime;
 
-            distanceFromDestination = position.distanceFrom(destination);
+            // Increase altitude at a constant vertical speed
+            this.currentAltitude += VERTICAL_SPEED * deltaTime;
 
-            // If arrived (close enough ), stop, and check if Drone is at base or arrived at destination
-            if (distanceFromDestination < ARRIVAL_DISTANCE_THRESHOLD) {
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "handleFly: Arrived at dest. speed=" + currentSpeed);
-                currentSpeed = 0;
-                if (destination.equals(BASE_POSITION)) {
-                    setStatus(DroneStatus.BASE);
-                }
-                else {
-                    setStatus(DroneStatus.ARRIVED);
-                }
-                return;
+            // Clamp altitude so we do not overshoot
+            if (this.currentAltitude > CRUISE_ALTITUDE) {
+                this.currentAltitude = CRUISE_ALTITUDE;
             }
 
-            stoppingDistance = (currentSpeed * currentSpeed) / (2 * LAND_DECEL_RATE); //use s=(v^2/2a) calculate stop distance, when hit this distance, start to decelerate
+            System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
+                    + "Climbing... "
+                    + "| ALTITUDE = " + this.currentAltitude + "m");
 
-            //when get in stoppingDistance -> decelerate OR  if not hit TOP_SPEED -> accelerate
+        }
+        System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
+                + "Takeoff complete. "
+                + "| ALTITUDE = " + this.currentAltitude + "m");
+    }
 
-            if (distanceFromDestination <= stoppingDistance) {
-                currentSpeed -= LAND_DECEL_RATE * deltaTime;
-                if (currentSpeed < 0) {
-                    currentSpeed = 0;
-                }
+    /**
+     * Accelerates the drone from its current speed until it reaches top speed
+     * or the required deceleration distance.
+     * This only affects the x & y plane.
+     */
+    public void accelerate() {
+        System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
+                + "Start Accelerating... "
+                + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
+
+        float distance, initialVelocity;
+        long previousTime = System.nanoTime();
+        
+        while (true) {
+            long currentTime = System.nanoTime();
+            float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
+            previousTime = currentTime;
+
+            this.setDecelerationDistance();
+
+            // 1. If we're already within the deceleration distance, don't try to reach max speed.
+            if (this.getDistanceFromDestination() <= this.getDecelerationDistance()) {
+                System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
+                        + "Reached deceleration distance, cannot reach max speed. Stopping acceleration. "
+                        + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
+                break;
             }
-            else {
-                if (currentSpeed < TOP_SPEED) {
-                    currentSpeed += TAKEOFF_ACCEL_RATE * deltaTime;
-                    if (currentSpeed > TOP_SPEED) {
-                        currentSpeed = TOP_SPEED;
-                    }
-                }
+
+            // 2. We haven't reached top speed yet, so accelerate. v = vᵢ +at
+            initialVelocity = this.currentSpeed;
+            this.currentSpeed += ACCEL_RATE * deltaTime;
+            System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
+                    + "Accelerating... " 
+                    + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
+
+            // 3. If this acceleration pushes us to or beyond top speed, cap it and break.
+            if (this.currentSpeed >= TOP_SPEED) {
+                this.currentSpeed = TOP_SPEED;
+                System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
+                        + "Reached Max Speed. Stopping acceleration. "
+                        + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
+                break;
             }
 
-            // Update the new position based on distance travelled
+            // d = Vᵢt + 0.5at²
+            distance = (float) ((initialVelocity * deltaTime) + (0.5 * ACCEL_RATE * Math.pow(deltaTime, 2)));
+            this.updatePosition(distance);
 
-
-            stepDist = currentSpeed * deltaTime;
-            angle = (float) Math.atan2(destination.getY() - position.getY(), destination.getX() - position.getX());
-
-            if (stepDist > distanceFromDestination) {
-                stepDist = distanceFromDestination;
-            }
-
-            newX = position.getX() + stepDist * (float) Math.cos(angle);
-            newY = position.getY() + stepDist * (float) Math.sin(angle);
-            position.update(newX, newY);
-
-
-            System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "🛸Flying: pos=(" + newX + "," + newY + "), speed=" + currentSpeed + " m/s, distance=" + distanceFromDestination + " m");
-
-            // sleep to minimize logs
-            // threshold must be >= 20m to account for this sleep call
-            try {
-                sleep(1000);
-            }
-            catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 
+    /**
+     * Maintains forward movement at the current speed until the drone is ready to decelerate.
+     * This only affects the x & y plane.
+     */
+    public void fly() {
+        System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                + "Flying... "
+                + " | POSITION = " + this.position);
+
+        long previousTime = System.nanoTime();
+        while (true) {
+            long currentTime = System.nanoTime();
+            float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
+            previousTime = currentTime;
+
+            // If we're at or within the deceleration distance, exit the loop
+            if (this.getDistanceFromDestination() <= this.getDecelerationDistance()) {
+                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                        + "Reached deceleration distance. Ending flight. "
+                        + " | POSITION = " + this.position);;
+                break;
+            }
+
+            float distance = currentSpeed * deltaTime;
+            this.updatePosition(distance);
+
+        }
+    }
+
+    /**
+     * Gradually reduces the drone's speed as it approaches the destination, eventually stopping.
+     * This only affects the x & y plane.
+     */
+    public void decelerate() {
+        System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                + "Starting deceleration... "
+                + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
+
+        float initialVelocity;
+
+        long previousTime = System.nanoTime();
+        while (true) {
+            long currentTime = System.nanoTime();
+            float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
+            previousTime = currentTime;
+
+            // 1. If we're basically at the destination, stop.
+            if (this.getDistanceFromDestination() < ARRIVAL_DISTANCE_THRESHOLD) {
+                currentSpeed = 0;
+                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                        + "At the destination. Ending deceleration. "
+                        + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
+                break;
+            }
+
+            // 2. We haven't reached destination yet, so decelerate. v = vᵢ +at
+            initialVelocity = currentSpeed;
+            currentSpeed += DECEL_RATE * deltaTime;
+            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                    + "Decelerating ..."
+                    + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
+
+            // 3. If we've reached zero speed, there's no further deceleration to do.
+            if (currentSpeed <= 0) {
+                currentSpeed = 0;
+                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                        + "Have completely decelerated and stopped."
+                        + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
+                break;
+            }
+
+            // d = Vᵢt + 0.5at²
+            float distance = (float) ((initialVelocity * deltaTime) + (0.5 * DECEL_RATE * Math.pow(deltaTime, 2)));
+            this.updatePosition(distance);
+        }
+    }
+
+    /**
+     * Lowers the drone altitude until it completes the landing process.
+     * This only affects the z plane.
+     */
+    public void land () {
+        System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                + "Begin Landing..."
+                + "| ALTITUDE = " + currentAltitude + "m");
+
+        long previousTime = System.nanoTime();
+        while (currentAltitude <= 0f) {
+            long currentTime = System.nanoTime();
+            float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
+            previousTime = currentTime;
+
+            // Increase altitude at a constant vertical speed
+            currentAltitude -= VERTICAL_SPEED * deltaTime;
+
+            // Clamp altitude so we do not overshoot
+            if (currentAltitude <= 0f) {
+                currentAltitude = 0f;
+            }
+
+            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                    + "Descending ... "
+                    + "| ALTITUDE = " + currentAltitude + "m");
+
+        }
+        System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                + "Landing complete. "
+                + "| ALTITUDE = " + currentAltitude + "m");
+    }
+
+    /**
+     * Updates the drone's position based on the given distance in the current flight direction.
+     *
+     * @param distance the distance to move the drone.
+     */
+    public void updatePosition(float distance) {
+        float angle = (float) Math.atan2(
+                this.getDestination().getY() - position.getY(),
+                this.getDestination().getX() - position.getX());
+
+        float newX = position.getX() + distance * (float) Math.cos(angle);
+        float newY = position.getY() + distance * (float) Math.sin(angle);
+        position.update(newX, newY);
+    }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj){
         return (obj instanceof Drone) && ((Drone) obj).id == this.id;
     }
 
@@ -278,14 +451,14 @@ public class Drone implements Runnable {
             switch (taskToDo.getDroneStatus()) {
                 case BASE -> {
                     this.setStatus(DroneStatus.ENROUTE);
-                    fly(BASE_POSITION);
+                    fly();
                 }
                 case ENROUTE -> {
                     this.setStatus(DroneStatus.ENROUTE);
                     // need to inform scheduler drone is enroute
                     // for state change ENROUTE -> ARRIVED in scheduler
                     droneBuffer.addSchedulerAcknowledgement(new DroneTask(this.getStatus()));
-                    fly(taskToDo.getZone().getPosition());
+                    fly();
                     setZoneToService(taskToDo.getZone());
                 }
                 case DROPPING_AGENT -> {
