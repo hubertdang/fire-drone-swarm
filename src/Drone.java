@@ -216,6 +216,7 @@ public class Drone implements Runnable {
 
     /**
      * Raises the drone from ground level to the designated cruise altitude.
+     * This only affects the z plane.
      */
     public void takeoff() {
         System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
@@ -249,6 +250,7 @@ public class Drone implements Runnable {
     /**
      * Accelerates the drone from its current speed until it reaches top speed
      * or the required deceleration distance.
+     * This only affects the x & y plane.
      */
     public void accelerate() {
         System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
@@ -298,6 +300,7 @@ public class Drone implements Runnable {
 
     /**
      * Maintains forward movement at the current speed until the drone is ready to decelerate.
+     * This only affects the x & y plane.
      */
     public void fly() {
         System.out.println("[" + Thread.currentThread().getName() + id + "]: "
@@ -326,6 +329,7 @@ public class Drone implements Runnable {
 
     /**
      * Gradually reduces the drone's speed as it approaches the destination, eventually stopping.
+     * This only affects the x & y plane.
      */
     public void decelerate() {
         System.out.println("[" + Thread.currentThread().getName() + id + "]: "
@@ -373,6 +377,7 @@ public class Drone implements Runnable {
 
     /**
      * Lowers the drone altitude until it completes the landing process.
+     * This only affects the z plane.
      */
     public void land () {
         System.out.println("[" + Thread.currentThread().getName() + id + "]: "
