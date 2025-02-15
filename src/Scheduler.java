@@ -34,59 +34,23 @@ public class Scheduler implements Runnable {
 
             // check fireBuffer for new messages, add to mission queue
             if (fireBuffer.newEvent()) {
-                System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Scheduler has received a new event.\n\t" +
-                        "adding to mission queue.");
+                System.out.println("[" + Thread.currentThread().getName() + "]: " + "Scheduler has received a new event.\n\t" + " adding to mission queue.");
                 Zone zoneToService = fireBuffer.popEventMessage();
                 handleFireReq(zoneToService);
             }
 
             // check for drone acknowledgements
-            if (droneBuffer.newAcknowledgement()) {
-                DroneTask acknowledgementStatus = droneBuffer.popDroneAcknowledgement();
-                System.out.println("[" + Thread.currentThread().getName() + "]: Scheduler " +
-                        "a drone has sent back an acknowledgement\n\t" +
-                        "Status: " + acknowledgementStatus.getDroneStatus());
-
-                previousDroneStatus = currentDroneStatus;
-                currentDroneStatus = acknowledgementStatus.getDroneStatus();
-
-                System.out.println("DEBUG: Previous Status: " + previousDroneStatus);
-                System.out.println("DEBUG: Current Status: " + currentDroneStatus);
-
-                switch (currentDroneStatus) {
-                    case ARRIVED -> {
-                        // drop agent, to location
-                        if (previousDroneStatus == DroneStatus.ENROUTE) {
-                            droneBuffer.addDroneTask(new DroneTask(DroneStatus.DROPPING_AGENT));
-                        }
-                    }
-                    case FIRE_STOPPED -> {
-                        // close nozzle
-                        if (previousDroneStatus == DroneStatus.ARRIVED) {
-                            droneBuffer.addDroneTask(new DroneTask(DroneStatus.STOP_DROPPING_AGENT));
-                        }
-                    }
-                    case IDLE -> {
-                        droneOnMission = false; // open to receiving new missions
-                        if (previousDroneStatus == DroneStatus.FIRE_STOPPED) {
-                            // indicate fire has been put out to the fire incident subsystem
-                            Zone servicedZone = acknowledgementStatus.getZone();
-                            servicedZone.setSeverity(FireSeverity.NO_FIRE); // where should this code be?
-                            fireBuffer.addAcknowledgementMessage(servicedZone);
-                        }
-                    }
-                }
+            if (droneBuffer.hasDroneInfo()) {
+                DroneInfo droneInfo = droneBuffer.popDroneInfo();
+                System.out.println("[" + Thread.currentThread().getName()
+                        + "]: Scheduler has received a drone info from" + " drone#" + droneInfo.droneID + ": Position: (" + droneInfo.getPosition().getX()
+                        + "," + droneInfo.getPosition().getY() + ")" + " AgentLeft: " + droneInfo.getAgentTankAmount());
             }
 
             // handle missions from the mission queue
-            if (!missionQueue.isEmpty() && (currentDroneStatus == DroneStatus.IDLE
-                    || currentDroneStatus == DroneStatus.BASE)
-                    && !droneOnMission) {
-                System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Scheduler is requesting drone to handle a fire " +
-                        "from the mission queue.");
-                DroneTask newMission = new DroneTask(DroneStatus.ENROUTE, missionQueue.pop());
+            if (!missionQueue.isEmpty() && !droneOnMission) {
+                Zone missionZone = missionQueue.pop();
+                DroneTask newMission = new DroneTask(DroneTaskType.SERVICE_ZONE, missionZone);
                 droneBuffer.addDroneTask(newMission);
                 droneOnMission = true;
             }
