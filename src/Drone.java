@@ -18,26 +18,25 @@ public class Drone implements Runnable {
 
     private final int id;
     private final AgentTank agentTank;
-    private final DroneBuffer droneBuffer;
     private final Position position;
     private Position destination;
     //private float rating;           //for scheduling algorithm later
-    private Zone zoneToService; // The zone assigned by the Scheduler. The drone won't pick tasks itself
+    private volatile Zone zoneToService; // The zone assigned by the Scheduler. The drone won't pick tasks itself
     private FireSeverity zoneSeverity;
     private volatile DroneStatus status;  // make sure thread will check status everytime
     private float currentSpeed;
     private float currentAltitude;
     private float decelerationDistance;
+    private volatile DroneTask currentTask; //flag to set Drone task
 
 
-    public Drone(int id, DroneBuffer droneBuffer) {
+    public Drone(int id) {
         this.id = id;
         this.position = new Position(BASE_POSITION.getX(), BASE_POSITION.getY());
         this.currentSpeed = 0f;
         this.currentAltitude = 0f;
         this.status = DroneStatus.BASE;
         this.agentTank = new AgentTank();
-        this.droneBuffer = droneBuffer;
         this.zoneToService = null;
     }
 
@@ -124,7 +123,7 @@ public class Drone implements Runnable {
     /**
      * Gets the current operational status of the drone
      *
-     * @return DroneStatus enum value indicating current state
+     * @return DroneStatus enum value indicating current status
      */
     public synchronized DroneStatus getStatus() {
         return status;
@@ -138,6 +137,22 @@ public class Drone implements Runnable {
     public synchronized void setStatus(DroneStatus status) {
         this.status = status;
     }
+
+
+    /**
+     * @return agentTank object
+     */
+    public synchronized float getAgentTankAmount() {
+        return this.agentTank.getCurrAgentAmount();
+    }
+
+    /**
+     * @param task that sent by DroneBuffer
+     */
+    public synchronized void setCurrentTask(DroneTask task) {
+        this.currentTask = task;
+    }
+
 
     /**
      * Retrieves the severity of the zone to be serviced.
@@ -162,7 +177,6 @@ public class Drone implements Runnable {
         float agentToDrop;
         agentTank.openNozzle();
         while (true) {
-            //the status will change if agent is empty or call stopAgent()
             if (getStatus() != DroneStatus.DROPPING_AGENT) {
                 System.out.println("[" + Thread.currentThread().getName() + id + "]: " + "💦Release agent stopped. Current status: " + getStatus());
                 break;
@@ -178,7 +192,7 @@ public class Drone implements Runnable {
                 break;
             }
 
-            //check how much agent can drop vs how much agent left
+            // check how much agent can drop vs how much agent left
             agentToDrop = AgentTank.AGENT_DROP_RATE * deltaTime;
 
             agentTank.decreaseAgent(agentToDrop);
@@ -198,6 +212,7 @@ public class Drone implements Runnable {
             }
         }
     }
+
 
     /**
      * The scheduler can ask drone stopAgent, it will close the agent nozzle and set agentStatus to IDLE
@@ -259,7 +274,7 @@ public class Drone implements Runnable {
 
         float distance, initialVelocity;
         long previousTime = System.nanoTime();
-        
+
         while (true) {
             long currentTime = System.nanoTime();
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
@@ -279,7 +294,7 @@ public class Drone implements Runnable {
             initialVelocity = this.currentSpeed;
             this.currentSpeed += ACCEL_RATE * deltaTime;
             System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
-                    + "Accelerating... " 
+                    + "Accelerating... "
                     + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
 
             // 3. If this acceleration pushes us to or beyond top speed, cap it and break.
@@ -438,48 +453,14 @@ public class Drone implements Runnable {
      */
     @Override
     public void run() {
-
         while (true) {
-            // wait until given a directive by scheduler
-            droneBuffer.waitForTask();
-
-            // process tasks received
-            DroneTask taskToDo = droneBuffer.popSchedulerTask();
-
-            System.out.println("[" + Thread.currentThread().getName() + "]: Drone " + this.id + " received a new task to: " + taskToDo.getDroneStatus());
-
-            switch (taskToDo.getDroneStatus()) {
-                case BASE -> {
-                    this.setStatus(DroneStatus.ENROUTE);
-                    fly();
-                }
-                case ENROUTE -> {
-                    this.setStatus(DroneStatus.ENROUTE);
-                    // need to inform scheduler drone is enroute
-                    // for state change ENROUTE -> ARRIVED in scheduler
-                    droneBuffer.addSchedulerAcknowledgement(new DroneTask(this.getStatus()));
-                    fly();
-                    setZoneToService(taskToDo.getZone());
-                }
-                case DROPPING_AGENT -> {
-                    this.setStatus(DroneStatus.DROPPING_AGENT);
-                    releaseAgent();
-                }
-                case STOP_DROPPING_AGENT -> {
-                    this.stopAgent();
-                }
-                case STATUS_UPDATE -> {
-                    break;
-                }
-                case IDLE -> {
-                    setStatus(DroneStatus.IDLE);
+            if (currentTask != null) {
+                // DroneSubsystem could change currentTask
+                synchronized (this) {
+                    System.out.println("[" + Thread.currentThread().getName() + "]: " + "Drone has received an new task: " + currentTask.getTaskType());
+                    currentTask = null;                 // reset flag right the way
                 }
             }
-
-            // tell scheduler drones current state after executing task
-            droneBuffer.addSchedulerAcknowledgement(new DroneTask(this.getStatus(), zoneToService));
-
-            // allow scheduler time to receive and compute acknowledgement
             try {
                 sleep(2000);
             }
