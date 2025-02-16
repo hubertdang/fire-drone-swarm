@@ -15,6 +15,15 @@ public class HappyPathSubState implements SchedulerSubState {
         this.zone = zone;
         this.notify = notify;
     }
+    /**
+     * Executes the happypath substate
+     * @param context The drone to execute the substate on
+     */
+    @Override
+    public void execute(Drone context) {
+        // Do the happy path
+        System.out.println("Executing Happy Path");
+    }
 
     /**
      * Returns whether the scheduler should make the state transition

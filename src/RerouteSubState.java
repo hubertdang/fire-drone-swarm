@@ -15,6 +15,15 @@ public class RerouteSubState implements SchedulerSubState {
         this.zone = zone;
         this.notify = notify;
     }
+    /**
+     * Executes the reroute substate
+     * @param context The drone to execute the substate on
+     */
+    @Override
+    public void execute(Drone context) {
+        // Do the reroute
+        System.out.println("Executing Reroute");
+    }
 
     /**
      * Returns whether the scheduler should make the state transition
