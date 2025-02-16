@@ -1,5 +1,8 @@
 public interface SchedulerSubState {
 
+    // Executes the substate
+    void execute(Drone context);
+
     // Tells scheduler if it should transition this drone
     boolean shouldNotify();
 
