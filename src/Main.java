@@ -21,9 +21,9 @@ public class Main {
         Scheduler scheduler = new Scheduler(droneBuffer, fireBuffer);
 
         // Instantiate Drone
-        DroneSubsystem droneSubsystem = new DroneSubsystem(droneBuffer);
-        Drone drone = new Drone(1);
-        droneSubsystem.addDrone(drone);
+        DroneManager droneManager = new DroneManager(droneBuffer);
+        Drone drone = new Drone(1, droneManager);
+        droneManager.addDrone(drone);
 
 
         // Instantiate threads
@@ -31,7 +31,7 @@ public class Main {
         Thread droneThread = new Thread(drone, "D");
         Thread fireSubsystemThread = new Thread(fireIncidentSubsystem, "FIS");
         Thread schedulerThread = new Thread(scheduler, "SD");
-        Thread droneSubsystemThread = new Thread(droneSubsystem, "DSS");
+        Thread droneSubsystemThread = new Thread(droneManager, "DM");
 
         // run threads
         fireSubsystemThread.start();

@@ -4,41 +4,41 @@ import java.util.Map;
 import static java.lang.Thread.sleep;
 
 public class Drone implements Runnable {
-    public static final Position BASE_POSITION = new Position(0, 0);
-    private static final float TOP_SPEED = 20.0f;     // 20m/s
-    private static final float ACCEL_RATE = 3.0f;  //3m/s^2
-    private static final float DECEL_RATE = -5.0f;   //-5m/s^2
-    public static final float ARRIVAL_DISTANCE_THRESHOLD = 10.0f;  //25m  which means if the distance is less than 20m assume it is arrived
-    private static final float CRUISE_ALTITUDE = 50.0f; // arbitrary choice for demo
-    private static final float VERTICAL_SPEED = 5.0f;   // m/s upward/downward
+    public static final float BASE_X = 0.0f;
+    public static final float BASE_Y = 0.0f;
+    public static final float ARRIVAL_DISTANCE_THRESHOLD = 10.0f;           // m
+    private static final float TOP_SPEED = 20.0f;                           // m/s
+    private static final float ACCEL_RATE = 3.0f;                           // m/s^2
+    private static final float DECEL_RATE = -5.0f;                          // m/s^2
+    private static final float CRUISE_ALTITUDE = 50.0f;                     // arbitrary choice for demo
+    private static final float VERTICAL_SPEED = 5.0f;                       // m/s upward/downward
 
     private final int id;
     private final AgentTank agentTank;
     private final Position position;
-    private Position destination;
-    //private float rating;           //for scheduling algorithm later
-    private volatile Zone zoneToService; // The zone assigned by the Scheduler. The drone won't pick tasks itself
-    private FireSeverity zoneSeverity;
-    private volatile DroneStatus status;  // make sure thread will check status everytime
-    private float currentSpeed = 0f;
-    private Map<DroneStateID, DroneState> states;
+    private final Map<DroneStateID, DroneState> states;
     private DroneState currState;
-    private float currentSpeed;
-    private float currentAltitude;
-    private float decelerationDistance;
-    private volatile DroneTask currentTask; //flag to set Drone task
+    private float currSpeed;
+    private float currAltitude;
+    private float decelDistance;
+    private final DroneManager droneManager;
 
+    /* fields accessed by other threads */
+    private volatile DroneStateID currStateID;
+    private volatile DroneTask currTask;
+    private volatile boolean newTaskFlag;
+    private volatile Position destination;
+    private volatile Zone zoneToService;
 
-    public Drone(int id) {
+    public Drone(int id, DroneManager droneManager) {
         this.id = id;
-        this.position = new Position(BASE_POSITION.getX(), BASE_POSITION.getY());
-        this.currentSpeed = 0f;
-        this.currentAltitude = 0f;
-        this.status = DroneStatus.BASE;
-        this.agentTank = new AgentTank();
-        this.zoneToService = null;
-
+        position = new Position(BASE_X, BASE_Y);
+        currSpeed = 0f;
+        currAltitude = 0f;
+        agentTank = new AgentTank();
+        zoneToService = null;
         states = new HashMap<>();
+        this.droneManager = droneManager;
 
         addState(DroneStateID.BASE, new Base());
         addState(DroneStateID.TAKEOFF, new Takeoff());
@@ -46,10 +46,42 @@ public class Drone implements Runnable {
         addState(DroneStateID.FLYING, new Flying());
         addState(DroneStateID.DECELERATING, new Decelerating());
         addState(DroneStateID.ARRIVED, new Arrived());
+        addState(DroneStateID.RELEASING_AGENT, new ReleasingAgent());
         addState(DroneStateID.IDLE, new Idle());
-        /* TODO: add LANDING state */
+        addState(DroneStateID.LANDING, new Landing());
 
-        setCurrState(DroneStateID.BASE);
+        updateState(DroneStateID.BASE);
+    }
+
+    /**
+     * Executes the drone's main loop.
+     */
+    @Override
+    public void run() {
+        while (true) {
+            if (newTaskFlag) {
+                newTaskFlag = false;
+                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                        + "Drone has received an new task: " + currTask.getTaskType());
+                switch (currTask.getTaskType()) {
+                    case DroneTaskType.SERVICE_ZONE:
+                        eventReqServiceZone();
+                        break;
+                    case DroneTaskType.RELEASE_AGENT:
+                        eventReqRelAgent();
+                        break;
+                    case DroneTaskType.RECALL:
+                        eventReqRecall();
+                        break;
+                }
+            }
+            try {
+                sleep(2000);
+            }
+            catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     /**
@@ -63,103 +95,31 @@ public class Drone implements Runnable {
     }
 
     /**
-     * Retrieves a state from the drone. Not necessarily the current state.
-     *
-     * @param stateID The enum ID of the state.
-     * @return The state corresponding to the given state ID.
-     */
-    private DroneState getState(DroneStateID stateID) {
-        return states.get(stateID);
-    }
-
-    /**
-     * Gets the current state of the drone.
-     *
-     * @return The current state of the drone.
-     */
-    public DroneState getCurrState() {
-        return currState;
-    }
-
-    /**
-     * Sets the current state of the drone.
+     * Updates the current state of the drone.
      *
      * @param stateID The enum ID of the state.
      */
-    public void setCurrState(DroneStateID stateID) {
-        currState = getState(stateID);
+    public void updateState(DroneStateID stateID) {
+        System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                + "State change | " + currStateID + " -> " + stateID);
+        currState = states.get(stateID);
+        currStateID = stateID;
     }
 
     /**
-     * Triggers the event of being requested to service a zone in the current state.
+     * Gets the ID of the drone's current state.
      *
-     * @return true if the state was valid, false otherwise.
+     * @return The ID of the drone's current state.
      */
-    public boolean reqServiceZone() {
-        return currState.reqServiceZone(this);
+    public synchronized DroneStateID getCurrStateID() {
+        return currStateID;
     }
 
     /**
-     * Triggers the event of reaching max height in the current state.
-     *
-     * @return true if the state was valid, false otherwise.
+     * Sets the "new task" flag.
      */
-    public boolean reachMaxHeight() {
-        return currState.reachMaxHeight(this);
-    }
-
-    /**
-     * Triggers the event of reaching top speed in the current state.
-     *
-     * @return true if the state was valid, false otherwise.
-     */
-    public boolean reachTopSpeed() {
-        return currState.reachTopSpeed(this);
-    }
-
-    /**
-     * Triggers the event of reaching deceleration range in the current state.
-     *
-     * @return true if the state was valid, false otherwise.
-     */
-    public boolean reachDecelRange() {
-        return currState.reachDecelRange(this);
-    }
-
-    /**
-     * Triggers the event of arriving at its destination in the current state.
-     *
-     * @return true if the state was valid, false otherwise.
-     */
-    public boolean arrived() {
-        return currState.arrived(this);
-    }
-
-    /**
-     * Triggers the event of being requested to release agent in the current state.
-     *
-     * @return true if the state was valid, false otherwise.
-     */
-    public boolean reqRelAgent() {
-        return currState.reqRelAgent(this);
-    }
-
-    /**
-     * Triggers the event of the drone's zone to service's fire extinguishing in the current state.
-     *
-     * @return true if the state was valid, false otherwise.
-     */
-    public boolean fireExtinguished() {
-        return currState.fireExtinguished(this);
-    }
-
-    /**
-     * Triggers the event of being requested to recall in the current state.
-     *
-     * @return true if the state was valid, false otherwise.
-     */
-    public boolean reqRecall() {
-        return currState.reqRecall(this);
+    public synchronized void setNewTaskFlag() {
+        newTaskFlag = true;
     }
 
     /**
@@ -183,7 +143,7 @@ public class Drone implements Runnable {
      *
      * @return the destination the drone is flying to
      */
-    public Position getDestination() {
+    public synchronized Position getDestination() {
         return destination;
     }
 
@@ -192,7 +152,7 @@ public class Drone implements Runnable {
      *
      * @param position the drone will fly to
      */
-    public void setDestination(Position position) {
+    public synchronized void setDestination(Position position) {
         this.destination = position;
     }
 
@@ -201,17 +161,17 @@ public class Drone implements Runnable {
      *
      * @return the current deceleration distance
      */
-    public float getDecelerationDistance(){
-        return this.decelerationDistance;
+    private float getDecelDistance() {
+        return this.decelDistance;
     }
 
     /**
      * Calculates and sets the deceleration distance based on the drone's
      * current speed and the land deceleration rate.
      */
-    public void setDecelerationDistance(){
+    private void setDecelDistance() {
         // d = v² / 2a
-        this.decelerationDistance = (float) (Math.pow(this.currentSpeed, 2) / (2 * DECEL_RATE));
+        this.decelDistance = (float) (Math.pow(this.currSpeed, 2) / (2 * (-1) * DECEL_RATE));
     }
 
     /**
@@ -219,7 +179,7 @@ public class Drone implements Runnable {
      *
      * @return the distance to the destination
      */
-    public float getDistanceFromDestination(){
+    public float getDistanceFromDestination() {
         return position.distanceFrom(this.getDestination());
     }
 
@@ -249,25 +209,6 @@ public class Drone implements Runnable {
     }
 
     /**
-     * Gets the current operational status of the drone
-     *
-     * @return DroneStatus enum value indicating current status
-     */
-    public synchronized DroneStatus getStatus() {
-        return status;
-    }
-
-    /**
-     * Sets the  status of the drone
-     *
-     * @param status New DroneStatus to set
-     */
-    public synchronized void setStatus(DroneStatus status) {
-        this.status = status;
-    }
-
-
-    /**
      * @return agentTank object
      */
     public synchronized float getAgentTankAmount() {
@@ -277,26 +218,98 @@ public class Drone implements Runnable {
     /**
      * @param task that sent by DroneBuffer
      */
-    public synchronized void setCurrentTask(DroneTask task) {
-        this.currentTask = task;
+    public synchronized void setCurrTask(DroneTask task) {
+        this.currTask = task;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        return (obj instanceof Drone) && ((Drone) obj).id == this.id;
+    }
+
+    @Override
+    public String toString() {
+        return "[Drone#" + id + ", pos=(" + position.getX() + "," + position.getY() + ")]";
+    }
 
     /**
-     * Retrieves the severity of the zone to be serviced.
-     *
-     * @return FireSeverity enum
+     * Sends the drone's info to the scheduler.
      */
-    private FireSeverity getZoneSeverity() {
-        return this.zoneSeverity;
+    public void sendDroneInfo() {
+        droneManager.sendDroneInfo(id);
     }
 
+    /* ------------------------------ EVENT TRIGGERS ------------------------------ */
+
+    /**
+     * Triggers the event of being requested to service a zone in the current state.
+     */
+    public void eventReqServiceZone() {
+        currState.reqServiceZone(this);
+    }
+
+    /**
+     * Triggers the event of reaching max height in the current state.
+     */
+    public void eventReachMaxHeight() {
+        currState.reachMaxHeight(this);
+    }
+
+    /**
+     * Triggers the event of reaching top speed in the current state.
+     */
+    public void eventReachTopSpeed() {
+        currState.reachTopSpeed(this);
+    }
+
+    /**
+     * Triggers the event of reaching deceleration range in the current state.
+     */
+    public void eventReachDecelRange() {
+        currState.reachDecelRange(this);
+    }
+
+    /**
+     * Triggers the event of arriving at its destination in the current state.
+     */
+    public void eventArrived() {
+        currState.arrived(this);
+    }
+
+    /**
+     * Triggers the event of being requested to release agent in the current state.
+     */
+    public void eventReqRelAgent() {
+        currState.reqRelAgent(this);
+    }
+
+    /**
+     * Triggers the event of the drone's zone to service's fire extinguishing in the current state.
+     */
+    public void eventFireExtinguished() {
+        currState.fireExtinguished(this);
+    }
+
+    /**
+     * Triggers the event of being requested to recall in the current state.
+     */
+    public void eventReqRecall() {
+        currState.reqRecall(this);
+    }
+
+    /**
+     * Triggers the event of landing the drone.
+     */
+    public void eventLanded() {
+        currState.landed(this);
+    }
+
+    /* ------------------------------ AGENT CONTROL ------------------------------ */
 
     /**
      * Executes agent release operation
      */
     public void releaseAgent() {
-        setStatus(DroneStatus.DROPPING_AGENT);
         System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                 + "💦Starting agent release.");
 
@@ -304,24 +317,13 @@ public class Drone implements Runnable {
         long currentTime;
         float deltaTime;
         float agentToDrop;
-        agentTank.openNozzle();
-        while (true) {
-            if (getStatus() != DroneStatus.DROPPING_AGENT) {
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
-                        + "💦Release agent stopped. Current status: " + getStatus());
-                break;
-            }
 
+        agentTank.openNozzle();
+
+        while (agentTank.isNozzleOpen()) {
             currentTime = System.nanoTime();
             deltaTime = (currentTime - previousTime) / 1_000_000_000f; // convert to second
             previousTime = currentTime;
-
-            if (agentTank.isEmpty()) {
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
-                        + "Tank is empty. Stopping agent release.");
-                setStatus(DroneStatus.EMPTY);
-                break;
-            }
 
             // check how much agent can drop vs how much agent left
             agentToDrop = AgentTank.AGENT_DROP_RATE * deltaTime;
@@ -333,9 +335,9 @@ public class Drone implements Runnable {
                     + "💧Releasing " + agentToDrop + "L. Tank=" + agentTank.getCurrAgentAmount());
 
             if (zoneToService.getRequiredAgentAmount() <= 0) {
-                this.setStatus(DroneStatus.FIRE_STOPPED);
                 System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                         + "🧯Fire Extinguished.");
+                eventFireExtinguished();
             }
             // sleep thread to allow other threads to run/ not flood logs
             try {
@@ -349,22 +351,15 @@ public class Drone implements Runnable {
 
 
     /**
-     * The scheduler can ask drone stopAgent, it will close the agent nozzle and set agentStatus to IDLE
+     * Stops releasing agent.
      */
     public void stopAgent() {
+        agentTank.closeNozzle();
         System.out.println("[" + Thread.currentThread().getName() + id + "]: "
-                + "handleStopAgent() called.");
-        if (status == DroneStatus.FIRE_STOPPED) {
-            agentTank.closeNozzle();
-            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
-                    + "Stopped releasing agent.");
-            setStatus(DroneStatus.IDLE);
-        }
-        else {
-            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
-                    + "Not currently releasing agent. No action taken.");
-        }
+                + "💦Stopped releasing agent.");
     }
+
+    /* ------------------------------ FLYING MECHANISMS ------------------------------ */
 
     /**
      * Raises the drone from ground level to the designated cruise altitude.
@@ -373,30 +368,38 @@ public class Drone implements Runnable {
     public void takeoff() {
         System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                 + "Taking off..."
-                + "| ALTITUDE = " + this.currentAltitude + "m");
+                + "| ALTITUDE = " + this.currAltitude + "m");
 
         long previousTime = System.nanoTime();
-        while (this.currentAltitude < CRUISE_ALTITUDE) {
+        while (this.currAltitude < CRUISE_ALTITUDE) {
             long currentTime = System.nanoTime();
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
             previousTime = currentTime;
 
             // Increase altitude at a constant vertical speed
-            this.currentAltitude += VERTICAL_SPEED * deltaTime;
+            this.currAltitude += VERTICAL_SPEED * deltaTime;
 
             // Clamp altitude so we do not overshoot
-            if (this.currentAltitude > CRUISE_ALTITUDE) {
-                this.currentAltitude = CRUISE_ALTITUDE;
+            if (this.currAltitude > CRUISE_ALTITUDE) {
+                this.currAltitude = CRUISE_ALTITUDE;
             }
 
             System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                     + "Climbing... "
-                    + "| ALTITUDE = " + this.currentAltitude + "m");
+                    + "| ALTITUDE = " + this.currAltitude + "m");
 
+            // sleep thread to allow other threads to run/ not flood logs
+            try {
+                sleep(1000);
+            }
+            catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
         System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                 + "Takeoff complete. "
-                + "| ALTITUDE = " + this.currentAltitude + "m");
+                + "| ALTITUDE = " + this.currAltitude + "m");
+        eventReachMaxHeight();
     }
 
     /**
@@ -407,7 +410,7 @@ public class Drone implements Runnable {
     public void accelerate() {
         System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                 + "Start Accelerating... "
-                + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
+                + "| SPEED = " + this.currSpeed + " | POSITION = " + this.position);
 
         float distance, initialVelocity;
         long previousTime = System.nanoTime();
@@ -417,37 +420,46 @@ public class Drone implements Runnable {
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
             previousTime = currentTime;
 
-            this.setDecelerationDistance();
+            this.setDecelDistance();
 
             // 1. If we're already within the deceleration distance, don't try to reach max speed.
-            if (this.getDistanceFromDestination() <= this.getDecelerationDistance()) {
+            if (this.getDistanceFromDestination() <= this.getDecelDistance()) {
                 System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                         + "Reached deceleration distance, cannot reach max speed. Stopping acceleration. "
-                        + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
+                        + "| SPEED = " + this.currSpeed + " | POSITION = " + this.position);
                 break;
             }
 
             // 2. We haven't reached top speed yet, so accelerate. v = vᵢ +at
-            initialVelocity = this.currentSpeed;
-            this.currentSpeed += ACCEL_RATE * deltaTime;
+            initialVelocity = this.currSpeed;
+            this.currSpeed += ACCEL_RATE * deltaTime;
             System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                     + "Accelerating... "
-                    + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
+                    + "| SPEED = " + this.currSpeed + " | POSITION = " + this.position);
 
             // 3. If this acceleration pushes us to or beyond top speed, cap it and break.
-            if (this.currentSpeed >= TOP_SPEED) {
-                this.currentSpeed = TOP_SPEED;
+            if (this.currSpeed >= TOP_SPEED) {
+                this.currSpeed = TOP_SPEED;
                 System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                         + "Reached Max Speed. Stopping acceleration. "
-                        + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
+                        + "| SPEED = " + this.currSpeed + " | POSITION = " + this.position);
                 break;
             }
 
             // d = Vᵢt + 0.5at²
-            distance = (float) ((initialVelocity * deltaTime) + (0.5 * ACCEL_RATE * Math.pow(deltaTime, 2)));
+            distance = (float) ((initialVelocity * deltaTime)
+                    + (0.5 * ACCEL_RATE * Math.pow(deltaTime, 2)));
             this.updatePosition(distance);
 
+            // sleep thread to allow other threads to run/ not flood logs
+            try {
+                sleep(1000);
+            }
+            catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
+        eventReachTopSpeed();
     }
 
     /**
@@ -455,28 +467,39 @@ public class Drone implements Runnable {
      * This only affects the x & y plane.
      */
     public void fly() {
-        System.out.println("[" + Thread.currentThread().getName() + id + "]: "
-                + "Flying... "
-                + " | POSITION = " + this.position);
-
         long previousTime = System.nanoTime();
+        long currentTime;
+        float deltaTime;
+
         while (true) {
-            long currentTime = System.nanoTime();
-            float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
+            currentTime = System.nanoTime();
+            deltaTime = (currentTime - previousTime) / 1_000_000_000f;
             previousTime = currentTime;
 
+            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                    + "Flying... "
+                    + " | POSITION = " + this.position);
+
             // If we're at or within the deceleration distance, exit the loop
-            if (this.getDistanceFromDestination() <= this.getDecelerationDistance()) {
+            if (this.getDistanceFromDestination() <= this.getDecelDistance()) {
                 System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                         + "Reached deceleration distance. Ending flight. "
-                        + " | POSITION = " + this.position);;
+                        + " | POSITION = " + this.position);
                 break;
             }
 
-            float distance = currentSpeed * deltaTime;
+            float distance = currSpeed * deltaTime;
             this.updatePosition(distance);
 
+            // sleep thread to allow other threads to run/ not flood logs
+            try {
+                sleep(1000);
+            }
+            catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
+        eventReachDecelRange();
     }
 
     /**
@@ -486,11 +509,11 @@ public class Drone implements Runnable {
     public void decelerate() {
         System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                 + "Starting deceleration... "
-                + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
+                + "| SPEED = " + this.currSpeed + " | POSITION = " + this.position);
 
         float initialVelocity;
-
         long previousTime = System.nanoTime();
+
         while (true) {
             long currentTime = System.nanoTime();
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
@@ -498,66 +521,85 @@ public class Drone implements Runnable {
 
             // 1. If we're basically at the destination, stop.
             if (this.getDistanceFromDestination() < ARRIVAL_DISTANCE_THRESHOLD) {
-                currentSpeed = 0;
+                currSpeed = 0;
                 System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                         + "At the destination. Ending deceleration. "
-                        + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
+                        + "| SPEED = " + this.currSpeed + " | POSITION = " + this.position);
                 break;
             }
 
             // 2. We haven't reached destination yet, so decelerate. v = vᵢ +at
-            initialVelocity = currentSpeed;
-            currentSpeed += DECEL_RATE * deltaTime;
+            initialVelocity = currSpeed;
+            currSpeed += DECEL_RATE * deltaTime;
             System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                     + "Decelerating ..."
-                    + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
+                    + "| SPEED = " + this.currSpeed + " | POSITION = " + this.position);
 
             // 3. If we've reached zero speed, there's no further deceleration to do.
-            if (currentSpeed <= 0) {
-                currentSpeed = 0;
+            if (currSpeed <= 0) {
+                currSpeed = 0;
                 System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                         + "Have completely decelerated and stopped."
-                        + "| SPEED = " + this.currentSpeed + " | POSITION = " + this.position);
+                        + "| SPEED = " + this.currSpeed + " | POSITION = " + this.position);
                 break;
             }
 
             // d = Vᵢt + 0.5at²
-            float distance = (float) ((initialVelocity * deltaTime) + (0.5 * DECEL_RATE * Math.pow(deltaTime, 2)));
+            float distance = (float) ((initialVelocity * deltaTime)
+                    + (0.5 * DECEL_RATE * Math.pow(deltaTime, 2)));
             this.updatePosition(distance);
+
+            // sleep thread to allow other threads to run/ not flood logs
+            try {
+                sleep(1000);
+            }
+            catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
+        eventArrived();
     }
 
     /**
      * Lowers the drone altitude until it completes the landing process.
      * This only affects the z plane.
      */
-    public void land () {
+    public void land() {
         System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                 + "Begin Landing..."
-                + "| ALTITUDE = " + currentAltitude + "m");
+                + "| ALTITUDE = " + currAltitude + "m");
 
         long previousTime = System.nanoTime();
-        while (currentAltitude <= 0f) {
+
+        while (currAltitude > 0f) {
             long currentTime = System.nanoTime();
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
             previousTime = currentTime;
 
             // Increase altitude at a constant vertical speed
-            currentAltitude -= VERTICAL_SPEED * deltaTime;
+            currAltitude -= VERTICAL_SPEED * deltaTime;
 
             // Clamp altitude so we do not overshoot
-            if (currentAltitude <= 0f) {
-                currentAltitude = 0f;
+            if (currAltitude <= 0f) {
+                currAltitude = 0f;
             }
 
             System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                     + "Descending ... "
-                    + "| ALTITUDE = " + currentAltitude + "m");
+                    + "| ALTITUDE = " + currAltitude + "m");
 
+            // sleep thread to allow other threads to run/ not flood logs
+            try {
+                sleep(1000);
+            }
+            catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
         System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                 + "Landing complete. "
-                + "| ALTITUDE = " + currentAltitude + "m");
+                + "| ALTITUDE = " + currAltitude + "m");
+        eventLanded();
     }
 
     /**
@@ -573,39 +615,6 @@ public class Drone implements Runnable {
         float newX = position.getX() + distance * (float) Math.cos(angle);
         float newY = position.getY() + distance * (float) Math.sin(angle);
         position.update(newX, newY);
-    }
-
-    @Override
-    public boolean equals(Object obj){
-        return (obj instanceof Drone) && ((Drone) obj).id == this.id;
-    }
-
-    @Override
-    public String toString() {
-        return "[Drone#" + id + ", status=" + status + ", pos=(" + position.getX() + ","
-                + position.getY() + ")]";
-    }
-
-    /**
-     * Run the simulation
-     */
-    @Override
-    public void run() {
-        while (true) {
-            if (currentTask != null) {
-                // DroneSubsystem could change currentTask
-                synchronized (this) {
-                    System.out.println("[" + Thread.currentThread().getName() + "]: " + "Drone has received an new task: " + currentTask.getTaskType());
-                    currentTask = null;                 // reset flag right the way
-                }
-            }
-            try {
-                sleep(2000);
-            }
-            catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 }
 

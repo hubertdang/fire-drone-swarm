@@ -26,36 +26,44 @@ public class Scheduler implements Runnable {
      */
     @Override
     public void run() {
-        DroneStatus currentDroneStatus = DroneStatus.BASE;
-        DroneStatus previousDroneStatus = null;
-        boolean droneOnMission = false;
-
         while (true) {
-
-            // check fireBuffer for new messages, add to mission queue
+            /* check fireBuffer for new messages, add to mission queue */
             if (fireBuffer.newEvent()) {
-                System.out.println("[" + Thread.currentThread().getName() + "]: " + "Scheduler has received a new event.\n\t" + " adding to mission queue.");
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "Scheduler has received a new event.\n\t" + " adding to mission queue.");
                 Zone zoneToService = fireBuffer.popEventMessage();
                 handleFireReq(zoneToService);
             }
 
-            // check for drone acknowledgements
+            /* check for drone messages */
             if (droneBuffer.hasDroneInfo()) {
                 DroneInfo droneInfo = droneBuffer.popDroneInfo();
                 System.out.println("[" + Thread.currentThread().getName()
-                        + "]: Scheduler has received a drone info from" + " drone#" + droneInfo.droneID + ": Position: (" + droneInfo.getPosition().getX()
-                        + "," + droneInfo.getPosition().getY() + ")" + " AgentLeft: " + droneInfo.getAgentTankAmount());
+                        + "]: Scheduler has received a drone info from" + " drone#"
+                        + droneInfo.droneID + ": Position: (" + droneInfo.getPosition().getX()
+                        + "," + droneInfo.getPosition().getY() + ")" + " AgentLeft: "
+                        + droneInfo.getAgentTankAmount());
+                /* hard coding this for now, TODO: real scheduling */
+                switch (droneInfo.getStateID()) {
+                    case DroneStateID.ARRIVED:
+                        droneBuffer.addDroneTask(
+                                new DroneTask(droneInfo.getDroneID(), DroneTaskType.RELEASE_AGENT));
+                        break;
+                    case DroneStateID.IDLE:
+                        /* only putting out one zone for now */
+                        droneBuffer.addDroneTask(
+                                new DroneTask(droneInfo.getDroneID(), DroneTaskType.RECALL));
+                }
             }
 
-            // handle missions from the mission queue
-            if (!missionQueue.isEmpty() && !droneOnMission) {
+            /* handle missions from the mission queue */
+            if (!missionQueue.isEmpty()) {
                 Zone missionZone = missionQueue.pop();
-                DroneTask newMission = new DroneTask(DroneTaskType.SERVICE_ZONE, missionZone);
+                DroneTask newMission = new DroneTask(1, DroneTaskType.SERVICE_ZONE, missionZone);
                 droneBuffer.addDroneTask(newMission);
-                droneOnMission = true;
             }
 
-            // give other threads oppurtunity to access shared buffers
+            /* give other threads opportunity to access shared buffers */
             try {
                 sleep(3000);
             }

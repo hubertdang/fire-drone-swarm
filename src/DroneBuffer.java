@@ -38,7 +38,7 @@ public class DroneBuffer {
      *
      * @return a Task object
      */
-    public synchronized DroneTask popSchedulerTask() {
+    public synchronized DroneTask popDroneTask() {
         DroneTask message = null;
 
         if (!droneTasks.isEmpty()) {

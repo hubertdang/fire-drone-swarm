@@ -10,13 +10,13 @@ public class DroneBufferTest {
     @BeforeEach
     public void setUp() {
         droneBuffer = new DroneBuffer();
-        testTask = new DroneTask(DroneTaskType.SERVICE_ZONE, new Zone(1, 0, 0, 0, 700, 600));
+        testTask = new DroneTask(1, DroneTaskType.SERVICE_ZONE, new Zone(1, 0, 0, 0, 700, 600));
     }
 
     @Test
     public void testAddAndPopDroneTask() {
         droneBuffer.addDroneTask(testTask);
-        DroneTask poppedTask = droneBuffer.popSchedulerTask();
+        DroneTask poppedTask = droneBuffer.popDroneTask();
         assertEquals(testTask, poppedTask);
         assertFalse(droneBuffer.hasDroneInfo());
     }
@@ -29,7 +29,7 @@ public class DroneBufferTest {
 
     @Test
     public void testPopSchedulerTaskFromEmptyBuffer() {
-        assertNull(droneBuffer.popSchedulerTask());
+        assertNull(droneBuffer.popDroneTask());
     }
 
     @Test
