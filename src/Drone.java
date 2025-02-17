@@ -272,8 +272,8 @@ public class Drone implements Runnable {
     /**
      * Triggers the event of arriving at its destination in the current state.
      */
-    public void eventArrived() {
-        currState.arrived(this);
+    public void eventReachDestination() {
+        currState.reachDestination(this);
     }
 
     /**
@@ -557,7 +557,7 @@ public class Drone implements Runnable {
                 throw new RuntimeException(e);
             }
         }
-        eventArrived();
+        eventReachDestination();
     }
 
     /**

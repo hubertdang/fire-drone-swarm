@@ -66,7 +66,7 @@ public class Decelerating implements DroneState {
      * @param context The context of the drone.
      */
     @Override
-    public void arrived(Drone context) {
+    public void reachDestination(Drone context) {
         if (context.getZoneToService() == null) {
             context.updateState(DroneStateID.LANDING);
             context.land();

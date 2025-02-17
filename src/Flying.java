@@ -67,7 +67,7 @@ public class Flying implements DroneState {
      * @param context The context of the drone.
      */
     @Override
-    public void arrived(Drone context) {
+    public void reachDestination(Drone context) {
         throw new IllegalStateException("Invalid event for the current state.");
     }
 

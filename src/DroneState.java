@@ -47,7 +47,7 @@ public interface DroneState {
      *
      * @param context The context of the drone.
      */
-    void arrived(Drone context);
+    void reachDestination(Drone context);
 
     /**
      * Handles the event when the drone reaches max height.
