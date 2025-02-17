@@ -7,7 +7,7 @@ public class ResupplySubState implements SchedulerSubState {
 
     /**
      * Constructor for the ResupplySubState
-     * @param notify Whether the scheduler make the state transition
+     * @param notify Whether the scheduler should notify the drone
      */
     public ResupplySubState(boolean notify) {
         this.notify = notify;
@@ -17,7 +17,7 @@ public class ResupplySubState implements SchedulerSubState {
      * @param context The drone to execute the substate on
      */
     @Override
-    public void execute(Drone context) {
+    public void execute(DroneState context) {
         // Do the resupply
         System.out.println("Executing Resupply");
     }

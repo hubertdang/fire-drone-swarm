@@ -9,7 +9,7 @@ public class HappyPathSubState implements SchedulerSubState {
     /**
      * Constructor for the HappyPathSubState
      * @param zone The zone the drone is flying to
-     * @param notify Whether the drone should notify the scheduler
+     * @param notify Whether the scheduler should notify the drone
      */
     public HappyPathSubState(Zone zone, boolean notify) {
         this.zone = zone;
@@ -20,7 +20,7 @@ public class HappyPathSubState implements SchedulerSubState {
      * @param context The drone to execute the substate on
      */
     @Override
-    public void execute(Drone context) {
+    public void execute(DroneState context) {
         // Do the happy path
         System.out.println("Executing Happy Path");
     }
