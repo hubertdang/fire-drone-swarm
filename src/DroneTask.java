@@ -5,7 +5,7 @@
  */
 
 public class DroneTask {
-
+    private final int droneID;
     private final DroneTaskType taskType;
     private final Zone zone;
 
@@ -15,7 +15,8 @@ public class DroneTask {
      *
      * @param droneTaskType the status message to be interpreted by a Drone.
      */
-    public DroneTask(DroneTaskType droneTaskType) {
+    public DroneTask(int droneID, DroneTaskType droneTaskType) {
+        this.droneID = droneID;
         this.taskType = droneTaskType;
         this.zone = null;
     }
@@ -26,9 +27,19 @@ public class DroneTask {
      * @param zone          the Zone to service.
      * @param droneTaskType the status message to be interpreted by a Drone.
      */
-    public DroneTask(DroneTaskType droneTaskType, Zone zone) {
+    public DroneTask(int droneID, DroneTaskType droneTaskType, Zone zone) {
+        this.droneID = droneID;
         this.taskType = droneTaskType;
         this.zone = zone;
+    }
+
+    /**
+     * Gets the ID of the drone that this task is assigned to.
+     *
+     * @return The ID of the drone that this task is assigned to.
+     */
+    public int getDroneID() {
+        return droneID;
     }
 
     /**

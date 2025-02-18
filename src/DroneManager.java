@@ -1,12 +1,11 @@
 import java.util.HashMap;
 import java.util.Map;
 
-public class DroneSubsystem implements Runnable {
+public class DroneManager implements Runnable {
     private final Map<Integer, Drone> dronesMap;
     private final DroneBuffer droneBuffer;
 
-
-    public DroneSubsystem(DroneBuffer droneBuffer) {
+    public DroneManager(DroneBuffer droneBuffer) {
         this.droneBuffer = droneBuffer;
         this.dronesMap = new HashMap<>();
     }
@@ -27,9 +26,10 @@ public class DroneSubsystem implements Runnable {
      */
     public void sendDroneInfo(int droneID) {
         Drone drone = dronesMap.get(droneID);
-        DroneInfo info = new DroneInfo(drone.getId(), drone.getPosition(), drone.getAgentTankAmount());
+        DroneInfo info = new DroneInfo(drone.getId(), drone.getCurrStateID(), drone.getPosition(), drone.getAgentTankAmount());
         droneBuffer.addDroneInfo(info);
-        System.out.println("[" + Thread.currentThread().getName() + "]: " + "DroneSubsystem has sent drone info" + info + " to droneBuffer");
+        System.out.println("[" + Thread.currentThread().getName() + droneID + "]: "
+                + "has sent drone info" + info + " to droneBuffer");
     }
 
     /**
@@ -37,10 +37,11 @@ public class DroneSubsystem implements Runnable {
      */
     public void processSchedulerTasks() {
         while (droneBuffer.hasDroneTask()) {
-            DroneTask task = droneBuffer.popSchedulerTask();
-            System.out.println("[" + Thread.currentThread().getName() + "]: " + "DroneSubsystem: Received task " + task.getTaskType());
-            Drone drone = dronesMap.get(1);             // currently only have Drone id:1
-            dispatchTaskToDrone(drone, task);
+            DroneTask task = droneBuffer.popDroneTask();
+            System.out.println("[" + Thread.currentThread().getName() + "]: "
+                    + "Received task " + task.getTaskType() + " for drone#"
+                    + task.getDroneID());
+            dispatchTaskToDrone(dronesMap.get(task.getDroneID()), task);
         }
     }
 
@@ -53,30 +54,35 @@ public class DroneSubsystem implements Runnable {
     private void dispatchTaskToDrone(Drone drone, DroneTask task) {
         switch (task.getTaskType()) {
             case SERVICE_ZONE:
-                System.out.println("[" + Thread.currentThread().getName() + "]: " + "DroneSubsystem: Dispatching SERVICE_ZONE task to drone #" + drone.getId());
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "Dispatching SERVICE_ZONE task to drone #"
+                        + drone.getId());
+                drone.setDestination(task.getZone().getPosition());
                 drone.setZoneToService(task.getZone());
-                drone.setCurrentTask(task);
+                drone.setCurrTask(task);
                 break;
             case RELEASE_AGENT:
-                System.out.println("[" + Thread.currentThread().getName() + "]: " + "DroneSubsystem: Dispatching RELEASE_AGENT task to drone #" + drone.getId());
-                drone.setCurrentTask(task);
-                break;
-            case STOP_AGENT:
-                System.out.println("[" + Thread.currentThread().getName() + "]: " + "DroneSubsystem: Dispatching STOP_AGENT task to drone #" + drone.getId());
-                drone.setCurrentTask(task);
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "Dispatching RELEASE_AGENT task to drone #"
+                        + drone.getId());
+                drone.setCurrTask(task);
                 break;
             case RECALL:
-                System.out.println("[" + Thread.currentThread().getName() + "]: " + "DroneSubsystem: Dispatching RECALL task to drone #" + drone.getId());
-                drone.setCurrentTask(task);
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "Dispatching RECALL task to drone #"
+                        + drone.getId());
+                drone.setDestination(new Position(Drone.BASE_X, Drone.BASE_Y));
+                drone.setCurrTask(task);
                 break;
             default:
-                System.out.println("[" + Thread.currentThread().getName() + "]: " + "DroneSubsystem: Unknown task type.");
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "Unknown task type.");
                 break;
         }
+        drone.setNewTaskFlag();
     }
 
     public void run() {
-        sendDroneInfo(1);
         while (true) {
             processSchedulerTasks();
             try {
