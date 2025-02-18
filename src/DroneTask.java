@@ -5,30 +5,41 @@
  */
 
 public class DroneTask {
-
-    private final DroneStatus droneStatus;
+    private final int droneID;
+    private final DroneTaskType taskType;
     private final Zone zone;
 
     /**
      * Task constructor 1 takes a desired task, and sets the event to a default value;
      * to convey message between scheduler and drone.
      *
-     * @param droneStatus the status message to be interpreted by a Drone.
+     * @param droneTaskType the status message to be interpreted by a Drone.
      */
-    public DroneTask(DroneStatus droneStatus) {
-        this.droneStatus = droneStatus;
+    public DroneTask(int droneID, DroneTaskType droneTaskType) {
+        this.droneID = droneID;
+        this.taskType = droneTaskType;
         this.zone = null;
     }
 
     /**
      * Task constructor 2 takes a desired task, and Zone to convey message between scheduler and drone
      *
-     * @param zone        the Zone to service.
-     * @param droneStatus the status message to be interpreted by a Drone.
+     * @param zone          the Zone to service.
+     * @param droneTaskType the status message to be interpreted by a Drone.
      */
-    public DroneTask(DroneStatus droneStatus, Zone zone) {
-        this.droneStatus = droneStatus;
+    public DroneTask(int droneID, DroneTaskType droneTaskType, Zone zone) {
+        this.droneID = droneID;
+        this.taskType = droneTaskType;
         this.zone = zone;
+    }
+
+    /**
+     * Gets the ID of the drone that this task is assigned to.
+     *
+     * @return The ID of the drone that this task is assigned to.
+     */
+    public int getDroneID() {
+        return droneID;
     }
 
     /**
@@ -36,8 +47,8 @@ public class DroneTask {
      *
      * @return a status enum representing the desired state scheduler wants the drone to be.
      */
-    public DroneStatus getDroneStatus() {
-        return this.droneStatus;
+    public DroneTaskType getDroneTaskType() {
+        return this.taskType;
     }
 
     /**
@@ -47,6 +58,16 @@ public class DroneTask {
      */
     public Zone getZone() {
         return this.zone;
+    }
+
+
+    /**
+     * get taskType
+     *
+     * @return the taskType for droneSubSystem.
+     */
+    public DroneTaskType getTaskType() {
+        return taskType;
     }
 
 }

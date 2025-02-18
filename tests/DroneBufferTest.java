@@ -10,41 +10,33 @@ public class DroneBufferTest {
     @BeforeEach
     public void setUp() {
         droneBuffer = new DroneBuffer();
-        testTask = new DroneTask(DroneStatus.IDLE, new Zone(1, 0, 0, 0, 700, 600));
+        testTask = new DroneTask(1, DroneTaskType.SERVICE_ZONE, new Zone(1, 0, 0, 0, 700, 600));
     }
 
     @Test
     public void testAddAndPopDroneTask() {
         droneBuffer.addDroneTask(testTask);
-        DroneTask poppedTask = droneBuffer.popSchedulerTask();
+        DroneTask poppedTask = droneBuffer.popDroneTask();
         assertEquals(testTask, poppedTask);
-        assertFalse(droneBuffer.newAcknowledgement());
+        assertFalse(droneBuffer.hasDroneInfo());
     }
 
-    @Test
-    public void testAddAndPopSchedulerAcknowledgement() {
-        droneBuffer.addSchedulerAcknowledgement(testTask);
-        assertTrue(droneBuffer.newAcknowledgement());
-        DroneTask poppedTask = droneBuffer.popDroneAcknowledgement();
-        assertEquals(testTask, poppedTask);
-        assertFalse(droneBuffer.newAcknowledgement());
-    }
 
     @Test
-    public void testPopDroneAcknowledgementFromEmptyBuffer() {
-        assertNull(droneBuffer.popDroneAcknowledgement());
+    public void testPopDroneInfoFromEmptyBuffer() {
+        assertNull(droneBuffer.popDroneInfo());
     }
 
     @Test
     public void testPopSchedulerTaskFromEmptyBuffer() {
-        assertNull(droneBuffer.popSchedulerTask());
+        assertNull(droneBuffer.popDroneTask());
     }
 
     @Test
     public void testWaitForTask() {
         Thread thread = new Thread(() -> {
             droneBuffer.waitForTask();
-            assertTrue(droneBuffer.newAcknowledgement());
+            assertTrue(droneBuffer.hasDroneInfo());
         });
         thread.start();
 

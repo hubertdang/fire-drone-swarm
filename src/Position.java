@@ -74,4 +74,14 @@ public class Position {
         return Float.compare(position.x, x) == 0 &&
                 Float.compare(position.y, y) == 0; // Compare x and y values
     }
+
+    /**
+     * Returns the object's position with X and Y rounded to two decimals.
+     *
+     * @return formatted string "POSITION = (x, y)"
+     */
+    @Override
+    public String toString() {
+        return String.format("(%.2f, %.2f)", getX(), getY());
+    }
 }
