@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class DroneBuffer {
 
-    private final ArrayList<DroneInfo> droneInfos;
+    private final ArrayList<Object> droneInfos;
     private final ArrayList<DroneTask> droneTasks;
 
     /**
@@ -20,12 +20,12 @@ public class DroneBuffer {
 
 
     /**
-     * Removes and returns a DroneInfo message from the buffer.
+     * Removes and returns a DroneInfo(s) message from the buffer.
      *
-     * @return DroneInfo object from droneInfos buffer if not empty, otherwise, returns null
+     * @return Object from droneInfos buffer if not empty, otherwise, returns null
      */
-    public synchronized DroneInfo popDroneInfo() {
-        DroneInfo message = null;
+    public synchronized Object popDroneInfo() {
+        Object message = null;
         if (!droneInfos.isEmpty()) {
             message = droneInfos.remove(0);
         }
@@ -66,6 +66,16 @@ public class DroneBuffer {
      */
     public synchronized void addDroneInfo(DroneInfo info) {
         droneInfos.add(info);
+        notifyAll();
+    }
+
+    /**
+     * Adds all Drone information to buffer.
+     *
+     * @param infoList the list of Drone information to be added to buffer
+     */
+    public synchronized void addDroneInfo(ArrayList<DroneInfo> infoList) {
+        droneInfos.add(infoList);
         notifyAll();
     }
 
