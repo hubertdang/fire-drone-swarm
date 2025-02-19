@@ -7,13 +7,16 @@ public class ResupplySubState implements SchedulerSubState {
 
     /**
      * Constructor for the ResupplySubState
+     *
      * @param notify Whether the scheduler should notify the drone
      */
     public ResupplySubState(boolean notify) {
         this.notify = notify;
     }
+
     /**
      * Executes the resupply substate
+     *
      * @param context The drone to execute the substate on
      */
     @Override
@@ -24,12 +27,14 @@ public class ResupplySubState implements SchedulerSubState {
 
     /**
      * Returns whether the scheduler should make the state transition
+     *
      * @return boolean the notify flag
      */
     @Override
     public boolean shouldNotify() {
         return notify;
     }
+
     /**
      * Resets the notify flag
      */
@@ -37,8 +42,10 @@ public class ResupplySubState implements SchedulerSubState {
     public void resetNotify() {
         this.notify = false;
     }
+
     /**
      * No zone since the drone is flying to base
+     *
      * @return null since there is no zone
      */
     @Override

@@ -8,15 +8,18 @@ public class RerouteSubState implements SchedulerSubState {
 
     /**
      * Constructor for the RerouteSubState
-     * @param zone The zone the drone is rerouting to
+     *
+     * @param zone   The zone the drone is rerouting to
      * @param notify Whether the scheduler should notify the drone
      */
     public RerouteSubState(Zone zone, boolean notify) {
         this.zone = zone;
         this.notify = notify;
     }
+
     /**
      * Executes the reroute substate
+     *
      * @param context The drone to execute the substate on
      */
     @Override
@@ -27,6 +30,7 @@ public class RerouteSubState implements SchedulerSubState {
 
     /**
      * Returns whether the scheduler should make the state transition
+     *
      * @return boolean the notify flag
      */
     @Override
@@ -44,6 +48,7 @@ public class RerouteSubState implements SchedulerSubState {
 
     /**
      * Returns the zone associated with this substate
+     *
      * @return Zone the zone to reroute to
      */
     @Override
