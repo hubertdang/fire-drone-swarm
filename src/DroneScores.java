@@ -3,6 +3,7 @@ import java.util.ArrayList;
 /**
  * Drone Scores Class
  * A class to act as an ordered collection drone scores used by the Scheduler.
+ *  Ordered list of <DroneID|Score>
  */
 public class DroneScores {
     private final ArrayList<Pair<Integer, Float>> scores;
@@ -26,4 +27,12 @@ public class DroneScores {
      * @return ordered list of scores
      */
     public ArrayList<Pair<Integer, Float>> getScores() { return scores; }
+
+    /**
+     * String representation of DroneScores
+     *
+     * @return string representation of DroneScores instance
+     */
+    @Override
+    public String toString() { return scores.toString(); }
 }

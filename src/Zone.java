@@ -99,4 +99,13 @@ public class Zone {
                 this.position.equals(zone.getPosition()) &&
                 this.severity == zone.getSeverity();
     }
+
+    /**
+     * String representation of Zone
+     *
+     * @return string representation of zone instance
+     */
+    @Override
+    public String toString() { return "Zone[id: " + id + " Required Agent: "
+            + requiredAgentAmount + "]"; }
 }

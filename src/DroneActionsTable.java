@@ -1,4 +1,6 @@
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * A DroneActionsTable to store the actions of drones.
@@ -51,6 +53,40 @@ public class DroneActionsTable {
      */
     public void updateAction(int droneId, SchedulerSubState action) {
         actionsTable.put(droneId, action);
+    }
+
+    /**
+     * Dispatches actions over the given communication channel to drones.
+     *
+     * @param droneBuffer the communication channel for drones
+     */
+    public void dispatchActions(DroneBuffer droneBuffer) {
+
+        Iterator<Map.Entry<Integer, SchedulerSubState>> iterator =
+                actionsTable.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Integer, SchedulerSubState> entry = iterator.next();
+            if (entry.getValue().shouldNotify()) {
+                DroneTaskType task = entry.getValue().execute();
+                if (task == null) {
+                    System.out.println("[" + Thread.currentThread().getName()
+                            + "]: A Scheduler SubState cannot process unexpected drone context.");
+                } else {
+                    System.out.println("[" + Thread.currentThread().getName()
+                            + "]: Scheduler sending new task to drone #" + entry.getKey());
+                    droneBuffer.addDroneTask(new DroneTask(entry.getKey(), task, entry.getValue().getZone()));
+                }
+                entry.getValue().resetNotify(); // resets message send boolean
+
+                // remove the drone from actions table if dispatched task is a RECALL
+                if (task == DroneTaskType.RECALL) {
+                    System.out.println("[" + Thread.currentThread().getName()
+                            + "]: Scheduler removing drone #" + entry.getKey()
+                            + " from DroneActionsTable, tasks complete.");
+                    iterator.remove();
+                }
+            }
+        }
     }
 
 

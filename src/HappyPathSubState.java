@@ -5,6 +5,7 @@
 public class HappyPathSubState implements SchedulerSubState {
     private final Zone zone;
     private boolean notify;
+    DroneStateID droneStateID;
 
     /**
      * Constructor for the HappyPathSubState
@@ -15,17 +16,29 @@ public class HappyPathSubState implements SchedulerSubState {
     public HappyPathSubState(Zone zone, boolean notify) {
         this.zone = zone;
         this.notify = notify;
+        this.droneStateID = DroneStateID.UNDEFINED;
     }
 
     /**
      * Executes the happypath substate
-     *
-     * @param context The drone to execute the substate on
      */
     @Override
-    public void execute(DroneState context) {
-        // Do the happy path
-        System.out.println("Executing Happy Path");
+    public DroneTaskType execute() {
+        DroneTaskType task = null;
+        switch (droneStateID) {
+            case DroneStateID.UNDEFINED:
+                task = DroneTaskType.SERVICE_ZONE;
+                break;
+            case DroneStateID.ARRIVED:
+                task = DroneTaskType.RELEASE_AGENT;
+                break;
+            case DroneStateID.IDLE:
+                task = DroneTaskType.RECALL;
+                break;
+            default:
+                break;
+        }
+        return task;
     }
 
     /**
@@ -34,8 +47,15 @@ public class HappyPathSubState implements SchedulerSubState {
      * @return boolean
      */
     @Override
-    public boolean shouldNotify() {
-        return notify;
+    public boolean shouldNotify() { return notify; }
+
+    /**
+     * Sets notify flag enabling state transition
+     */
+    @Override
+    public void setNotify(DroneStateID droneStateID) {
+        this.notify = true;
+        this.droneStateID = droneStateID;
     }
 
     /**

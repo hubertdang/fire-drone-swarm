@@ -4,7 +4,8 @@
  */
 public class RerouteSubState implements SchedulerSubState {
     private final Zone zone;
-    private final boolean notify;
+    private boolean notify;
+    DroneStateID droneStateID;
 
     /**
      * Constructor for the RerouteSubState
@@ -15,17 +16,29 @@ public class RerouteSubState implements SchedulerSubState {
     public RerouteSubState(Zone zone, boolean notify) {
         this.zone = zone;
         this.notify = notify;
+        this.droneStateID = DroneStateID.UNDEFINED;
     }
 
     /**
      * Executes the reroute substate
-     *
-     * @param context The drone to execute the substate on
      */
     @Override
-    public void execute(DroneState context) {
-        // Do the reroute
-        System.out.println("Executing Reroute");
+    public DroneTaskType execute() {
+        DroneTaskType task = null;
+        switch (droneStateID) {
+            case DroneStateID.ARRIVED:
+                task = DroneTaskType.RELEASE_AGENT;
+                break;
+
+            case DroneStateID.IDLE:
+                task = DroneTaskType.RECALL;
+                break;
+
+            default:
+                task = DroneTaskType.REROUTE;
+                break;
+        }
+        return task;
     }
 
     /**
@@ -36,6 +49,15 @@ public class RerouteSubState implements SchedulerSubState {
     @Override
     public boolean shouldNotify() {
         return notify;
+    }
+
+    /**
+     * Sets notify flag enabling state transition
+     */
+    @Override
+    public void setNotify(DroneStateID droneStateID) {
+        this.notify = true;
+        this.droneStateID = droneStateID;
     }
 
     /**
