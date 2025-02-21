@@ -64,9 +64,7 @@ public class RerouteSubState implements SchedulerSubState {
      * Resets the notify flag
      */
     @Override
-    public void resetNotify() {
-
-    }
+    public void resetNotify() { this.notify = false; }
 
     /**
      * Returns the zone associated with this substate
