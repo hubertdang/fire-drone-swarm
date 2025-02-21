@@ -184,7 +184,7 @@ public class Scheduler implements Runnable {
                 }
                 else if (zoneFighters.getValue().getScores().get(i).getValue()
                         > scoreThreshold) {
-                    droneActionsTable.updateAction(droneId, new RerouteSubState(zoneFighters.getKey()
+                    droneActionsTable.updateAction(droneId, new HappyPathSubState(zoneFighters.getKey()
                             , true));
                 }
             }
