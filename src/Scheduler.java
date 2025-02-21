@@ -1,5 +1,4 @@
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.*;
 
 import static java.lang.Thread.sleep;
 
@@ -76,7 +75,7 @@ public class Scheduler implements Runnable {
             }
 
             /* Send messages to drones using drone actions table */
-            droneActionsTable.dispatchActions(droneBuffer);
+            droneActionsTable.dispatchActions(droneBuffer, missionQueue);
 
             /* give other threads opportunity to access shared buffers */
             try {
@@ -96,7 +95,7 @@ public class Scheduler implements Runnable {
      * @param zone a Zone object
      */
     public void handleFireReq(Zone zone) {
-        missionQueue.updateQueue(new Pair<>(zone, null));
+        missionQueue.updateQueue(zone, null);
     }
 
     /**
@@ -145,16 +144,17 @@ public class Scheduler implements Runnable {
 
         /* Run algorithm for all hazardous zones */
 
-        Iterator<Pair<Zone, DroneScores>> missionsIterator = missionQueue.getMissions().iterator();
-        ArrayList<Pair<Zone, DroneScores>> tempMissions = new ArrayList<>();
+        Iterator<Map.Entry<Zone, DroneScores>> missionsIterator =
+                missionQueue.getMissions().entrySet().iterator();
+        LinkedHashMap<Zone, DroneScores> tempMissions = new LinkedHashMap<>();
         while (missionsIterator.hasNext()) {
             /* Score drones */
-            Pair<Zone, DroneScores> zoneFighters = missionsIterator.next();
+            Map.Entry<Zone, DroneScores> zoneFighters = missionsIterator.next();
             DroneScores droneScores = new DroneScores();
             for (DroneInfo droneInfo : droneInfoList) {
-                droneScores.add(new Pair<>(droneInfo.droneID, calculateDroneScore(droneInfo, zoneFighters.getKey())));
+                droneScores.add(droneInfo.droneID, calculateDroneScore(droneInfo, zoneFighters.getKey()));
             }
-            tempMissions.add(new Pair<>(zoneFighters.getKey(), droneScores));
+            tempMissions.put(zoneFighters.getKey(), droneScores);
         }
         missionQueue.replaceMissions(tempMissions);
         System.out.println("[" + Thread.currentThread().getName()
@@ -166,9 +166,10 @@ public class Scheduler implements Runnable {
             account for that :)
          */
 
-        Iterator<Pair<Zone, DroneScores>> missionsIterator2 = missionQueue.getMissions().iterator();
+        Iterator<Map.Entry<Zone, DroneScores>> missionsIterator2 =
+                missionQueue.getMissions().entrySet().iterator();
         while ( missionsIterator2.hasNext() ) {
-            Pair<Zone, DroneScores> zoneFighters = missionsIterator2.next();
+            Map.Entry<Zone, DroneScores> zoneFighters = missionsIterator2.next();
             int numDrones = zoneFighters.getValue().getScores().size();
 
             // set drones to fight fires

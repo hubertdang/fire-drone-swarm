@@ -1,4 +1,6 @@
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * Drone Scores Class
@@ -6,7 +8,7 @@ import java.util.ArrayList;
  *  Ordered list of <DroneID|Score>
  */
 public class DroneScores {
-    private final ArrayList<Pair<Integer, Float>> scores;
+    private final ArrayList<AbstractMap.Entry<Integer, Float>> scores;
 
     public DroneScores() {
         scores = new ArrayList<>();
@@ -14,19 +16,20 @@ public class DroneScores {
 
     /**
      * Adds drone score to an ordered list.
-     * @param droneScore a pair containing drone id and drone score
+     * @param droneId the id of drone
+     * @param droneScore the score of drone corresponding to a zone
      */
-    public void add(Pair<Integer, Float> droneScore) {
+    public void add(Integer droneId, Float droneScore) {
         int i = 0;
-        while (i < scores.size() && scores.get(i).getValue() < droneScore.getValue()) { i++; }
-        scores.add(i, droneScore);
+        while (i < scores.size() && scores.get(i).getValue() < droneScore) { i++; }
+        scores.add(i, new AbstractMap.SimpleEntry<>(droneId, droneScore));
     }
 
     /**
      * getScores retrieves ordered list of scores.
      * @return ordered list of scores
      */
-    public ArrayList<Pair<Integer, Float>> getScores() { return scores; }
+    public ArrayList<Map.Entry<Integer, Float>> getScores() { return scores; }
 
     /**
      * String representation of DroneScores

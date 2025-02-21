@@ -91,7 +91,7 @@ public class Landing implements DroneState {
     public void landed(Drone context) {
         context.updateState(DroneStateID.BASE);
         context.refillAgentTank();
-        context.sendDroneInfo(); // is not fully implemented in drone manager causes scheduler error
+        context.sendDroneInfo();
     }
 
     /**

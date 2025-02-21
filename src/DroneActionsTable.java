@@ -60,7 +60,7 @@ public class DroneActionsTable {
      *
      * @param droneBuffer the communication channel for drones
      */
-    public void dispatchActions(DroneBuffer droneBuffer) {
+    public void dispatchActions(DroneBuffer droneBuffer, Missions missions) {
 
         Iterator<Map.Entry<Integer, SchedulerSubState>> iterator =
                 actionsTable.entrySet().iterator();
@@ -78,12 +78,13 @@ public class DroneActionsTable {
                 }
                 entry.getValue().resetNotify(); // resets message send boolean
 
-                // remove the drone from actions table if dispatched task is a RECALL
+                // remove drone from actions table & zone from missions if dispatched task is a RECALL
                 if (task == DroneTaskType.RECALL) {
                     System.out.println("[" + Thread.currentThread().getName()
                             + "]: Scheduler removing drone #" + entry.getKey()
                             + " from DroneActionsTable, tasks complete.");
                     iterator.remove();
+                    missions.remove(entry.getValue().getZone());
                 }
             }
         }

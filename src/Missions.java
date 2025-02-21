@@ -1,38 +1,35 @@
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class Missions {
     /**
      * A list containing all hazardous zones and associated scores of all drones for each zone
      */
-    private ArrayList<Pair<Zone, DroneScores>> missions;
+    private LinkedHashMap<Zone, DroneScores> missions;
 
     /**
      * Constructor for the Missions class. Constructs a list of missions.
      */
     public Missions() {
-        missions = new ArrayList<>();
+        missions = new LinkedHashMap<>();
     }
 
     /**
      * Adds an event to missions if zone is unique, else updates the drone affinities for specified
      * zone.
      *
-     * @param missionsEntry an entry to the list of active missions
+     * @param zone the Zone on fire
+     * @param scores the drone scores associated with this drone
      */
-    public void updateQueue(Pair<Zone, DroneScores> missionsEntry) {
-        if (missions.contains(missionsEntry)) {
-            int index = missions.indexOf(missionsEntry);
-            missions.get(index).setValue(missionsEntry.getValue());
-        } else {
-            missions.add(missionsEntry);
-        }
+    public void updateQueue(Zone zone, DroneScores scores) {
+        missions.put(zone, scores);
     }
 
     /**
-     * replaces current missions Arraylist with a new one.
+     * replaces current missions LinkedHashMap with a new one.
      * @param newMissions the new missions to replace current ones
      */
-    public void replaceMissions(ArrayList<Pair<Zone, DroneScores>> newMissions) {
+    public void replaceMissions(LinkedHashMap<Zone, DroneScores> newMissions) {
         this.missions = newMissions;
     }
 
@@ -41,7 +38,12 @@ public class Missions {
      *
      * @param zone the zone to be removed from active missions
      */
-    public boolean remove(Zone zone) { return missions.remove(zone); }
+    public boolean remove(Zone zone) {
+        System.out.println("[" + Thread.currentThread().getName()
+                + "]: Zone " + zone.getId() + " removed from active missions");
+        DroneScores retScores = missions.remove(zone);
+        return retScores != null;
+    }
 
 
     /**
@@ -56,9 +58,9 @@ public class Missions {
     /**
      * Returns the list of missions
      *
-     * @return the missions list
+     * @return the missions linked list
      */
-    public ArrayList<Pair<Zone,DroneScores>> getMissions() { return this.missions; }
+    public LinkedHashMap<Zone,DroneScores> getMissions() { return this.missions; }
 
     /**
      * String representation of missions with the <Zone, DroneScores> pair.

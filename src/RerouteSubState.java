@@ -47,9 +47,7 @@ public class RerouteSubState implements SchedulerSubState {
      * @return boolean the notify flag
      */
     @Override
-    public boolean shouldNotify() {
-        return notify;
-    }
+    public boolean shouldNotify() { return notify; }
 
     /**
      * Sets notify flag enabling state transition
