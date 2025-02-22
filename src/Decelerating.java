@@ -6,7 +6,9 @@ public class Decelerating implements DroneState {
      */
     @Override
     public void reqServiceZone(Drone context) {
-        throw new IllegalStateException("Invalid event for the current state.");
+        // already at flying altitude, can begin heading to the new zone
+        context.updateState(DroneStateID.ACCELERATING);
+        context.accelerate();
     }
 
     /**

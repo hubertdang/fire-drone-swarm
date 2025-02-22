@@ -29,7 +29,7 @@ public class DroneManager implements Runnable {
         DroneInfo info = new DroneInfo(drone.getId(), drone.getCurrStateID(), drone.getPosition(), drone.getAgentTankAmount());
         droneBuffer.addDroneInfo(info);
         System.out.println("[" + Thread.currentThread().getName() + droneID + "]: "
-                + "has sent drone info" + info + " to droneBuffer");
+                + "has sent drone info " + info + " to droneBuffer");
     }
 
     /**
