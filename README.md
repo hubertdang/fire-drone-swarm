@@ -12,11 +12,14 @@ A control system and simulator for a firefighting drone swarm.
 | `Missions.java`                        | Represents the missions for the drones.                                                         |
 | `SimEvent.java`                        | Represents a fire event message.                                                                |
 | `DroneTask.java`                       | Represents a task used to aid in the generation of messages passed between scheduler and drone. |
+| `DroneTaskType.java`                   | Enum defining the types of tasks that can be assigned to a drone.                              |
 | `Drone.java`                           | Represents a drone in the simulation.                                                           |
 | `DroneBuffer.java`                     | Represents the buffer used between drone adn scheduler.                                         |
 | `DroneInfo.java`                       | Represents the information of a specific drone                                                  |
 | `DroneManager.java`                    | Represents the manager of the drones.                                                           |
 | `DroneStateID.java`                    | Enum defining the states of the drone.                                                          |
+| `DroneActionsTable.java`               | Represents the drone actions table of the scheduler.                                            |
+| `DroneScores.java`                     | Represents the scores of the drones.                                                            |
 | `TimeUtils.java`                       | Utility class for formatting time.                                                              |
 | `Zone.java`                            | Represents a zone, including position and severity of any fire occurring there.                 |
 | `AgentTank.java`                       | Represents the tank of the drone.                                                               |
@@ -31,6 +34,9 @@ A control system and simulator for a firefighting drone swarm.
 | `Landing.java`                         | Landing drone state                                                                             |
 | `Takingoff.java`                       | Taking off drone state                                                                          |
 | `ReleasingAgent.java`                  | Releasing agent drone state                                                                     |
+| `SchedulerSubstate.java`               | Interface for scheduler substates.                                                              |
+| `HappyPathSubState.java`               | Happy path substate of the drone.                                                               |
+| `ResupplySubState.java`                | Rsupply substate of the drone.                                                                  |
 | `Main.java`                            | Entry point for running the simulation.                                                         |
 | `tests/FireIncidentSubsystemTest.java` | Unit tests for `FireIncidentSubsystem`.                                                         | 
 | `tests/ZoneTest.java`                  | Unit tests for `Zone`.                                                                          |
@@ -127,16 +133,21 @@ cd fire-drone-swarm
 In general, the team approached the project collaboratively, working together to solve problems and make decisions. However, each team member was responsible for specific tasks and components of the project.
 The breakdown of responsibilities is as follows:
 - Amilesh: `DroneActionsTable`, `HappySubState`, `RerouteSubState`,`ResupplySubState`, `SchedulerSubState`
-- Hubert: Drone state diagram sketches, `Accelerating`,`Arrived`, `Base`, `Decelerating`, `Drone`, `DroneBuffer`, 
+- Hubert: Drone state diagram, `Accelerating`,`Arrived`, `Base`, `Decelerating`, `Drone`, `DroneBuffer`, 
 `DroneInfo`,`DroneTask`, `DroneManager`, `DroneStateID`,`DroneState`, `Flying`, `Idle`, `Landing`, `Takingoff`, 
 `ReleasingAgent`, `DroneBufferTest`
-- David: `DroneActionsTable`, `DroneBuffer`, `DroneInfo`, `DroneManager`, `DroneScores`,`DroneStateID`,`DroneTaskType`,
-`HappySubState`, `RerouteSubState`, `ResupplySubState`, `SchedulerSubState`, `Missions`,  `Scheduler`,`Zone`
-- Aashna: `Drone`, `Position`
+- David: Scheduler state diagram and algorithm, `DroneActionsTable`, `DroneBuffer`, `DroneInfo`, `DroneManager`,
+`DroneScores`,`DroneStateID`,`DroneTaskType`,`HappySubState`, `RerouteSubState`, `ResupplySubState`, 
+`SchedulerSubState`, `Missions`,  `Scheduler`,`Zone`
+- Aashna: Drone state diagram, `Drone`, `Position`, `Accelerating`, `Arrived`,`Decelerating`, `DroneInfo`, 
+`DroneManager`, `Flying`, `Landing`, `ReleasingAgent`, `Scheduler`,`Takeoff`
 - Shenhao Gong: `Drone`, `DroneBuffer`, `DroneInfo`, `DroneManager`, `DroneTask`, `DroneBufferTest`,`DroneTest`
-- Manit: UML class, state and sequence diagrams, 
+- Manit: UML class, state and sequence diagrams, testing
 
-## Iteration 1: Breakdown of Responsibilities
+
+
+
+#### Iteration 1: Breakdown of Responsibilities
 In general, the team approached the project collaboratively, working together to solve problems and make decisions. However, each team member was responsible for specific tasks and components of the project. 
 The breakdown of responsibilities is as follows:
 - Amilesh: `FireIncidentSubsystem`, `FireIncidentSubsystemTest`, `SimEvent`, `SimEventTest`, `DroneBufferTest`, 
