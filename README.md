@@ -132,7 +132,7 @@ cd fire-drone-swarm
 ## Iteration 2: Breakdown of Responsibilities
 In general, the team approached the project collaboratively, working together to solve problems and make decisions. However, each team member was responsible for specific tasks and components of the project.
 The breakdown of responsibilities is as follows:
-- Amilesh: `DroneActionsTable`, `HappySubState`, `RerouteSubState`,`ResupplySubState`, `SchedulerSubState`
+- Amilesh: `DroneActionsTable`, `HappySubState`, `ResupplySubState`, `SchedulerSubState`, `DroneTest`
 - Hubert: Drone state diagram, `Accelerating`,`Arrived`, `Base`, `Decelerating`, `Drone`, `DroneBuffer`, 
 `DroneInfo`,`DroneTask`, `DroneManager`, `DroneStateID`,`DroneState`, `Flying`, `Idle`, `Landing`, `Takingoff`, 
 `ReleasingAgent`, `DroneBufferTest`
@@ -142,7 +142,7 @@ The breakdown of responsibilities is as follows:
 - Aashna: Drone state diagram, `Drone`, `Position`, `Accelerating`, `Arrived`,`Decelerating`, `DroneInfo`, 
 `DroneManager`, `Flying`, `Landing`, `ReleasingAgent`, `Scheduler`,`Takeoff`
 - Shenhao Gong: `Drone`, `DroneBuffer`, `DroneInfo`, `DroneManager`, `DroneTask`, `DroneBufferTest`,`DroneTest`
-- Manit: UML class, state and sequence diagrams, testing
+- Manit: UML class, state and sequence diagrams, testing the application 
 
 
 
