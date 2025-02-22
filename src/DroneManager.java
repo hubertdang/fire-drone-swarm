@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,10 +27,24 @@ public class DroneManager implements Runnable {
      */
     public void sendDroneInfo(int droneID) {
         Drone drone = dronesMap.get(droneID);
-        DroneInfo info = new DroneInfo(drone.getId(), drone.getCurrStateID(), drone.getPosition(), drone.getAgentTankAmount());
+        DroneInfo info = new DroneInfo(drone.getId(), drone.getCurrStateID(), drone.getPosition(), drone.getAgentTankAmount(), drone.getZoneToService());
         droneBuffer.addDroneInfo(info);
         System.out.println("[" + Thread.currentThread().getName() + droneID + "]: "
                 + "has sent drone info" + info + " to droneBuffer");
+    }
+
+    /**
+     * Retrieves the Info of all drones and sends it to the shared buffer.
+     */
+    public void sendAllDroneInfo() {
+        ArrayList<DroneInfo> infoList = new ArrayList<>();
+        for (Integer droneID : dronesMap.keySet()) {
+            Drone drone = dronesMap.get(droneID);
+            infoList.add(new DroneInfo(drone.getId(), drone.getCurrStateID(), drone.getPosition(), drone.getAgentTankAmount(), drone.getZoneToService()));
+        }
+        droneBuffer.addDroneInfo(infoList);
+        System.out.println("[" + Thread.currentThread().getName() + "]: "
+                + "has sent all drone info to droneBuffer");
     }
 
     /**
@@ -38,10 +53,17 @@ public class DroneManager implements Runnable {
     public void processSchedulerTasks() {
         while (droneBuffer.hasDroneTask()) {
             DroneTask task = droneBuffer.popDroneTask();
-            System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + "Received task " + task.getTaskType() + " for drone#"
-                    + task.getDroneID());
-            dispatchTaskToDrone(dronesMap.get(task.getDroneID()), task);
+            if (task.getTaskType() != DroneTaskType.REQUEST_ALL_INFO) {
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "Received task " + task.getTaskType() + " for drone#"
+                        + task.getDroneID());
+                dispatchTaskToDrone(dronesMap.get(task.getDroneID()), task);
+            } else {
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "Received task " + task.getTaskType());
+                sendAllDroneInfo();
+            }
+
         }
     }
 

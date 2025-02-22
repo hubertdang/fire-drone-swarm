@@ -22,13 +22,16 @@ public class Main {
 
         // Instantiate Drone
         DroneManager droneManager = new DroneManager(droneBuffer);
-        Drone drone = new Drone(1, droneManager);
-        droneManager.addDrone(drone);
+        Drone drone1 = new Drone(1, droneManager);
+        Drone drone2 = new Drone(2, droneManager);
+        droneManager.addDrone(drone1);
+        droneManager.addDrone(drone2);
 
 
         // Instantiate threads
         System.out.println("--- \nNote: \nFIS-fireSubsystemThread \nDSS-droneSubsystemThread \nSD-schedulerThread \nD-droneThread \n---");
-        Thread droneThread = new Thread(drone, "D");
+        Thread droneThread1 = new Thread(drone1, "D");
+        Thread droneThread2 = new Thread(drone2, "D");
         Thread fireSubsystemThread = new Thread(fireIncidentSubsystem, "FIS");
         Thread schedulerThread = new Thread(scheduler, "SD");
         Thread droneSubsystemThread = new Thread(droneManager, "DM");
@@ -37,7 +40,8 @@ public class Main {
         fireSubsystemThread.start();
         schedulerThread.start();
         droneSubsystemThread.start();
-        droneThread.start();
+        droneThread1.start();
+        droneThread2.start();
 
         // exit program when Fire Incident Subsystem indicates no more events to service
         while (fireSubsystemThread.isAlive()) {
