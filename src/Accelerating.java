@@ -6,7 +6,7 @@ public class Accelerating implements DroneState {
      */
     @Override
     public void reqServiceZone(Drone context) {
-        throw new IllegalStateException("Invalid event for the current state.");
+        // The drone can continue to accelerate, it will now travel towards a new direction
     }
 
     /**

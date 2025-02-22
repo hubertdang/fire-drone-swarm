@@ -57,11 +57,10 @@ public class Scheduler implements Runnable {
                     break;
                 }
 
-                System.out.println("[" + Thread.currentThread().getName()
-                        + "]: Scheduler has received a drone info from" + " drone#"
-                        + droneInfo.droneID + ": Position: (" + droneInfo.getPosition().getX()
-                        + "," + droneInfo.getPosition().getY() + ")" + " AgentLeft: "
-                        + droneInfo.getAgentTankAmount());
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "Scheduler has received a drone info from drone#" + droneInfo.droneID
+                        + " | POSITION = " + droneInfo.getPosition()
+                        + " | TANK = " + String.format("%.2f L", droneInfo.getAgentTankAmount()));
 
                 /* Update drone actions table */
                 if (droneInfo.getStateID() == DroneStateID.BASE) {

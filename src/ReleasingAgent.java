@@ -6,7 +6,10 @@ public class ReleasingAgent implements DroneState {
      */
     @Override
     public void reqServiceZone(Drone context) {
-        throw new IllegalStateException("Invalid event for the current state.");
+        // already at flying altitude, stop releasing agent and can begin heading to the new zone
+        context.stopAgent();
+        context.updateState(DroneStateID.ACCELERATING);
+        context.accelerate();
     }
 
     /**
