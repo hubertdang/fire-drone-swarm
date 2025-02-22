@@ -12,7 +12,7 @@ A control system and simulator for a firefighting drone swarm.
 | `Missions.java`                        | Represents the missions for the drones.                                                         |
 | `SimEvent.java`                        | Represents a fire event message.                                                                |
 | `DroneTask.java`                       | Represents a task used to aid in the generation of messages passed between scheduler and drone. |
-| `DroneTaskType.java`                   | Enum defining the types of tasks that can be assigned to a drone.                              |
+| `DroneTaskType.java`                   | Enum defining the types of tasks that can be assigned to a drone.                               |
 | `Drone.java`                           | Represents a drone in the simulation.                                                           |
 | `DroneBuffer.java`                     | Represents the buffer used between drone adn scheduler.                                         |
 | `DroneInfo.java`                       | Represents the information of a specific drone                                                  |
@@ -52,7 +52,8 @@ A control system and simulator for a firefighting drone swarm.
 | `sample_input_files/events.csv`        | Sample test file containing fire incident events.                                               |
 | `docs/UML_Class_Diagram.pdf`           | UML Class diagram of the system.                                                                |
 | `docs/UML_Sequence_Diagram.pdf`        | UML Sequence diagram of the system.                                                             |
-
+| `docs/Scheduler_State_Machine.pdf`     | State machine diagram of the scheduler.                                                         |
+| `docs/Drone_State_Machine.pdf`         | State machine diagram of the drone.                                                             |
 ## ⚙️ Setup Instructions
 
 ### **Prerequisites**
