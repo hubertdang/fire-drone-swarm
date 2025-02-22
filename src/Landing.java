@@ -6,7 +6,9 @@ public class Landing implements DroneState {
      */
     @Override
     public void reqServiceZone(Drone context) {
-        throw new IllegalStateException("Invalid event for the current state.");
+        // potentially not at flying altitude, must take off again
+        context.updateState(DroneStateID.TAKEOFF);
+        context.takeoff();
     }
 
     /**

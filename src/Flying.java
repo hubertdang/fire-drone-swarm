@@ -6,7 +6,7 @@ public class Flying implements DroneState {
      */
     @Override
     public void reqServiceZone(Drone context) {
-        throw new IllegalStateException("Invalid event for the current state.");
+        // is already at flying altitude and height, can continue flying to new direction
     }
 
     /**
