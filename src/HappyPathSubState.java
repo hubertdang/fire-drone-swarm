@@ -6,6 +6,7 @@ public class HappyPathSubState implements SchedulerSubState {
     private final Zone zone;
     private boolean notify;
     DroneStateID droneStateID;
+    private float score;
 
     /**
      * Constructor for the HappyPathSubState
@@ -13,10 +14,11 @@ public class HappyPathSubState implements SchedulerSubState {
      * @param zone   The zone the drone is flying to
      * @param notify Whether the scheduler should notify the drone
      */
-    public HappyPathSubState(Zone zone, boolean notify) {
+    public HappyPathSubState(Zone zone, boolean notify, float score) {
         this.zone = zone;
         this.notify = notify;
         this.droneStateID = DroneStateID.UNDEFINED;
+        this.score = score;
     }
 
     /**
@@ -58,6 +60,7 @@ public class HappyPathSubState implements SchedulerSubState {
         this.droneStateID = droneStateID;
     }
 
+
     /**
      * Resets the notify flag
      */
@@ -74,5 +77,20 @@ public class HappyPathSubState implements SchedulerSubState {
     @Override
     public Zone getZone() {
         return zone;
+    }
+
+    @Override
+    public float getScore(){
+        return this.score;
+    }
+
+    @Override
+    public DroneStateID getState(){
+        return droneStateID;
+    }
+
+    @Override
+    public void setScore(float score){
+        this.score = score;
     }
 }

@@ -13,4 +13,10 @@ public interface SchedulerSubState {
 
     // Returns the zone this substate is associated with
     Zone getZone();
+
+    float getScore();
+
+    DroneStateID getState();
+
+    void setScore(float score);
 }

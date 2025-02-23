@@ -42,7 +42,10 @@ public class DroneInfo {
     }
 
     public String toString() {
-        return "[DroneInfo: ID=" + droneID + ", state=" + stateID + ", position=(" + position.getX() + "," + position.getY() + ")" + ", agentTank=" + agentTankAmount + "]";
+        return "[DroneInfo: | ID = " + this.droneID
+                + " | STATE = " + this.stateID
+                + " | POSITION = " + this.position
+                + " | AGENT = " + this.agentTankAmount + "]";
     }
 
     /**

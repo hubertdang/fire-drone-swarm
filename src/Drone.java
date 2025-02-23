@@ -7,11 +7,17 @@ public class Drone implements Runnable {
     public static final float BASE_X = 0.0f;
     public static final float BASE_Y = 0.0f;
     public static final float ARRIVAL_DISTANCE_THRESHOLD = 10.0f;           // m
-    private static final float TOP_SPEED = 20.0f;                           // m/s
-    private static final float ACCEL_RATE = 3.0f;                           // m/s^2
-    private static final float DECEL_RATE = -5.0f;                          // m/s^2
-    private static final float CRUISE_ALTITUDE = 50.0f;                     // arbitrary choice for demo
-    private static final float VERTICAL_SPEED = 5.0f;                       // m/s upward/downward
+//    private static final float TOP_SPEED = 20.0f;                           // m/s
+//    private static final float ACCEL_RATE = 3.0f;                           // m/s^2
+//    private static final float DECEL_RATE = -5.0f;                          // m/s^2
+//    private static final float CRUISE_ALTITUDE = 50.0f;                     // arbitrary choice for demo
+//    private static final float VERTICAL_SPEED = 5.0f;                       // m/s upward/downward
+
+    private static final float TOP_SPEED = 100.0f; //20.0f;                           // m/s
+    private static final float ACCEL_RATE = 20.0f; //3.0f;                           // m/s^2
+    private static final float DECEL_RATE = -20.0f; //-5.0f;                          // m/s^2
+    private static final float CRUISE_ALTITUDE = 10.0f; //50.0f;                     // arbitrary choice for demo
+    private static final float VERTICAL_SPEED = 10.0f; //5.0f;                       // m/s upward/downward
 
     private final int id;
     private final AgentTank agentTank;
@@ -62,7 +68,7 @@ public class Drone implements Runnable {
             if (newTaskFlag) {
                 newTaskFlag = false;
                 System.out.println("[" + Thread.currentThread().getName() + id + "]: "
-                        + "Drone has received an new task: " + currTask.getTaskType());
+                        + "Drone has received an new task: " + currTask.getTaskType() + " " + currTask.getZone().getId());
                 switch (currTask.getTaskType()) {
                     case DroneTaskType.SERVICE_ZONE:
                         eventReqServiceZone();
@@ -101,7 +107,7 @@ public class Drone implements Runnable {
      */
     public void updateState(DroneStateID stateID) {
         System.out.println("[" + Thread.currentThread().getName() + id + "]: "
-                + "State change | " + currStateID + " -> " + stateID);
+                + "♻️State change | " + currStateID + " -> " + stateID);
         currState = states.get(stateID);
         currStateID = stateID;
     }
@@ -332,7 +338,8 @@ public class Drone implements Runnable {
             zoneToService.setRequiredAgentAmount(zoneToService.getRequiredAgentAmount()
                     - agentToDrop);
             System.out.println("[" + Thread.currentThread().getName() + id + "]: "
-                    + "💧Releasing " + agentToDrop + "L. Tank=" + agentTank.getCurrAgentAmount());
+                    + "💧Releasing " + String.format("%.2f L ", agentToDrop)
+                    + "| TANK = " + String.format("%.2f L ", agentTank.getCurrAgentAmount()));
 
             if (zoneToService.getRequiredAgentAmount() <= 0) {
                 System.out.println("[" + Thread.currentThread().getName() + id + "]: "
@@ -368,7 +375,7 @@ public class Drone implements Runnable {
     public void takeoff() {
         System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                 + "Taking off..."
-                + "| ALTITUDE = " + this.currAltitude + "m");
+                + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
 
         long previousTime = System.nanoTime();
         while (this.currAltitude < CRUISE_ALTITUDE) {
@@ -386,7 +393,7 @@ public class Drone implements Runnable {
 
             System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                     + "Climbing... "
-                    + "| ALTITUDE = " + this.currAltitude + "m");
+                    + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
 
             // sleep thread to allow other threads to run/ not flood logs
             try {
@@ -398,7 +405,7 @@ public class Drone implements Runnable {
         }
         System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                 + "Takeoff complete. "
-                + "| ALTITUDE = " + this.currAltitude + "m");
+                + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
         eventReachMaxHeight();
     }
 
@@ -410,7 +417,8 @@ public class Drone implements Runnable {
     public void accelerate() {
         System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                 + "Start Accelerating... "
-                + "| SPEED = " + this.currSpeed + " | POSITION = " + this.position);
+                + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
+                + "| POSITION = " + this.position);
 
         float distance, initialVelocity;
         long previousTime = System.nanoTime();
@@ -426,7 +434,8 @@ public class Drone implements Runnable {
             if (this.getDistanceFromDestination() <= this.getDecelDistance()) {
                 System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                         + "Reached deceleration distance, cannot reach max speed. Stopping acceleration. "
-                        + "| SPEED = " + this.currSpeed + " | POSITION = " + this.position);
+                        + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
+                        + "| POSITION = " + this.position);
                 break;
             }
 
@@ -435,14 +444,16 @@ public class Drone implements Runnable {
             this.currSpeed += ACCEL_RATE * deltaTime;
             System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                     + "Accelerating... "
-                    + "| SPEED = " + this.currSpeed + " | POSITION = " + this.position);
+                    + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
+                    + "| POSITION = " + this.position);
 
             // 3. If this acceleration pushes us to or beyond top speed, cap it and break.
             if (this.currSpeed >= TOP_SPEED) {
                 this.currSpeed = TOP_SPEED;
                 System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                         + "Reached Max Speed. Stopping acceleration. "
-                        + "| SPEED = " + this.currSpeed + " | POSITION = " + this.position);
+                        + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
+                        + "| POSITION = " + this.position);
                 break;
             }
 
@@ -478,13 +489,13 @@ public class Drone implements Runnable {
 
             System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                     + "Flying... "
-                    + " | POSITION = " + this.position);
+                    + "| POSITION = " + this.position);
 
             // If we're at or within the deceleration distance, exit the loop
             if (this.getDistanceFromDestination() <= this.getDecelDistance()) {
                 System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                         + "Reached deceleration distance. Ending flight. "
-                        + " | POSITION = " + this.position);
+                        + "| POSITION = " + this.position);
                 break;
             }
 
@@ -509,7 +520,8 @@ public class Drone implements Runnable {
     public void decelerate() {
         System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                 + "Starting deceleration... "
-                + "| SPEED = " + this.currSpeed + " | POSITION = " + this.position);
+                + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
+                + "| POSITION = " + this.position);
 
         float initialVelocity;
         long previousTime = System.nanoTime();
@@ -524,7 +536,8 @@ public class Drone implements Runnable {
                 currSpeed = 0;
                 System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                         + "At the destination. Ending deceleration. "
-                        + "| SPEED = " + this.currSpeed + " | POSITION = " + this.position);
+                        + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
+                        + "| POSITION = " + this.position);
                 break;
             }
 
@@ -533,14 +546,16 @@ public class Drone implements Runnable {
             currSpeed += DECEL_RATE * deltaTime;
             System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                     + "Decelerating ..."
-                    + "| SPEED = " + this.currSpeed + " | POSITION = " + this.position);
+                    + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
+                    + "| POSITION = " + this.position);
 
             // 3. If we've reached zero speed, there's no further deceleration to do.
             if (currSpeed <= 0) {
                 currSpeed = 0;
                 System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                         + "Have completely decelerated and stopped."
-                        + "| SPEED = " + this.currSpeed + " | POSITION = " + this.position);
+                        + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
+                        + "| POSITION = " + this.position);
                 break;
             }
 
@@ -567,7 +582,7 @@ public class Drone implements Runnable {
     public void land() {
         System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                 + "Begin Landing..."
-                + "| ALTITUDE = " + currAltitude + "m");
+                + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
 
         long previousTime = System.nanoTime();
 
@@ -586,7 +601,7 @@ public class Drone implements Runnable {
 
             System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                     + "Descending ... "
-                    + "| ALTITUDE = " + currAltitude + "m");
+                    + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
 
             // sleep thread to allow other threads to run/ not flood logs
             try {
@@ -598,7 +613,7 @@ public class Drone implements Runnable {
         }
         System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                 + "Landing complete. "
-                + "| ALTITUDE = " + currAltitude + "m");
+                + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
         eventLanded();
     }
 

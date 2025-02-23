@@ -30,11 +30,11 @@ public class Main {
 
         // Instantiate threads
         System.out.println("--- \nNote: \nFIS-fireSubsystemThread \nDSS-droneSubsystemThread \nSD-schedulerThread \nD-droneThread \n---");
-        Thread droneThread1 = new Thread(drone1, "D");
-        Thread droneThread2 = new Thread(drone2, "D");
-        Thread fireSubsystemThread = new Thread(fireIncidentSubsystem, "FIS");
-        Thread schedulerThread = new Thread(scheduler, "SD");
-        Thread droneSubsystemThread = new Thread(droneManager, "DM");
+        Thread droneThread1 = new Thread(drone1, "🛸D");
+        Thread droneThread2 = new Thread(drone2, "🛸D");
+        Thread fireSubsystemThread = new Thread(fireIncidentSubsystem, "🐦‍🔥FIS");
+        Thread schedulerThread = new Thread(scheduler, "📅SD");
+        Thread droneSubsystemThread = new Thread(droneManager, "⚒️DM");
 
         // run threads
         fireSubsystemThread.start();

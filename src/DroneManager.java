@@ -25,18 +25,18 @@ public class DroneManager implements Runnable {
      *
      * @param droneID The ID of the drone whose info needs to pass to DroneBuffer.
      */
-    public void sendDroneInfo(int droneID) {
+    public synchronized void sendDroneInfo(int droneID) {
         Drone drone = dronesMap.get(droneID);
         DroneInfo info = new DroneInfo(drone.getId(), drone.getCurrStateID(), drone.getPosition(), drone.getAgentTankAmount(), drone.getZoneToService());
         droneBuffer.addDroneInfo(info);
         System.out.println("[" + Thread.currentThread().getName() + droneID + "]: "
-                + "has sent drone info" + info + " to droneBuffer");
+                + "has sent drone info " + info + " to droneBuffer");
     }
 
     /**
      * Retrieves the Info of all drones and sends it to the shared buffer.
      */
-    public void sendAllDroneInfo() {
+    public synchronized void sendAllDroneInfo() {
         ArrayList<DroneInfo> infoList = new ArrayList<>();
         for (Integer droneID : dronesMap.keySet()) {
             Drone drone = dronesMap.get(droneID);
@@ -55,7 +55,7 @@ public class DroneManager implements Runnable {
             DroneTask task = droneBuffer.popDroneTask();
             if (task.getTaskType() != DroneTaskType.REQUEST_ALL_INFO) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Received task " + task.getTaskType() + " for drone#"
+                        + "Received task " + task.getTaskType() + task.getZone().getId() + " for drone#"
                         + task.getDroneID());
                 dispatchTaskToDrone(dronesMap.get(task.getDroneID()), task);
             } else {

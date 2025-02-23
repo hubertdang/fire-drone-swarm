@@ -39,9 +39,11 @@ public class Missions {
      * @param zone the zone to be removed from active missions
      */
     public boolean remove(Zone zone) {
-        System.out.println("[" + Thread.currentThread().getName()
-                + "]: Zone " + zone.getId() + " removed from active missions");
         DroneScores retScores = missions.remove(zone);
+        if (retScores != null ){
+            System.out.println("[" + Thread.currentThread().getName()
+                    + "]: Zone " + zone.getId() + " removed from active missions");
+        }
         return retScores != null;
     }
 
