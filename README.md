@@ -4,38 +4,56 @@ A control system and simulator for a firefighting drone swarm.
 
 ## 📂 Project Structure
 
-| **File**                         | **Description**                                                                                 |
-|----------------------------------|-------------------------------------------------------------------------------------------------|
-| `FireIncidentSubsystem.java`     | Handles fire events and drone requests, communicating with `Scheduler`                          |
-| `FireIncidentBuffer.java`        | Represents the buffer used between the fire incident subsystem and the scheduler.               |
-| `Scheduler.java`                 | Processes fire incidents and drone requests.                                                    |
-| `MissionQueue.java`              | Represents the queue of missions for the drones.                                                |
-| `SimEvent.java`                  | Represents a fire event message.                                                                |
-| `DroneTask.java`                 | Represents a task used to aid in the generation of messages passed between scheduler and drone. |
-| `Drone.java`                     | Represents a drone in the simulation.                                                           |
-| `DroneBuffer.java`               | Represents the buffer used between drone adn scheduler.                                         |
-| `DroneStatus.java`               | Enum defining the possible statuses the drone can be in.                                        |
-| `TimeUtils.java`                 | Utility class for formatting time.                                                              |
-| `Zone.java`                      | Represents a zone, including position and severity of any fire occurring there.                 |
-| `AgentTank.java`                 | Represents the tank of the drone.                                                               |
-| `Position.java`                  | Represents x, y coordinates of a zone.                                                          |
-| `FireSeverity.java`              | Enum defining `NO_FIRE`, `LOW`, `MODERATE`, and `HIGH` severity levels.                         |
-| `Main.java`                      | Entry point for running the simulation.                                                         |
-| `FireIncidentSubsystemTest.java` | Unit tests for `FireIncidentSubsystem`.                                                         | 
-| `ZoneTest.java`                  | Unit tests for `Zone`.                                                                          |
-| `DroneTest.java`                 | Unit tests for `Drone`.                                                                         |
-| `SchedulerTest.java`             | Unit tests for `Scheduler`.                                                                     |
-| `MissionQueueTest.java`          | Unit tests for `MissionQueue`.                                                                  |
-| `AgentTankTest.java`             | Unit tests for `AgentTank`.                                                                     |
-| `DroneBufferTest.java`           | Unit tests for `DroneBuffer`.                                                                   |
-| `FireIncidentBufferTest.java`    | Unit tests for `FireIncidentBuffer`.                                                            |
-| `SimEventTest.java`              | Unit tests for `SimEvent`.                                                                      |
-| `PositionTest.java`              | Unit tests for `Position`.                                                                      |
-| `sample_input_files/zones.csv`   | Sample test file containing zone definitions.                                                   |
-| `sample_input_files/events.csv`  | Sample test file containing fire incident events.                                               |
-| `docs/UML_Class_Diagram.pdf`     | UML Class diagram of the system.                                                                |
-| `docs/UML_Sequence_Diagram.pdf`  | UML Sequence diagram of the system.                                                             |
-
+| **File**                               | **Description**                                                                                 |
+|----------------------------------------|-------------------------------------------------------------------------------------------------|
+| `FireIncidentSubsystem.java`           | Handles fire events and drone requests, communicating with `Scheduler`                          |
+| `FireIncidentBuffer.java`              | Represents the buffer used between the fire incident subsystem and the scheduler.               |
+| `Scheduler.java`                       | Processes fire incidents and drone requests.                                                    |
+| `Missions.java`                        | Represents the missions for the drones.                                                         |
+| `SimEvent.java`                        | Represents a fire event message.                                                                |
+| `DroneTask.java`                       | Represents a task used to aid in the generation of messages passed between scheduler and drone. |
+| `DroneTaskType.java`                   | Enum defining the types of tasks that can be assigned to a drone.                               |
+| `Drone.java`                           | Represents a drone in the simulation.                                                           |
+| `DroneBuffer.java`                     | Represents the buffer used between drone adn scheduler.                                         |
+| `DroneInfo.java`                       | Represents the information of a specific drone                                                  |
+| `DroneManager.java`                    | Represents the manager of the drones.                                                           |
+| `DroneStateID.java`                    | Enum defining the states of the drone.                                                          |
+| `DroneActionsTable.java`               | Represents the drone actions table of the scheduler.                                            |
+| `DroneScores.java`                     | Represents the scores of the drones.                                                            |
+| `TimeUtils.java`                       | Utility class for formatting time.                                                              |
+| `Zone.java`                            | Represents a zone, including position and severity of any fire occurring there.                 |
+| `AgentTank.java`                       | Represents the tank of the drone.                                                               |
+| `Position.java`                        | Represents x, y coordinates of a zone.                                                          |
+| `FireSeverity.java`                    | Enum defining `NO_FIRE`, `LOW`, `MODERATE`, and `HIGH` severity levels.                         |
+| `Accelerating.java`                    | Accelerating drone state                                                                        |
+| `Base.java`                            | Base state of the drone                                                                         |
+| `Arrived.java`                         | Arrived drone state                                                                             |
+| `Decelerating.java`                    | Decelerating drone state                                                                        |
+| `Flying.java`                          | Flying drone state                                                                              |
+| `Idle.java`                            | Idle drone state                                                                                |
+| `Landing.java`                         | Landing drone state                                                                             |
+| `Takingoff.java`                       | Taking off drone state                                                                          |
+| `ReleasingAgent.java`                  | Releasing agent drone state                                                                     |
+| `SchedulerSubstate.java`               | Interface for scheduler substates.                                                              |
+| `HappyPathSubState.java`               | Happy path substate of the drone.                                                               |
+| `ResupplySubState.java`                | Rsupply substate of the drone.                                                                  |
+| `Main.java`                            | Entry point for running the simulation.                                                         |
+| `tests/FireIncidentSubsystemTest.java` | Unit tests for `FireIncidentSubsystem`.                                                         | 
+| `tests/ZoneTest.java`                  | Unit tests for `Zone`.                                                                          |
+| `tests/DroneTest.java`                 | Unit tests for `Drone`.                                                                         |
+| `tests/SchedulerTest.java`             | Unit tests for `Scheduler`.                                                                     |
+| `tests/MissionsTest.java`              | Unit tests for `MissionQueue`.                                                                  |
+| `tests/AgentTankTest.java`             | Unit tests for `AgentTank`.                                                                     |
+| `tests/DroneBufferTest.java`           | Unit tests for `DroneBuffer`.                                                                   |
+| `tests/FireIncidentBufferTest.java`    | Unit tests for `FireIncidentBuffer`.                                                            |
+| `tests/SimEventTest.java`              | Unit tests for `SimEvent`.                                                                      |
+| `tests/PositionTest.java`              | Unit tests for `Position`.                                                                      |
+| `sample_input_files/zones.csv`         | Sample test file containing zone definitions.                                                   |
+| `sample_input_files/events.csv`        | Sample test file containing fire incident events.                                               |
+| `docs/UML_Class_Diagram.pdf`           | UML Class diagram of the system.                                                                |
+| `docs/UML_Sequence_Diagram.pdf`        | UML Sequence diagram of the system.                                                             |
+| `docs/Scheduler_State_Machine.pdf`     | State machine diagram of the scheduler.                                                         |
+| `docs/Drone_State_Machine.pdf`         | State machine diagram of the drone.                                                             |
 ## ⚙️ Setup Instructions
 
 ### **Prerequisites**
@@ -112,7 +130,25 @@ cd fire-drone-swarm
 11. Once your pull request is ready to merge, please **squash and merge** to limit the number of commits to master.
 ![image](https://github.com/user-attachments/assets/e829f914-5a12-4ec0-a8e7-1ee3f6358397)
 
-## Breakdown of Responsibilities
+## Iteration 2: Breakdown of Responsibilities
+In general, the team approached the project collaboratively, working together to solve problems and make decisions. However, each team member was responsible for specific tasks and components of the project.
+The breakdown of responsibilities is as follows:
+- Amilesh: `DroneActionsTable`, `HappySubState`, `ResupplySubState`, `SchedulerSubState`, `DroneTest`
+- Hubert: Drone state diagram, `Accelerating`,`Arrived`, `Base`, `Decelerating`, `Drone`, `DroneBuffer`, 
+`DroneInfo`,`DroneTask`, `DroneManager`, `DroneStateID`,`DroneState`, `Flying`, `Idle`, `Landing`, `Takingoff`, 
+`ReleasingAgent`, `DroneBufferTest`
+- David: Scheduler state diagram and algorithm, `DroneActionsTable`, `DroneBuffer`, `DroneInfo`, `DroneManager`,
+`DroneScores`,`DroneStateID`,`DroneTaskType`,`HappySubState`, `RerouteSubState`, `ResupplySubState`, 
+`SchedulerSubState`, `Missions`,  `Scheduler`,`Zone`
+- Aashna: Drone state diagram, `Drone`, `Position`, `Accelerating`, `Arrived`,`Decelerating`, `DroneInfo`, 
+`DroneManager`, `Flying`, `Landing`, `ReleasingAgent`, `Scheduler`,`Takeoff`
+- Shenhao Gong: `Drone`, `DroneBuffer`, `DroneInfo`, `DroneManager`, `DroneTask`, `DroneBufferTest`,`DroneTest`
+- Manit: UML class, state and sequence diagrams, testing the application 
+
+
+
+
+#### Iteration 1: Breakdown of Responsibilities
 In general, the team approached the project collaboratively, working together to solve problems and make decisions. However, each team member was responsible for specific tasks and components of the project. 
 The breakdown of responsibilities is as follows:
 - Amilesh: `FireIncidentSubsystem`, `FireIncidentSubsystemTest`, `SimEvent`, `SimEventTest`, `DroneBufferTest`, 
