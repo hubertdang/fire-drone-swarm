@@ -7,11 +7,17 @@ public class Drone implements Runnable {
     public static final float BASE_X = 0.0f;
     public static final float BASE_Y = 0.0f;
     public static final float ARRIVAL_DISTANCE_THRESHOLD = 10.0f;           // m
-    private static final float TOP_SPEED = 20.0f;                           // m/s
-    private static final float ACCEL_RATE = 3.0f;                           // m/s^2
-    private static final float DECEL_RATE = -5.0f;                          // m/s^2
-    private static final float CRUISE_ALTITUDE = 50.0f;                     // arbitrary choice for demo
-    private static final float VERTICAL_SPEED = 5.0f;                       // m/s upward/downward
+//    private static final float TOP_SPEED = 20.0f;                           // m/s
+//    private static final float ACCEL_RATE = 3.0f;                           // m/s^2
+//    private static final float DECEL_RATE = -5.0f;                          // m/s^2
+//    private static final float CRUISE_ALTITUDE = 50.0f;                     // arbitrary choice for demo
+//    private static final float VERTICAL_SPEED = 5.0f;                       // m/s upward/downward
+
+    private static final float TOP_SPEED = 100.0f; //20.0f;                           // m/s
+    private static final float ACCEL_RATE = 20.0f; //3.0f;                           // m/s^2
+    private static final float DECEL_RATE = -20.0f; //-5.0f;                          // m/s^2
+    private static final float CRUISE_ALTITUDE = 10.0f; //50.0f;                     // arbitrary choice for demo
+    private static final float VERTICAL_SPEED = 10.0f; //5.0f;                       // m/s upward/downward
 
     private final int id;
     private final AgentTank agentTank;
@@ -62,7 +68,7 @@ public class Drone implements Runnable {
             if (newTaskFlag) {
                 newTaskFlag = false;
                 System.out.println("[" + Thread.currentThread().getName() + id + "]: "
-                        + "Drone has received an new task: " + currTask.getTaskType());
+                        + "Drone has received an new task: " + currTask.getTaskType() + " " + currTask.getZone().getId());
                 switch (currTask.getTaskType()) {
                     case DroneTaskType.SERVICE_ZONE:
                         eventReqServiceZone();

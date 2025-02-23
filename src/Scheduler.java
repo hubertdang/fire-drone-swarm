@@ -3,9 +3,9 @@ import java.util.*;
 import static java.lang.Thread.sleep;
 
 public class Scheduler implements Runnable {
-    private static final float Wnz = 1F; // weight of new zone for calcs
-    private static final float Wcz = 1F; // weight of current zone for calcs
-    private static final float Wd = 0.5F; // weight of drone distance from a zone
+    private static final float Wnz = 4F; // weight of new zone for calcs
+    private static final float Wcz = 2F; // weight of current zone for calcs
+    private static final float Wd = 0.1F; // weight of drone distance from a zone
     private static final float scoreThreshold = 0F; // the score needed in order to reschedule drone
     private static final Position BASE = new Position(0, 0);
     private final Missions missionQueue;
@@ -45,12 +45,24 @@ public class Scheduler implements Runnable {
             }
 
             /* check for drone messages */
-            if (droneBuffer.hasDroneInfo()) {
-                DroneInfo droneInfo = null;
+            DroneInfo droneInfo = null;
+
+            if (droneBuffer.hasDroneInfo() ) {
+
                 Object droneInfoObj = droneBuffer.popDroneInfo();
                 if (droneInfoObj instanceof DroneInfo) {
                     droneInfo = (DroneInfo) droneInfoObj;
-                } else {
+                }
+                else if (droneInfoObj instanceof ArrayList<?>) {
+                    System.out.println("[" + Thread.currentThread().getName()
+                            + "]: Scheduler has no more tasks.");
+                    break;
+                }
+                else if (droneInfoObj == null)
+                    System.out.println("DroneInfo was null");
+                else {
+                    System.out.println(droneInfoObj.getClass().getName());
+                    System.out.println(droneInfoObj);
                     System.out.println("[" + Thread.currentThread().getName()
                             + "]: Scheduler has received a invalid message, " +
                             "cannot process DroneInfo");
@@ -63,19 +75,30 @@ public class Scheduler implements Runnable {
                         + " | TANK = " + String.format("%.2f L", droneInfo.getAgentTankAmount()));
 
                 /* Update drone actions table */
-                if (droneInfo.getStateID() == DroneStateID.BASE) {
+                if (droneInfo.getStateID() == DroneStateID.IDLE || droneInfo.getStateID() == DroneStateID.BASE) {
                     // scheduling algorithm updates drone actions table, may be able to service a
                     // new zone after refilling
-                    scheduleDrones();
-                } else {
-                    droneActionsTable.getAction(droneInfo.droneID).setNotify(droneInfo.getStateID());
+                    if (!missionQueue.isEmpty()) {
+                        scheduleDrones();
+                    }
                 }
 
+                if (droneActionsTable.getAction(droneInfo.droneID) != null /*&& droneActionsTable.getAction(droneInfo.droneID).getState() != DroneStateID.UNDEFINED*/){
+                    droneActionsTable.getAction(droneInfo.droneID).setNotify(droneInfo.getStateID());
+                }
             }
 
             /* Send messages to drones using drone actions table */
             droneActionsTable.dispatchActions(droneBuffer, missionQueue);
 
+
+            if (droneInfo != null && droneInfo.getStateID() == DroneStateID.IDLE
+                    && droneActionsTable.getAction(droneInfo.droneID) != null
+                    && droneActionsTable.getAction(droneInfo.droneID).getZone().getSeverity() == FireSeverity.NO_FIRE){
+                System.out.println("remove1");
+                missionQueue.remove(droneInfo.zoneToService);
+                System.out.println("ZONE REMOVED = " + droneInfo.zoneToService + "| MISSION QUEUE = " + missionQueue.getMissions());
+            }
             /* give other threads opportunity to access shared buffers */
             try {
                 sleep(3000);
@@ -117,26 +140,35 @@ public class Scheduler implements Runnable {
      *  3. Drone is empty, Recall SubState *** currently handled by drone itself
      */
     private void scheduleDrones() {
-
-        /* Gather all drone data */
+       /* Gather all drone data */
 
         DroneTask getAllInfo = new DroneTask(0, DroneTaskType.REQUEST_ALL_INFO, null);
         droneBuffer.addDroneTask(getAllInfo);
-        while (!droneBuffer.hasDroneInfo()) {
-            try {
-                sleep(500); // remove when subsystems are decoupled and use udp
-            }
-            catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
         ArrayList<DroneInfo> droneInfoList = null;
-        Object droneInfoListObj = droneBuffer.popDroneInfo();
+        Object droneInfoListObj;
+        int tries = 0;
+        do  {
+            while (!droneBuffer.hasDroneInfo()) {
+                try {
+                    sleep(500); // remove when subsystems are decoupled and use udp
+                }
+                catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            droneInfoListObj = droneBuffer.popDroneInfo();
+            tries++;
+
+        } while (!(droneInfoListObj instanceof ArrayList) && tries < 10);
+
         if (droneInfoListObj instanceof ArrayList) {
             droneInfoList = (ArrayList<DroneInfo>) droneInfoListObj;
         } else {
+            System.out.println(droneInfoListObj.getClass().getName());
+            System.out.println(droneInfoListObj);
             System.out.println("[" + Thread.currentThread().getName()
-                    + "]: Scheduler has received a invalid message, " +
+                    + "]: AAA Scheduler has received a invalid message, " +
                     "cannot process DroneInfo List");
             return;
         }
@@ -151,10 +183,21 @@ public class Scheduler implements Runnable {
             Map.Entry<Zone, DroneScores> zoneFighters = missionsIterator.next();
             DroneScores droneScores = new DroneScores();
             for (DroneInfo droneInfo : droneInfoList) {
-                droneScores.add(droneInfo.droneID, calculateDroneScore(droneInfo, zoneFighters.getKey()));
+                SchedulerSubState currDroneActionsTable = droneActionsTable.getAction(droneInfo.droneID);
+
+                float score = calculateDroneScore(droneInfo, zoneFighters.getKey());
+                droneScores.add(droneInfo.droneID, score);
+
+                if (currDroneActionsTable != null && score > currDroneActionsTable.getScore()
+                        && zoneFighters.getKey() == currDroneActionsTable.getZone()){
+                    currDroneActionsTable.setScore(score);
+                }
             }
             tempMissions.put(zoneFighters.getKey(), droneScores);
+
+
         }
+
         missionQueue.replaceMissions(tempMissions);
         System.out.println("[" + Thread.currentThread().getName()
                 + "]: Mission Queue Updated: " + missionQueue);
@@ -175,16 +218,26 @@ public class Scheduler implements Runnable {
             for ( int i = 0 ; i < numDrones ; i++) {
                 // get the drone id with the highest score for "this" zone
                 int droneId = zoneFighters.getValue().getScores().get(i).getKey();
+                float curDroneScore = zoneFighters.getValue().getScores().get(i).getValue();
                 SchedulerSubState droneActions = droneActionsTable.getAction(droneId);
 
+                System.out.println("HERE");
                 if (droneActions == null) {
+                    System.out.println("AAAAA FIRST CASE");
                     droneActionsTable.addAction(droneId, new HappyPathSubState(zoneFighters.getKey()
-                            , true));
+                            , true, curDroneScore));
                 }
-                else if (zoneFighters.getValue().getScores().get(i).getValue()
-                        > scoreThreshold) {
+                else if (curDroneScore > scoreThreshold
+                        && (curDroneScore > droneActions.getScore() || droneActions.getZone().getSeverity() == FireSeverity.NO_FIRE)
+                        && droneActions.getZone() != zoneFighters.getKey()) {
+                    System.out.println("AAAAA SECOND CASE");
+                    if (droneActions.getZone().getSeverity() == FireSeverity.NO_FIRE) {
+                        System.out.println("remove2");
+                        missionQueue.remove(droneActions.getZone());
+                        System.out.println("ZONE REMOVED = " + droneActions.getZone() + "| MISSION QUEUE = " + missionQueue.getMissions());
+                    }
                     droneActionsTable.updateAction(droneId, new HappyPathSubState(zoneFighters.getKey()
-                            , true));
+                            , true, curDroneScore));
                 }
             }
         }

@@ -56,4 +56,18 @@ public class ResupplySubState implements SchedulerSubState {
     public Zone getZone() {
         return null;
     }
+
+    @Override
+    public float getScore() {
+        return 0;
+    }
+
+    @Override
+    public DroneStateID getState() {
+        return DroneStateID.UNDEFINED;
+    }
+
+    @Override
+    public void setScore(float score) {
+    }
 }

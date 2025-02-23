@@ -64,8 +64,12 @@ public class DroneActionsTable {
 
         Iterator<Map.Entry<Integer, SchedulerSubState>> iterator =
                 actionsTable.entrySet().iterator();
+
+//        System.out.println(actionsTable.get(missions.getMissions()));
         while (iterator.hasNext()) {
+
             Map.Entry<Integer, SchedulerSubState> entry = iterator.next();
+            System.out.println("AAAAA " + entry.getValue().shouldNotify());
             if (entry.getValue().shouldNotify()) {
                 DroneTaskType task = entry.getValue().execute();
                 if (task == null) {
@@ -84,7 +88,8 @@ public class DroneActionsTable {
                             + "]: Scheduler removing drone #" + entry.getKey()
                             + " from DroneActionsTable, tasks complete.");
                     iterator.remove();
-                    missions.remove(entry.getValue().getZone());
+
+                    //missions.remove(entry.getValue().getZone());
                 }
             }
         }
