@@ -95,7 +95,6 @@ public class Scheduler implements Runnable {
             if (droneInfo != null && droneInfo.getStateID() == DroneStateID.IDLE
                     && droneActionsTable.getAction(droneInfo.droneID) != null
                     && droneActionsTable.getAction(droneInfo.droneID).getZone().getSeverity() == FireSeverity.NO_FIRE){
-                System.out.println("remove1");
                 missionQueue.remove(droneInfo.zoneToService);
                 System.out.println("ZONE REMOVED = " + droneInfo.zoneToService + "| MISSION QUEUE = " + missionQueue.getMissions());
             }
@@ -168,7 +167,7 @@ public class Scheduler implements Runnable {
             System.out.println(droneInfoListObj.getClass().getName());
             System.out.println(droneInfoListObj);
             System.out.println("[" + Thread.currentThread().getName()
-                    + "]: AAA Scheduler has received a invalid message, " +
+                    + "]: Scheduler has received a invalid message, " +
                     "cannot process DroneInfo List");
             return;
         }
@@ -221,18 +220,14 @@ public class Scheduler implements Runnable {
                 float curDroneScore = zoneFighters.getValue().getScores().get(i).getValue();
                 SchedulerSubState droneActions = droneActionsTable.getAction(droneId);
 
-                System.out.println("HERE");
                 if (droneActions == null) {
-                    System.out.println("AAAAA FIRST CASE");
                     droneActionsTable.addAction(droneId, new HappyPathSubState(zoneFighters.getKey()
                             , true, curDroneScore));
                 }
                 else if (curDroneScore > scoreThreshold
                         && (curDroneScore > droneActions.getScore() || droneActions.getZone().getSeverity() == FireSeverity.NO_FIRE)
                         && droneActions.getZone() != zoneFighters.getKey()) {
-                    System.out.println("AAAAA SECOND CASE");
                     if (droneActions.getZone().getSeverity() == FireSeverity.NO_FIRE) {
-                        System.out.println("remove2");
                         missionQueue.remove(droneActions.getZone());
                         System.out.println("ZONE REMOVED = " + droneActions.getZone() + "| MISSION QUEUE = " + missionQueue.getMissions());
                     }

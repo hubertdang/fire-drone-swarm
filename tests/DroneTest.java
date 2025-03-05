@@ -1,7 +1,7 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.*;
+import static java.lang.Thread.sleep;
 
 class DroneTest {
     private Drone drone;
@@ -50,7 +50,6 @@ class DroneTest {
         drone.updateState(DroneStateID.TAKEOFF);
         assertEquals(DroneStateID.TAKEOFF, drone.getCurrStateID());
     }
-
 
     @Test
     void testSetAndGetDestination() {

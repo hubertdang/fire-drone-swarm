@@ -69,7 +69,6 @@ public class DroneActionsTable {
         while (iterator.hasNext()) {
 
             Map.Entry<Integer, SchedulerSubState> entry = iterator.next();
-            System.out.println("AAAAA " + entry.getValue().shouldNotify());
             if (entry.getValue().shouldNotify()) {
                 DroneTaskType task = entry.getValue().execute();
                 if (task == null) {
@@ -77,7 +76,7 @@ public class DroneActionsTable {
                             + "]: A Scheduler SubState cannot process unexpected drone context.");
                 } else {
                     System.out.println("[" + Thread.currentThread().getName()
-                            + "]: Scheduler sending new task to drone #" + entry.getKey());
+                            + "]: Scheduler sending new task to drone#" + entry.getKey());
                     droneBuffer.addDroneTask(new DroneTask(entry.getKey(), task, entry.getValue().getZone()));
                 }
                 entry.getValue().resetNotify(); // resets message send boolean
@@ -85,7 +84,7 @@ public class DroneActionsTable {
                 // remove drone from actions table & zone from missions if dispatched task is a RECALL
                 if (task == DroneTaskType.RECALL) {
                     System.out.println("[" + Thread.currentThread().getName()
-                            + "]: Scheduler removing drone #" + entry.getKey()
+                            + "]: Scheduler removing drone#" + entry.getKey()
                             + " from DroneActionsTable, tasks complete.");
                     iterator.remove();
 
