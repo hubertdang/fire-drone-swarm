@@ -1,0 +1,69 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36" version="26.1.0">
+  <diagram name="Page-1" id="iemm-HKIAddnAcutzsxf">
+    <mxGraphModel dx="1306" dy="643" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="4681" pageHeight="3300" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="sFQ8Ge55EEmMiKFgcwnT-4" value="" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=60;tabHeight=30;tabPosition=left;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+          <mxGeometry x="330" y="120" width="720" height="360" as="geometry" />
+        </mxCell>
+        <mxCell id="sFQ8Ge55EEmMiKFgcwnT-5" value="Firefighting Drone Swarm&amp;nbsp;" style="text;align=center;fontStyle=1;verticalAlign=middle;spacingLeft=3;spacingRight=3;strokeColor=none;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" parent="1" vertex="1">
+          <mxGeometry x="605" y="160" width="150" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="sFQ8Ge55EEmMiKFgcwnT-6" value="Drone Subsystem" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+          <mxGeometry x="380" y="210" width="140" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="sFQ8Ge55EEmMiKFgcwnT-7" value="Scheduler" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+          <mxGeometry x="600" y="210" width="140" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="sFQ8Ge55EEmMiKFgcwnT-8" value="Fire Incident Subsystem" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+          <mxGeometry x="860" y="210" width="140" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="sFQ8Ge55EEmMiKFgcwnT-9" value="&amp;lt;&amp;lt;access&amp;gt;&amp;gt;" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;entryX=0;entryY=0;entryDx=140;entryDy=44.5;entryPerimeter=0;exitX=0;exitY=0;exitDx=0;exitDy=44.5;exitPerimeter=0;" parent="1" source="sFQ8Ge55EEmMiKFgcwnT-7" target="sFQ8Ge55EEmMiKFgcwnT-6" edge="1">
+          <mxGeometry x="0.0769" y="-12" width="160" relative="1" as="geometry">
+            <mxPoint x="580" y="330" as="sourcePoint" />
+            <mxPoint x="740" y="330" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sFQ8Ge55EEmMiKFgcwnT-10" value="&amp;lt;&amp;lt;access&amp;gt;&amp;gt;" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;entryX=0;entryY=0;entryDx=0;entryDy=44.5;entryPerimeter=0;exitX=0;exitY=0;exitDx=140;exitDy=44.5;exitPerimeter=0;" parent="1" source="sFQ8Ge55EEmMiKFgcwnT-7" target="sFQ8Ge55EEmMiKFgcwnT-8" edge="1">
+          <mxGeometry y="12" width="160" relative="1" as="geometry">
+            <mxPoint x="580" y="330" as="sourcePoint" />
+            <mxPoint x="740" y="330" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sFQ8Ge55EEmMiKFgcwnT-11" value="Map" style="shape=folder;fontStyle=1;spacingTop=10;tabWidth=40;tabHeight=14;tabPosition=left;html=1;whiteSpace=wrap;" parent="1" vertex="1">
+          <mxGeometry x="610" y="370" width="145" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="sFQ8Ge55EEmMiKFgcwnT-12" value="&amp;lt;&amp;lt;use&amp;gt;&amp;gt;" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;entryX=0;entryY=0;entryDx=0;entryDy=28;entryPerimeter=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" source="sFQ8Ge55EEmMiKFgcwnT-6" target="sFQ8Ge55EEmMiKFgcwnT-11" edge="1">
+          <mxGeometry x="0.2982" y="8" width="160" relative="1" as="geometry">
+            <mxPoint x="580" y="340" as="sourcePoint" />
+            <mxPoint x="740" y="340" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="485" y="398" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sFQ8Ge55EEmMiKFgcwnT-13" value="&amp;lt;&amp;lt;use&amp;gt;&amp;gt;" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;entryX=0;entryY=0;entryDx=145;entryDy=28;entryPerimeter=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" source="sFQ8Ge55EEmMiKFgcwnT-8" target="sFQ8Ge55EEmMiKFgcwnT-11" edge="1">
+          <mxGeometry x="0.0705" y="-12" width="160" relative="1" as="geometry">
+            <mxPoint x="580" y="340" as="sourcePoint" />
+            <mxPoint x="740" y="340" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="930" y="398" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sFQ8Ge55EEmMiKFgcwnT-14" value="&amp;lt;&amp;lt;use&amp;gt;&amp;gt;" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0;entryDx=92.5;entryDy=14;entryPerimeter=0;" parent="1" source="sFQ8Ge55EEmMiKFgcwnT-7" edge="1" target="sFQ8Ge55EEmMiKFgcwnT-11">
+          <mxGeometry x="0.151" y="29" width="160" relative="1" as="geometry">
+            <mxPoint x="580" y="340" as="sourcePoint" />
+            <mxPoint x="690" y="390" as="targetPoint" />
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
