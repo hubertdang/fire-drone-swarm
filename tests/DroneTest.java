@@ -29,7 +29,7 @@ class DroneTest {
 
     @Test
     void testSetZoneToServiceAndGetZoneToService() {
-        Zone testZone = new Zone(1,99, 0, 0, 0, 0);
+        Zone testZone = new Zone(1, 99, 0, 0, 0, 0);
         drone.setZoneToService(testZone);
         assertEquals(testZone, drone.getZoneToService());
     }
@@ -61,16 +61,16 @@ class DroneTest {
         assertEquals(destination, drone.getDestination());
     }
 
-    /** Tests state changes when only 1 zone is required to be serviced.
-     *  Uses print statements for testing current state.
-     *
-     *  Expected changes in states:
-     *  BASE -> TAKEOFF -> ACCELERATING -> FLYING -> DECELERATING -> ARRIVED -> RELEASING_AGENT -> IDLE
-     *
+    /**
+     * Tests state changes when only 1 zone is required to be serviced.
+     * Uses print statements for testing current state.
+     * <p>
+     * Expected changes in states:
+     * BASE -> TAKEOFF -> ACCELERATING -> FLYING -> DECELERATING -> ARRIVED -> RELEASING_AGENT -> IDLE
      */
     @Test
     void testStateMachine01() {
-        Zone testZone = new Zone(1,50, 100, 300, 0, 100);
+        Zone testZone = new Zone(1, 50, 100, 300, 0, 100);
         drone.setDestination(testZone.getPosition());
         drone.setZoneToService(testZone);
         assertEquals(drone.getCurrStateID(), DroneStateID.BASE);
@@ -82,20 +82,20 @@ class DroneTest {
         drone.eventReqRelAgent();
     }
 
-    /** Tests state changes when drone is assigned a zone to service and a new zone with a higher priority
-     *  is assigned to drone upon arrival.
-     *  Uses print statements for testing current state.
-     *
-     *  Expected changes in states:
-     *  BASE -> TAKEOFF -> ACCELERATING -> FLYING -> DECELERATING -> ARRIVED -> ACCELERATING -> FLYING
-     *  -> DECELERATING -> ARRIVED -> RELEASING_AGENT -> IDLE -> ACCELERATING -> FLYING -> DECELERATING -> ARRIVED
-     *  -> RELEASING_AGENT -> IDLE
-     *
+    /**
+     * Tests state changes when drone is assigned a zone to service and a new zone with a higher priority
+     * is assigned to drone upon arrival.
+     * Uses print statements for testing current state.
+     * <p>
+     * Expected changes in states:
+     * BASE -> TAKEOFF -> ACCELERATING -> FLYING -> DECELERATING -> ARRIVED -> ACCELERATING -> FLYING
+     * -> DECELERATING -> ARRIVED -> RELEASING_AGENT -> IDLE -> ACCELERATING -> FLYING -> DECELERATING -> ARRIVED
+     * -> RELEASING_AGENT -> IDLE
      */
     @Test
     void testStateMachine02() {
-        Zone testZone = new Zone(1,25, 100, 300, 0, 100);
-        Zone testZone2 = new Zone(2,50, 50, 80, 0, 20);
+        Zone testZone = new Zone(1, 25, 100, 300, 0, 100);
+        Zone testZone2 = new Zone(2, 50, 50, 80, 0, 20);
 
         drone.setDestination(testZone.getPosition());
         drone.setZoneToService(testZone);
@@ -122,17 +122,18 @@ class DroneTest {
 
     }
 
-    /** Tests state changes when a drone has serviced a zone and is required to return to base.
-     *  Uses print statements for testing current state.
-     *
-     *  Expected changes in states:
-     *  IDLE -> ACCELERATING -> FLYING -> DECELERATING -> LANDING -> BASE
+    /**
+     * Tests state changes when a drone has serviced a zone and is required to return to base.
+     * Uses print statements for testing current state.
+     * <p>
+     * Expected changes in states:
+     * IDLE -> ACCELERATING -> FLYING -> DECELERATING -> LANDING -> BASE
      */
     @Test
-    void testStateMachine03(){
+    void testStateMachine03() {
         drone.updateState(DroneStateID.IDLE);
         assertEquals(DroneStateID.IDLE, drone.getCurrStateID());
-        drone.setDestination(new Position(0,0));
+        drone.setDestination(new Position(0, 0));
         drone.eventReqRecall();
         drone.setCurrTask(new DroneTask(1, DroneTaskType.RECALL));
     }
