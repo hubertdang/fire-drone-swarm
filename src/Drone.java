@@ -7,18 +7,18 @@ public class Drone implements Runnable {
     public static final float BASE_X = 0.0f;
     public static final float BASE_Y = 0.0f;
     public static final float ARRIVAL_DISTANCE_THRESHOLD = 10.0f;             // m
-//    private static final float TOP_SPEED = 20.0f;           // m/s
-//    private static final float ACCEL_RATE = 3.0f;           // m/s²
-//    private static final float DECEL_RATE = -5.0f;          // m/s²
-//    private static final float CRUISE_ALTITUDE = 50.0f;     // arbitrary choice for demo
-//    private static final float VERTICAL_SPEED = 5.0f;       // m/s upward/downward
+    private static final float TOP_SPEED = 20.0f;           // m/s
+    private static final float ACCEL_RATE = 3.0f;           // m/s²
+    private static final float DECEL_RATE = -5.0f;          // m/s²
+    private static final float CRUISE_ALTITUDE = 50.0f;     // arbitrary choice for demo
+    private static final float VERTICAL_SPEED = 5.0f;       // m/s upward/downward
 
     // Speed up values for testing
-    private static final float TOP_SPEED = 100.0f;          // m/s
-    private static final float ACCEL_RATE = 20.0f;          // m/s²
-    private static final float DECEL_RATE = -20.0f;         // m/s²
-    private static final float CRUISE_ALTITUDE = 10.0f;     // arbitrary choice for demo
-    private static final float VERTICAL_SPEED = 10.0f;      // m/s upward/downward
+//    private static final float TOP_SPEED = 100.0f;          // m/s
+//    private static final float ACCEL_RATE = 20.0f;          // m/s²
+//    private static final float DECEL_RATE = -20.0f;         // m/s²
+//    private static final float CRUISE_ALTITUDE = 10.0f;     // arbitrary choice for demo
+//    private static final float VERTICAL_SPEED = 10.0f;      // m/s upward/downward
 
     private final int id;
     private final AgentTank agentTank;
@@ -85,7 +85,7 @@ public class Drone implements Runnable {
      * Handles the execution of a new task based on its type.
      * Depending on the task type, it triggers the corresponding event request.
      */
-    private void handleNewTask(){
+    private void handleNewTask() {
         switch (currTask.getTaskType()) {
             case DroneTaskType.SERVICE_ZONE:
                 eventReqServiceZone();
@@ -335,7 +335,7 @@ public class Drone implements Runnable {
 
         agentTank.openNozzle();
 
-        while (agentTank.isNozzleOpen()  && !newTaskFlag) {
+        while (agentTank.isNozzleOpen() && !newTaskFlag) {
             currentTime = System.nanoTime();
             deltaTime = (currentTime - previousTime) / 1_000_000_000f; // convert to second
             previousTime = currentTime;
@@ -364,7 +364,7 @@ public class Drone implements Runnable {
             }
         }
 
-        if(newTaskFlag){
+        if (newTaskFlag) {
             handleNewTask();
         }
     }
@@ -417,14 +417,14 @@ public class Drone implements Runnable {
             }
         }
 
-        if(!newTaskFlag){
+        if (newTaskFlag) {
+            handleNewTask();
+        }
+        else {
             System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
                     + "Takeoff complete. "
                     + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
             eventReachMaxHeight();
-        }
-        else {
-            handleNewTask();
         }
     }
 
@@ -490,11 +490,11 @@ public class Drone implements Runnable {
             }
         }
 
-        if(!newTaskFlag){
-            eventReachTopSpeed();
+        if (newTaskFlag) {
+            handleNewTask();
         }
         else {
-            handleNewTask();
+            eventReachTopSpeed();
         }
     }
 
@@ -536,11 +536,11 @@ public class Drone implements Runnable {
             }
         }
 
-        if(!newTaskFlag){
-            eventReachDecelRange();
+        if (newTaskFlag) {
+            handleNewTask();
         }
         else {
-            handleNewTask();
+            eventReachDecelRange();
         }
     }
 
@@ -604,11 +604,11 @@ public class Drone implements Runnable {
             }
         }
 
-        if(!newTaskFlag){
-            eventReachDestination();
+        if (newTaskFlag) {
+            handleNewTask();
         }
         else {
-            handleNewTask();
+            eventReachDestination();
         }
     }
 
@@ -649,7 +649,7 @@ public class Drone implements Runnable {
             }
         }
 
-        if(!newTaskFlag){
+        if (!newTaskFlag) {
             System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                     + "Landing complete. "
                     + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));

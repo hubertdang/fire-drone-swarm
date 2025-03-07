@@ -52,6 +52,60 @@ class DroneTest {
     }
 
     @Test
+    void testExternalEvent() throws InterruptedException {
+        Thread droneThread = new Thread(drone, "🛫D");
+        Zone zone = new Zone(1, 10, 10, 20, 10, 20);
+        DroneTask task = new DroneTask(1, DroneTaskType.SERVICE_ZONE, zone);
+        droneThread.start(); // Start the drone thread
+
+        // External @ takeOff
+        drone.updateState(DroneStateID.TAKEOFF);
+        drone.setCurrTask(task);
+        drone.setNewTaskFlag();
+        sleep(2000); // Allow some time for state change
+        assertEquals(DroneStateID.TAKEOFF, drone.getCurrStateID(), "external event when taking off");
+
+        // External @ accelerating
+        drone.updateState(DroneStateID.ACCELERATING);
+        drone.setCurrTask(task);
+        drone.setNewTaskFlag();
+        sleep(2000); // Allow some time for state change
+        assertEquals(DroneStateID.ACCELERATING, drone.getCurrStateID(), "external event when accelerating");
+
+        // External @ flying
+        drone.updateState(DroneStateID.FLYING);
+        drone.setCurrTask(task);
+        drone.setNewTaskFlag();
+        sleep(2000); // Allow some time for state change
+        assertEquals(DroneStateID.FLYING, drone.getCurrStateID(), "external event when flying");
+
+        // External @ decelerating
+        drone.updateState(DroneStateID.DECELERATING);
+        drone.setCurrTask(task);
+        drone.setNewTaskFlag();
+        Thread.sleep(3000); // Allow some time for state change
+        assertEquals(DroneStateID.ACCELERATING, drone.getCurrStateID(), "external event when decelerating");
+
+        // External @ landing
+        drone.updateState(DroneStateID.LANDING);
+        drone.setCurrTask(task);
+        drone.setNewTaskFlag();
+        sleep(2000); // Allow some time for state change
+        assertEquals(DroneStateID.TAKEOFF, drone.getCurrStateID(), "external event when landing");
+
+        // External @ releasing agent
+        drone.updateState(DroneStateID.RELEASING_AGENT);
+        drone.setCurrTask(task);
+        drone.setNewTaskFlag();
+        sleep(3000); // Allow some time for state change
+        assertEquals(DroneStateID.ACCELERATING, drone.getCurrStateID(), "external event when releasing agent");
+
+        // Attempt to stop the drone
+        droneThread.interrupt(); // Safe way to stop the thread if Drone handles interruption
+        droneThread.join(1000);
+    }
+
+    @Test
     void testSetAndGetDestination() {
         Position destination = new Position(100, 100);
         drone.setDestination(destination);

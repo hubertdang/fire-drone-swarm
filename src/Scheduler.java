@@ -96,7 +96,6 @@ public class Scheduler implements Runnable {
                     && droneActionsTable.getAction(droneInfo.droneID) != null
                     && droneActionsTable.getAction(droneInfo.droneID).getZone().getSeverity() == FireSeverity.NO_FIRE){
                 missionQueue.remove(droneInfo.zoneToService);
-                System.out.println("ZONE REMOVED = " + droneInfo.zoneToService + "| MISSION QUEUE = " + missionQueue.getMissions());
             }
             /* give other threads opportunity to access shared buffers */
             try {
@@ -229,7 +228,6 @@ public class Scheduler implements Runnable {
                         && droneActions.getZone() != zoneFighters.getKey()) {
                     if (droneActions.getZone().getSeverity() == FireSeverity.NO_FIRE) {
                         missionQueue.remove(droneActions.getZone());
-                        System.out.println("ZONE REMOVED = " + droneActions.getZone() + "| MISSION QUEUE = " + missionQueue.getMissions());
                     }
                     droneActionsTable.updateAction(droneId, new HappyPathSubState(zoneFighters.getKey()
                             , true, curDroneScore));
