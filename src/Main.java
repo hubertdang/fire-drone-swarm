@@ -29,9 +29,9 @@ public class Main {
 
 
         // Instantiate threads
-        System.out.println("--- \nNote: \nFIS-fireSubsystemThread \nDSS-droneSubsystemThread \nSD-schedulerThread \nD-droneThread \n---");
-        Thread droneThread1 = new Thread(drone1, "🛸D");
-        Thread droneThread2 = new Thread(drone2, "🛸D");
+        System.out.println("--- \nNote: \nFIS-fireSubsystemThread \nDM-droneSubsystemThread \nSD-schedulerThread \nD-droneThread \n---");
+        Thread droneThread1 = new Thread(drone1, "🛫D");
+        Thread droneThread2 = new Thread(drone2, "🛫D");
         Thread fireSubsystemThread = new Thread(fireIncidentSubsystem, "🐦‍🔥FIS");
         Thread schedulerThread = new Thread(scheduler, "📅SD");
         Thread droneSubsystemThread = new Thread(droneManager, "⚒️DM");

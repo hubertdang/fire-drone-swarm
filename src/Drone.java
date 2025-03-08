@@ -6,18 +6,19 @@ import static java.lang.Thread.sleep;
 public class Drone implements Runnable {
     public static final float BASE_X = 0.0f;
     public static final float BASE_Y = 0.0f;
-    public static final float ARRIVAL_DISTANCE_THRESHOLD = 10.0f;           // m
-//    private static final float TOP_SPEED = 20.0f;                           // m/s
-//    private static final float ACCEL_RATE = 3.0f;                           // m/s^2
-//    private static final float DECEL_RATE = -5.0f;                          // m/s^2
-//    private static final float CRUISE_ALTITUDE = 50.0f;                     // arbitrary choice for demo
-//    private static final float VERTICAL_SPEED = 5.0f;                       // m/s upward/downward
+    public static final float ARRIVAL_DISTANCE_THRESHOLD = 10.0f;             // m
+    private static final float TOP_SPEED = 20.0f;           // m/s
+    private static final float ACCEL_RATE = 3.0f;           // m/s²
+    private static final float DECEL_RATE = -5.0f;          // m/s²
+    private static final float CRUISE_ALTITUDE = 50.0f;     // arbitrary choice for demo
+    private static final float VERTICAL_SPEED = 5.0f;       // m/s upward/downward
 
-    private static final float TOP_SPEED = 100.0f; //20.0f;                           // m/s
-    private static final float ACCEL_RATE = 20.0f; //3.0f;                           // m/s^2
-    private static final float DECEL_RATE = -20.0f; //-5.0f;                          // m/s^2
-    private static final float CRUISE_ALTITUDE = 10.0f; //50.0f;                     // arbitrary choice for demo
-    private static final float VERTICAL_SPEED = 10.0f; //5.0f;                       // m/s upward/downward
+    // Speed up values for testing
+//    private static final float TOP_SPEED = 100.0f;          // m/s
+//    private static final float ACCEL_RATE = 20.0f;          // m/s²
+//    private static final float DECEL_RATE = -20.0f;         // m/s²
+//    private static final float CRUISE_ALTITUDE = 10.0f;     // arbitrary choice for demo
+//    private static final float VERTICAL_SPEED = 10.0f;      // m/s upward/downward
 
     private final int id;
     private final AgentTank agentTank;
@@ -68,18 +69,8 @@ public class Drone implements Runnable {
             if (newTaskFlag) {
                 newTaskFlag = false;
                 System.out.println("[" + Thread.currentThread().getName() + id + "]: "
-                        + "Drone has received an new task: " + currTask.getTaskType() + " " + currTask.getZone().getId());
-                switch (currTask.getTaskType()) {
-                    case DroneTaskType.SERVICE_ZONE:
-                        eventReqServiceZone();
-                        break;
-                    case DroneTaskType.RELEASE_AGENT:
-                        eventReqRelAgent();
-                        break;
-                    case DroneTaskType.RECALL:
-                        eventReqRecall();
-                        break;
-                }
+                        + "Drone has received an new task: " + currTask.getTaskType() + " @ zone#" + currTask.getZone().getId());
+                handleNewTask();
             }
             try {
                 sleep(2000);
@@ -87,6 +78,24 @@ public class Drone implements Runnable {
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    /**
+     * Handles the execution of a new task based on its type.
+     * Depending on the task type, it triggers the corresponding event request.
+     */
+    private void handleNewTask() {
+        switch (currTask.getTaskType()) {
+            case DroneTaskType.SERVICE_ZONE:
+                eventReqServiceZone();
+                break;
+            case DroneTaskType.RELEASE_AGENT:
+                eventReqRelAgent();
+                break;
+            case DroneTaskType.RECALL:
+                eventReqRecall();
+                break;
         }
     }
 
@@ -326,7 +335,7 @@ public class Drone implements Runnable {
 
         agentTank.openNozzle();
 
-        while (agentTank.isNozzleOpen()) {
+        while (agentTank.isNozzleOpen() && !newTaskFlag) {
             currentTime = System.nanoTime();
             deltaTime = (currentTime - previousTime) / 1_000_000_000f; // convert to second
             previousTime = currentTime;
@@ -354,6 +363,10 @@ public class Drone implements Runnable {
                 throw new RuntimeException(e);
             }
         }
+
+        if (newTaskFlag) {
+            handleNewTask();
+        }
     }
 
 
@@ -378,7 +391,7 @@ public class Drone implements Runnable {
                 + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
 
         long previousTime = System.nanoTime();
-        while (this.currAltitude < CRUISE_ALTITUDE) {
+        while (this.currAltitude < CRUISE_ALTITUDE && !newTaskFlag) {
             long currentTime = System.nanoTime();
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
             previousTime = currentTime;
@@ -403,10 +416,16 @@ public class Drone implements Runnable {
                 throw new RuntimeException(e);
             }
         }
-        System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
-                + "Takeoff complete. "
-                + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
-        eventReachMaxHeight();
+
+        if (newTaskFlag) {
+            handleNewTask();
+        }
+        else {
+            System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
+                    + "Takeoff complete. "
+                    + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
+            eventReachMaxHeight();
+        }
     }
 
     /**
@@ -423,7 +442,7 @@ public class Drone implements Runnable {
         float distance, initialVelocity;
         long previousTime = System.nanoTime();
 
-        while (true) {
+        while (!newTaskFlag) {
             long currentTime = System.nanoTime();
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
             previousTime = currentTime;
@@ -470,7 +489,13 @@ public class Drone implements Runnable {
                 throw new RuntimeException(e);
             }
         }
-        eventReachTopSpeed();
+
+        if (newTaskFlag) {
+            handleNewTask();
+        }
+        else {
+            eventReachTopSpeed();
+        }
     }
 
     /**
@@ -482,7 +507,7 @@ public class Drone implements Runnable {
         long currentTime;
         float deltaTime;
 
-        while (true) {
+        while (!newTaskFlag) {
             currentTime = System.nanoTime();
             deltaTime = (currentTime - previousTime) / 1_000_000_000f;
             previousTime = currentTime;
@@ -510,7 +535,13 @@ public class Drone implements Runnable {
                 throw new RuntimeException(e);
             }
         }
-        eventReachDecelRange();
+
+        if (newTaskFlag) {
+            handleNewTask();
+        }
+        else {
+            eventReachDecelRange();
+        }
     }
 
     /**
@@ -526,7 +557,7 @@ public class Drone implements Runnable {
         float initialVelocity;
         long previousTime = System.nanoTime();
 
-        while (true) {
+        while (!newTaskFlag) {
             long currentTime = System.nanoTime();
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
             previousTime = currentTime;
@@ -572,7 +603,13 @@ public class Drone implements Runnable {
                 throw new RuntimeException(e);
             }
         }
-        eventReachDestination();
+
+        if (newTaskFlag) {
+            handleNewTask();
+        }
+        else {
+            eventReachDestination();
+        }
     }
 
     /**
@@ -586,7 +623,7 @@ public class Drone implements Runnable {
 
         long previousTime = System.nanoTime();
 
-        while (currAltitude > 0f) {
+        while (currAltitude > 0f && !newTaskFlag) {
             long currentTime = System.nanoTime();
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
             previousTime = currentTime;
@@ -611,10 +648,16 @@ public class Drone implements Runnable {
                 throw new RuntimeException(e);
             }
         }
-        System.out.println("[" + Thread.currentThread().getName() + id + "]: "
-                + "Landing complete. "
-                + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
-        eventLanded();
+
+        if (!newTaskFlag) {
+            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                    + "Landing complete. "
+                    + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
+            eventLanded();
+        }
+        else {
+            handleNewTask();
+        }
     }
 
     /**

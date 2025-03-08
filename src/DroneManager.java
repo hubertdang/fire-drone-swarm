@@ -55,7 +55,7 @@ public class DroneManager implements Runnable {
             DroneTask task = droneBuffer.popDroneTask();
             if (task.getTaskType() != DroneTaskType.REQUEST_ALL_INFO) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Received task " + task.getTaskType() + task.getZone().getId() + " for drone#"
+                        + "Received task " + task.getTaskType() + " @ zone#" + task.getZone().getId() + " for drone#"
                         + task.getDroneID());
                 dispatchTaskToDrone(dronesMap.get(task.getDroneID()), task);
             } else {
@@ -77,7 +77,7 @@ public class DroneManager implements Runnable {
         switch (task.getTaskType()) {
             case SERVICE_ZONE:
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Dispatching SERVICE_ZONE task to drone #"
+                        + "Dispatching SERVICE_ZONE task to drone#"
                         + drone.getId());
                 drone.setDestination(task.getZone().getPosition());
                 drone.setZoneToService(task.getZone());
@@ -85,13 +85,13 @@ public class DroneManager implements Runnable {
                 break;
             case RELEASE_AGENT:
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Dispatching RELEASE_AGENT task to drone #"
+                        + "Dispatching RELEASE_AGENT task to drone#"
                         + drone.getId());
                 drone.setCurrTask(task);
                 break;
             case RECALL:
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Dispatching RECALL task to drone #"
+                        + "Dispatching RECALL task to drone#"
                         + drone.getId());
                 drone.setDestination(new Position(Drone.BASE_X, Drone.BASE_Y));
                 drone.setCurrTask(task);
