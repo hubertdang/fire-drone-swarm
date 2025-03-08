@@ -1,38 +1,39 @@
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 /**
  * A DroneActionsTable to store the actions of drones.
- * Stored by DroneID|SchedulerSubState
+ * Stored by HashMap<DroneID, <Notify, Task>>
  */
 public class DroneActionsTable {
-    private final HashMap<Integer, SchedulerSubState> actionsTable;
+    private final HashMap<Integer, DroneTask> actionsTable;
 
     /**
      * Constructor for the DroneActionsTable class. Constructs a drone actions table.
      */
     public DroneActionsTable() {
-        this.actionsTable = new HashMap<Integer, SchedulerSubState>();
+        this.actionsTable = new HashMap<>();
     }
 
     /**
      * Adds an action to the drone actions table.
      *
      * @param droneId the drone ID
-     * @param action  the action to be added
+     * @param task  the task to be added
      */
-    public void addAction(int droneId, SchedulerSubState action) {
-        actionsTable.put(droneId, action);
+    public void addAction(int droneId, DroneTask task) {
+        actionsTable.put(droneId, task);
     }
 
     /**
-     * Retrieves the action of a specific drone by its ID.
+     * Retrieves the task of a specific drone by its ID.
      *
      * @param droneId the drone ID
-     * @return the substate of the drone
+     * @return the task of the drone
      */
-    public SchedulerSubState getAction(int droneId) {
+    public DroneTask getAction(int droneId) {
         return actionsTable.getOrDefault(droneId, null);
     }
 
@@ -46,53 +47,26 @@ public class DroneActionsTable {
     }
 
     /**
-     * Updates the action of a specific drone.
-     *
-     * @param droneId the drone ID
-     * @param action  the action to be updated
-     */
-    public void updateAction(int droneId, SchedulerSubState action) {
-        actionsTable.put(droneId, action);
-    }
-
-    /**
      * Dispatches actions over the given communication channel to drones.
      *
      * @param droneBuffer the communication channel for drones
      */
-    public void dispatchActions(DroneBuffer droneBuffer, Missions missions) {
+    public void dispatchActions(DroneBuffer droneBuffer) {
 
-        Iterator<Map.Entry<Integer, SchedulerSubState>> iterator =
+        Iterator<Map.Entry<Integer, DroneTask>> iterator =
                 actionsTable.entrySet().iterator();
 
-//        System.out.println(actionsTable.get(missions.getMissions()));
         while (iterator.hasNext()) {
+            Map.Entry<Integer, DroneTask> entry = iterator.next();
+            droneBuffer.addDroneTask(entry.getValue());
+            iterator.remove();
 
-            Map.Entry<Integer, SchedulerSubState> entry = iterator.next();
-            if (entry.getValue().shouldNotify()) {
-                DroneTaskType task = entry.getValue().execute();
-                if (task == null) {
-                    System.out.println("[" + Thread.currentThread().getName()
-                            + "]: A Scheduler SubState cannot process unexpected drone context.");
-                } else {
-                    System.out.println("[" + Thread.currentThread().getName()
-                            + "]: Scheduler sending new task to drone#" + entry.getKey());
-                    droneBuffer.addDroneTask(new DroneTask(entry.getKey(), task, entry.getValue().getZone()));
-                }
-                entry.getValue().resetNotify(); // resets message send boolean
-
-                // remove drone from actions table & zone from missions if dispatched task is a RECALL
-                if (task == DroneTaskType.RECALL) {
-                    System.out.println("[" + Thread.currentThread().getName()
-                            + "]: Scheduler removing drone#" + entry.getKey()
-                            + " from DroneActionsTable, tasks complete.");
-                    iterator.remove();
-
-                    //missions.remove(entry.getValue().getZone());
-                }
-            }
         }
     }
+
+    /**
+     *
+     */
 
 
 }

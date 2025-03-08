@@ -1,7 +1,4 @@
-import java.util.AbstractMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.SequencedSet;
+import java.util.*;
 
 /**
  * ServicingDronesInfo
@@ -65,6 +62,7 @@ public class ServicingDronesInfo {
             // add drone scheduling details to servicingDrones
             Map.Entry<Float, Float> serviceEntry = new AbstractMap.SimpleEntry<>(arrivalTime, zoneFlowRate);
             servicingDrones.put(droneId, serviceEntry);
+            sortServicingDrones(); // ToDo does not work correctly
 
             // Determine fire response time
 
@@ -107,4 +105,24 @@ public class ServicingDronesInfo {
         Map.Entry<Float, Float> entry = servicingDrones.remove(droneId);
         return (entry != null);
     }
+
+    /**
+     * sortServicingDrones
+     * configures the servicingDronesStructure in order of ascending drone arrival times
+     */
+    private void sortServicingDrones() {
+        servicingDrones = servicingDrones.entrySet()
+                .stream()
+                .sorted(Comparator.comparing
+                        (entry -> entry.getValue().getKey())) // sort by arrival time
+                .collect(LinkedHashMap::new,
+                        (map, entry)
+                                -> map.put(entry.getKey(), entry.getValue()), Map::putAll);
+    }
+
+    /**
+     * getSize
+     * @return the number of entries in LinkedHashMap
+     */
+    public int getSize() { return servicingDrones.size(); }
 }

@@ -19,7 +19,7 @@ class ServicingDronesInfoTest {
         Position drone3Pos = new Position(2, 302);
         servicing.addDrone(1, drone1Pos);
         servicing.addDrone(2, drone2Pos);
-        servicing.addDrone(3, drone3Pos);
+        servicing.addDrone(3, drone3Pos); // check if sorting method works
         float responseTime = servicing.getCurrentResponseTime();
         assertEquals(42.5, responseTime, 0.1);
         // 42.5 is hard coded make dynamic ToDo

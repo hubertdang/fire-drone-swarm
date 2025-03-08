@@ -1,3 +1,4 @@
+import java.sql.Array;
 import java.util.*;
 
 import static java.lang.Thread.sleep;
@@ -8,7 +9,7 @@ public class Scheduler implements Runnable {
     private static final float Wd = 0.1F; // weight of drone distance from a zone
     private static final float scoreThreshold = 0F; // the score needed in order to reschedule drone
     private static final Position BASE = new Position(0, 0);
-    private final Missions missionQueue;
+    private final HashMap<Zone, ServicingDronesInfo> zonesOnFire;
     private final DroneBuffer droneBuffer;
     private final FireIncidentBuffer fireBuffer;
     private final DroneActionsTable droneActionsTable;
@@ -19,7 +20,7 @@ public class Scheduler implements Runnable {
      */
     public Scheduler(DroneBuffer droneBuffer, FireIncidentBuffer fireBuffer) {
 
-        this.missionQueue = new Missions();
+        this.zonesOnFire = new HashMap<>();
         this.droneBuffer = droneBuffer;
         this.fireBuffer = fireBuffer;
         this.droneActionsTable = new DroneActionsTable();
@@ -40,7 +41,7 @@ public class Scheduler implements Runnable {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Scheduler has received a new event.\n\t" + " adding to mission queue.");
                 Zone zoneToService = fireBuffer.popEventMessage();
-                handleFireReq(zoneToService);
+                zonesOnFire.put(zoneToService, null);
                 scheduleDrones(); // scheduling algorithm updates drone actions table
             }
 
@@ -76,27 +77,20 @@ public class Scheduler implements Runnable {
 
                 /* Update drone actions table */
                 if (droneInfo.getStateID() == DroneStateID.IDLE || droneInfo.getStateID() == DroneStateID.BASE) {
-                    // scheduling algorithm updates drone actions table, may be able to service a
-                    // new zone after refilling
-                    if (!missionQueue.isEmpty()) {
-                        scheduleDrones();
-                    }
-                }
-
-                if (droneActionsTable.getAction(droneInfo.droneID) != null /*&& droneActionsTable.getAction(droneInfo.droneID).getState() != DroneStateID.UNDEFINED*/){
-                    droneActionsTable.getAction(droneInfo.droneID).setNotify(droneInfo.getStateID());
+                    scheduleDrone(droneInfo);
                 }
             }
 
             /* Send messages to drones using drone actions table */
-            droneActionsTable.dispatchActions(droneBuffer, missionQueue);
+            droneActionsTable.dispatchActions(droneBuffer);
 
 
+            /* remove Zone from on fire list id it has been serviced */
             if (droneInfo != null && droneInfo.getStateID() == DroneStateID.IDLE
-                    && droneActionsTable.getAction(droneInfo.droneID) != null
-                    && droneActionsTable.getAction(droneInfo.droneID).getZone().getSeverity() == FireSeverity.NO_FIRE){
-                missionQueue.remove(droneInfo.zoneToService);
+                    && droneInfo.zoneToService.getSeverity() == FireSeverity.NO_FIRE){
+                zonesOnFire.remove(droneInfo.zoneToService);
             }
+
             /* give other threads opportunity to access shared buffers */
             try {
                 sleep(3000);
@@ -105,26 +99,6 @@ public class Scheduler implements Runnable {
                 throw new RuntimeException(e);
             }
         }
-    }
-
-    /**
-     * Adds an event to mission queue based on fire severity and amount of agent needed.
-     * Dispatches a drone to the new zone if the new zone has a higher priority than the
-     * zone being currently serviced by the drone.
-     *
-     * @param zone a Zone object
-     */
-    public void handleFireReq(Zone zone) {
-        missionQueue.updateQueue(zone, null);
-    }
-
-    /**
-     * Returns the mission queue of the scheduler
-     *
-     * @return MissionQueue
-     */
-    public Missions getMissionQueue() {
-        return this.missionQueue;
     }
 
     /**
@@ -173,67 +147,62 @@ public class Scheduler implements Runnable {
 
         /* Run algorithm for all hazardous zones */
 
-        Iterator<Map.Entry<Zone, DroneScores>> missionsIterator =
-                missionQueue.getMissions().entrySet().iterator();
-        LinkedHashMap<Zone, DroneScores> tempMissions = new LinkedHashMap<>();
-        while (missionsIterator.hasNext()) {
-            /* Score drones */
-            Map.Entry<Zone, DroneScores> zoneFighters = missionsIterator.next();
-            DroneScores droneScores = new DroneScores();
-            for (DroneInfo droneInfo : droneInfoList) {
-                SchedulerSubState currDroneActionsTable = droneActionsTable.getAction(droneInfo.droneID);
-
-                float score = calculateDroneScore(droneInfo, zoneFighters.getKey());
-                droneScores.add(droneInfo.droneID, score);
-
-                if (currDroneActionsTable != null && score > currDroneActionsTable.getScore()
-                        && zoneFighters.getKey() == currDroneActionsTable.getZone()){
-                    currDroneActionsTable.setScore(score);
-                }
-            }
-            tempMissions.put(zoneFighters.getKey(), droneScores);
-
-
+        for (DroneInfo droneInfo : droneInfoList) {
+            scheduleDrone(droneInfo);
         }
 
-        missionQueue.replaceMissions(tempMissions);
-        System.out.println("[" + Thread.currentThread().getName()
-                + "]: Mission Queue Updated: " + missionQueue);
+    }
 
-        /* Update drone actions table */
+    /**
+     * Assigns task to a drone using Worst Zone Response Time First Algorithm
+     * @param droneInfo the current info of a drone
+     * @return true if drone was scheduled, false otherwise
+     */
 
-        /* Possibility that a drone has same score for 2 different zones but we arent going to
-            account for that :)
-         */
+    // ToDo add reroute drones capability
+    public boolean scheduleDrone(DroneInfo droneInfo) {
+        if (zonesOnFire.isEmpty()) { return false; }
+        /* if there is a zone without a drone go there */
 
-        Iterator<Map.Entry<Zone, DroneScores>> missionsIterator2 =
-                missionQueue.getMissions().entrySet().iterator();
-        while ( missionsIterator2.hasNext() ) {
-            Map.Entry<Zone, DroneScores> zoneFighters = missionsIterator2.next();
-            int numDrones = zoneFighters.getValue().getScores().size();
+        Iterator<Map.Entry<Zone, ServicingDronesInfo>> servicesIterator =
+                zonesOnFire.entrySet().iterator();
+        while (servicesIterator.hasNext()) {
+            Map.Entry<Zone, ServicingDronesInfo> zoneEntry = servicesIterator.next();
+            if ( zoneEntry.getValue().getSize() == 0 ) {
 
-            // set drones to fight fires
-            for ( int i = 0 ; i < numDrones ; i++) {
-                // get the drone id with the highest score for "this" zone
-                int droneId = zoneFighters.getValue().getScores().get(i).getKey();
-                float curDroneScore = zoneFighters.getValue().getScores().get(i).getValue();
-                SchedulerSubState droneActions = droneActionsTable.getAction(droneId);
-
-                if (droneActions == null) {
-                    droneActionsTable.addAction(droneId, new HappyPathSubState(zoneFighters.getKey()
-                            , true, curDroneScore));
-                }
-                else if (curDroneScore > scoreThreshold
-                        && (curDroneScore > droneActions.getScore() || droneActions.getZone().getSeverity() == FireSeverity.NO_FIRE)
-                        && droneActions.getZone() != zoneFighters.getKey()) {
-                    if (droneActions.getZone().getSeverity() == FireSeverity.NO_FIRE) {
-                        missionQueue.remove(droneActions.getZone());
-                    }
-                    droneActionsTable.updateAction(droneId, new HappyPathSubState(zoneFighters.getKey()
-                            , true, curDroneScore));
-                }
+                // create new task to service this zone
+                DroneTask newTask = new DroneTask(droneInfo.getDroneID()
+                        , DroneTaskType.SERVICE_ZONE, zoneEntry.getKey());
+                // add drone to servicing structure to keep track of response time
+                zoneEntry.getValue().addDrone(droneInfo.droneID, droneInfo.position);
+                // add task to actions table
+                droneActionsTable.addAction(droneInfo.droneID, newTask);
+                return true;
             }
         }
+
+        /* All zones have 1 drone assign the drone to zone with worst response time */
+
+        Zone worstZone = null;
+        float worstResponseTime = 0;
+
+        for (Map.Entry<Zone, ServicingDronesInfo> zoneEntry : zonesOnFire.entrySet() ) {
+            float currEntryResponseTime = zoneEntry.getValue().getCurrentResponseTime();
+            if (currEntryResponseTime > worstResponseTime) {
+                worstZone = zoneEntry.getKey();
+                worstResponseTime = currEntryResponseTime;
+            }
+        }
+
+        // create new task to service this zone
+        DroneTask newTask = new DroneTask(droneInfo.getDroneID()
+                , DroneTaskType.SERVICE_ZONE, worstZone);
+        // add drone to servicing structure to keep track of response time
+        zonesOnFire.get(worstZone).addDrone(droneInfo.droneID, droneInfo.position);
+        // add task to actions table
+        droneActionsTable.addAction(droneInfo.droneID, newTask);
+
+        return true;
     }
 
     /**
