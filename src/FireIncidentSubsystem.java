@@ -226,6 +226,14 @@ public class FireIncidentSubsystem implements Runnable {
         int zoneId = event.getZoneId();
         long eventTime = event.getTime();
         Zone zone = clearZones.get(zoneId);
+        if (zone == null) {
+            zone = fireZones.get(zoneId);
+            if (zone == null) {
+                System.err.println("[" + Thread.currentThread().getName() + "]: "
+                                       + "Zone " + zoneId + " not found in either clearZones or fireZones.");
+                return;
+            }
+        }
         zone.setSeverity(severity);
         zone.setRequiredAgentAmount(AGENT_AMOUNT.get(severity));
 
