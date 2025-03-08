@@ -7,7 +7,7 @@ public class Drone implements Runnable {
     public static final float BASE_X = 0.0f;
     public static final float BASE_Y = 0.0f;
     public static final float ARRIVAL_DISTANCE_THRESHOLD = 10.0f;             // m
-    private static final float TOP_SPEED = 20.0f;           // m/s
+    public static final float TOP_SPEED = 20.0f;           // m/s
     private static final float ACCEL_RATE = 3.0f;           // m/s²
     private static final float DECEL_RATE = -5.0f;          // m/s²
     private static final float CRUISE_ALTITUDE = 50.0f;     // arbitrary choice for demo
