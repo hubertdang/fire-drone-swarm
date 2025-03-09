@@ -60,7 +60,7 @@ public class DroneActionsTable {
             Map.Entry<Integer, DroneTask> entry = iterator.next();
             droneBuffer.addDroneTask(entry.getValue());
             System.out.println("[" + Thread.currentThread().getName()
-                    + "]: Scheduler has dispatched Task: " + entry.getValue() + " to Drone: "
+                    + "]: Scheduler has dispatched Task: " + entry.getValue().getTaskType() + " to Drone: "
                     + entry.getKey());
             iterator.remove();
 
