@@ -1,4 +1,3 @@
-import java.sql.Array;
 import java.util.*;
 
 import static java.lang.Thread.sleep;
@@ -41,8 +40,8 @@ public class Scheduler implements Runnable {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Scheduler has received a new event.\n\t" + " adding to mission queue.");
                 Zone zoneToService = fireBuffer.popEventMessage();
-                zonesOnFire.put(zoneToService, null);
-                scheduleDrones(); // scheduling algorithm updates drone actions table
+                zonesOnFire.put(zoneToService, new ServicingDronesInfo(zoneToService));
+                scheduleAllDrones(); // scheduling algorithm updates drone actions table for all drones
             }
 
             /* check for drone messages */
@@ -72,12 +71,50 @@ public class Scheduler implements Runnable {
 
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Scheduler has received a drone info from drone#" + droneInfo.droneID
+                        + " | STATE = " + droneInfo.stateID
                         + " | POSITION = " + droneInfo.getPosition()
                         + " | TANK = " + String.format("%.2f L", droneInfo.getAgentTankAmount()));
 
                 /* Update drone actions table */
-                if (droneInfo.getStateID() == DroneStateID.IDLE || droneInfo.getStateID() == DroneStateID.BASE) {
-                    scheduleDrone(droneInfo);
+
+                DroneTask newTask;
+                switch (droneInfo.getStateID()) {
+                    case ARRIVED:
+                        newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RELEASE_AGENT);
+                        droneActionsTable.addAction(droneInfo.droneID, newTask);
+                        break;
+                    case IDLE:
+                        /* remove drone from servicing zones */
+                        Iterator<Map.Entry<Zone, ServicingDronesInfo>> zoneServicingEntriesIter =
+                                zonesOnFire.entrySet().iterator();
+                        while (zoneServicingEntriesIter.hasNext()) {
+                            Map.Entry<Zone, ServicingDronesInfo> zoneEntry = zoneServicingEntriesIter.next();
+                            if (zoneEntry.getValue().getServicingDrones().containsKey(droneInfo.droneID)) {
+                                if (zoneEntry.getValue().getSize() == 1) {
+                                    // remove zoneOnFire
+                                    System.out.println("[" + Thread.currentThread().getName()
+                                            + "]: Fire Extinguished received from all servicing drones for Zone: "
+                                            + zoneEntry.getKey().getId());
+                                    zoneServicingEntriesIter.remove();
+                                    break;
+                                } else {
+                                    zoneEntry.getValue().removeDrone(droneInfo.droneID);
+                                    break;
+                                }
+                            }
+                        }
+
+                        /* Assign Recall/Reschedule drone */
+                        newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RECALL);
+                        droneActionsTable.addAction(droneInfo.droneID, newTask);
+                        scheduleDrone(droneInfo); // will override recall task if the drone can be rerouted
+                        break;
+                    case BASE:
+                        scheduleDrone(droneInfo); // may do nothing if no fires to respond to
+                        break;
+                    default:
+                        System.out.println("[" + Thread.currentThread().getName()
+                                + "]: Scheduler unable to process DroneInfo: " + droneInfo);
                 }
             }
 
@@ -102,16 +139,10 @@ public class Scheduler implements Runnable {
     }
 
     /**
-     * Schedule drones to fight fires by calculating drone scores for each zone
-     * based on defined algorithm,
+     * scheduleAllDrones to fight fires by using load balanced worst zone first algorithm
      * and updating the drone actions table based on results.
-     *
-     * Updating Drone Actions Table options
-     *  1. No current drone actions, add HappyPath SubState
-     *  2. Has drone actions but threshold met, Reroute SubState
-     *  3. Drone is empty, Recall SubState *** currently handled by drone itself
      */
-    private void scheduleDrones() {
+    private void scheduleAllDrones() {
        /* Gather all drone data */
 
         DroneTask getAllInfo = new DroneTask(0, DroneTaskType.REQUEST_ALL_INFO, null);
@@ -145,9 +176,51 @@ public class Scheduler implements Runnable {
             return;
         }
 
-        /* Run algorithm for all hazardous zones */
+        /* Add drones that are not busy to free DroneInfo list */
 
+        ArrayList<DroneInfo> freeDroneInfos = new ArrayList<>();
+        ArrayList<Integer> busyDrones = new ArrayList<>();
+
+        for (Map.Entry<Zone, ServicingDronesInfo> zoneEntry : zonesOnFire.entrySet()) {
+            Set<Map.Entry<Integer, Map.Entry<Float, Float>>> servicingDrones =
+                    zoneEntry.getValue().getServicingDrones().entrySet();
+            for (Map.Entry<Integer, Map.Entry<Float, Float>> droneEntry : servicingDrones) {
+                busyDrones.add(droneEntry.getKey()); // find all busy drone ids
+            }
+        }
         for (DroneInfo droneInfo : droneInfoList) {
+            if ( !busyDrones.contains(droneInfo.droneID) ) {
+                freeDroneInfos.add(droneInfo);
+            }
+        }
+
+        /* Free up drones for all zones but let one drone stay */
+
+        Iterator<Map.Entry<Zone, ServicingDronesInfo>> servicesIterator =
+                zonesOnFire.entrySet().iterator();
+        while (servicesIterator.hasNext()) {
+            Map.Entry<Zone, ServicingDronesInfo> zoneEntry = servicesIterator.next();
+            if (zoneEntry.getValue().getSize() > 1) {
+                // remove all but 1 drone from zone
+                Iterator<Map.Entry<Integer, Map.Entry<Float, Float>>> servicingDronesIterator =
+                        zoneEntry.getValue().getServicingDrones().entrySet().iterator();
+                servicingDronesIterator.next(); // skip first drone
+                while (servicingDronesIterator.hasNext()) {
+                    Map.Entry<Integer, Map.Entry<Float, Float>> freeDrone =
+                            servicingDronesIterator.next();
+
+                    DroneInfo freeDroneInfo = DroneInfo.droneInfoLookUp(
+                            freeDrone.getKey(), droneInfoList);
+                    droneActionsTable.removeAction(freeDrone.getKey());
+                    freeDroneInfos.add(freeDroneInfo);
+                    servicingDronesIterator.remove();
+                }
+            }
+        }
+
+        /* Run algorithm for all free drones */
+
+        for (DroneInfo droneInfo : freeDroneInfos) {
             scheduleDrone(droneInfo);
         }
 
@@ -158,8 +231,6 @@ public class Scheduler implements Runnable {
      * @param droneInfo the current info of a drone
      * @return true if drone was scheduled, false otherwise
      */
-
-    // ToDo add reroute drones capability
     public boolean scheduleDrone(DroneInfo droneInfo) {
         if (zonesOnFire.isEmpty()) { return false; }
         /* if there is a zone without a drone go there */
@@ -198,25 +269,12 @@ public class Scheduler implements Runnable {
         DroneTask newTask = new DroneTask(droneInfo.getDroneID()
                 , DroneTaskType.SERVICE_ZONE, worstZone);
         // add drone to servicing structure to keep track of response time
-        zonesOnFire.get(worstZone).addDrone(droneInfo.droneID, droneInfo.position);
-        // add task to actions table
-        droneActionsTable.addAction(droneInfo.droneID, newTask);
+        boolean droneAdded = zonesOnFire.get(worstZone).addDrone(droneInfo.droneID, droneInfo.position);
+        if ( droneAdded ) {
+            // add task to actions table
+            droneActionsTable.addAction(droneInfo.droneID, newTask);
+        } // ToDo if the zone is too far away/will be fully serviced by the time drone arrives, drone should service any closer zone if one is available
 
-        return true;
+        return droneAdded;
     }
-
-    /**
-     * Calculate weighted drone score.
-     * Drone Score = Wnz x (CA - RAnz) - Wcz x (CA - RAcz) - Wd x Distance From Zone
-     *
-     * @param droneInfo the most recent info of drone
-     * @param newZone the new zone needing service
-     * @return the drones weighted score for servicing new zone
-     */
-    private float calculateDroneScore(DroneInfo droneInfo, Zone newZone) {
-        return Wnz * (droneInfo.agentTankAmount - newZone.getRequiredAgentAmount())
-                - Wcz * (droneInfo.agentTankAmount - droneInfo.getCurrentZoneAgentTankAmount())
-                - Wd * newZone.getPosition().distanceFrom(droneInfo.position);
-    }
-
 }

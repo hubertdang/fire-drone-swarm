@@ -41,6 +41,14 @@ public class ServicingDronesInfo {
     public int getZoneId() { return zoneId; }
 
     /**
+     * getServicingDrones
+     * @return servicingDrones LinkedHashMap structure
+     */
+    public LinkedHashMap<Integer, Map.Entry<Float, Float>> getServicingDrones() {
+        return servicingDrones;
+    }
+
+    /**
      * addDrone determines if new drone would reduce zone response time, if so adds to
      * servicingDrones
      * @param droneId the id of drone
@@ -57,38 +65,11 @@ public class ServicingDronesInfo {
 
         if ( servicingDrones.containsKey(droneId) ) { return false; }
         if (arrivalTime < currentResponseTime || currentResponseTime == -1 ) {
-
-
             // add drone scheduling details to servicingDrones
             Map.Entry<Float, Float> serviceEntry = new AbstractMap.SimpleEntry<>(arrivalTime, zoneFlowRate);
             servicingDrones.put(droneId, serviceEntry);
-            sortServicingDrones(); // ToDo does not work correctly
-
-            // Determine fire response time
-
-            SequencedSet<Map.Entry<Integer, Map.Entry<Float, Float>>> entrySet =
-                    servicingDrones.sequencedEntrySet();
-
-            /* servicingDrones := LinkedHashMap<droneId, {arrivalTime, zoneFlowRate}> */
-
-            for (Map.Entry<Integer, Map.Entry<Float, Float>> serviceDroneEntry : entrySet ) {
-                float entryArrivalTime = serviceDroneEntry.getValue().getKey();
-                float entryFlowRate = serviceDroneEntry.getValue().getValue();
-
-                // time interval where previous flow rate was active
-                float timeInterval = entryArrivalTime - lastTime;
-
-                // fire suppression contribution from other drones prior to new drone arrival
-                currentVolume += (timeInterval * prevFlowRate);
-
-                // update values for next iteration
-                lastTime = entryArrivalTime;
-                prevFlowRate = entryFlowRate;
-            }
-
-            // compute remaining time with full rate
-            currentResponseTime = lastTime + (originalRequiredAgent - currentVolume) / prevFlowRate;
-
+            sortServicingDrones();
+            updateResponseTime();
             return true;
         }
 
@@ -103,6 +84,9 @@ public class ServicingDronesInfo {
      */
     public boolean removeDrone(int droneId) {
         Map.Entry<Float, Float> entry = servicingDrones.remove(droneId);
+        if (entry != null) {
+            updateResponseTime();
+        }
         return (entry != null);
     }
 
@@ -118,6 +102,47 @@ public class ServicingDronesInfo {
                 .collect(LinkedHashMap::new,
                         (map, entry)
                                 -> map.put(entry.getKey(), entry.getValue()), Map::putAll);
+    }
+
+    /**
+     * updateResponseTime
+     * Updates the total response time for the drones servicing this zone
+     */
+    private void updateResponseTime() {
+        float currentVolume = 0;
+        float prevFlowRate = 0;
+        float lastTime = 0;
+
+        // recalculate agent drop rates
+        int order = 1;
+        for (Map.Entry<Integer, Map.Entry<Float, Float>> e : servicingDrones.entrySet()) {
+            float newFlowRate = AgentTank.AGENT_DROP_RATE * order++;
+            e.setValue(new AbstractMap.SimpleEntry<>(e.getValue().getKey(), newFlowRate));
+        }
+
+        // Determine fire response time
+
+        SequencedSet<Map.Entry<Integer, Map.Entry<Float, Float>>> entrySet =
+                servicingDrones.sequencedEntrySet();
+
+        /* servicingDrones := LinkedHashMap<droneId, {arrivalTime, zoneFlowRate}> */
+
+        for (Map.Entry<Integer, Map.Entry<Float, Float>> serviceDroneEntry : entrySet ) {
+            float entryArrivalTime = serviceDroneEntry.getValue().getKey();
+            float entryFlowRate = serviceDroneEntry.getValue().getValue();
+
+            // time interval where previous flow rate was active
+            float timeInterval = entryArrivalTime - lastTime;
+
+            // fire suppression contribution from other drones prior to new drone arrival
+            currentVolume += (timeInterval * prevFlowRate);
+
+            // update values for next iteration
+            lastTime = entryArrivalTime;
+            prevFlowRate = entryFlowRate;
+        }
+        // compute remaining time with full rate
+        currentResponseTime = lastTime + (originalRequiredAgent - currentVolume) / prevFlowRate;
     }
 
     /**
