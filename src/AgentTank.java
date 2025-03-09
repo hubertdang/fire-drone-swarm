@@ -4,7 +4,7 @@
  */
 public class AgentTank {
     public static final float CAPACITY = 100.0f;       // 100 L -> reality = 11L, change in iteration 5
-    public static final float AGENT_DROP_RATE = 5.0f; //1.0f; // 1 L/sec
+    public static final float AGENT_DROP_RATE = 2.0f; //1.0f; // 1 L/sec
     public static final long NOZZLE_TIME = 2000;     // 2 sec
     private float currAgentAmount;
     private boolean isNozzleOpen;

@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 /**
  * Drone information Class
  * A class to pass drone's info from DroneSubsystem to Scheduler
@@ -39,6 +41,19 @@ public class DroneInfo {
             return 0;
         }
         return zoneToService.getRequiredAgentAmount();
+    }
+
+    /**
+     * droneInfoLookUp returns the ID specified Drone Info object from a list
+     * @param droneId the id of drone to be looked up
+     * @param infoList a list of DroneInfo objects
+     * @return desired DroneInfo object
+     */
+    public static DroneInfo droneInfoLookUp(int droneId, ArrayList<DroneInfo> infoList) {
+        for (DroneInfo info : infoList) {
+            if (info.droneID == droneId) { return info; }
+        }
+        return null;
     }
 
     public String toString() {
