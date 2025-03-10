@@ -7,6 +7,7 @@ public class Takeoff implements DroneState {
     @Override
     public void reqServiceZone(Drone context) {
         // destination has just changed, we can continue to take off
+        context.takeoff();
     }
 
     /**
