@@ -67,7 +67,6 @@ public class Drone implements Runnable {
     public void run() {
         while (true) {
             if (newTaskFlag) {
-                newTaskFlag = false;
                 System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                         + "Drone has received an new task: " + currTask.getTaskType() + " @ zone#" + currTask.getZone().getId());
                 handleNewTask();
@@ -86,6 +85,8 @@ public class Drone implements Runnable {
      * Depending on the task type, it triggers the corresponding event request.
      */
     private void handleNewTask() {
+        newTaskFlag = false;
+
         switch (currTask.getTaskType()) {
             case DroneTaskType.SERVICE_ZONE:
                 eventReqServiceZone();
