@@ -67,7 +67,6 @@ public class Drone implements Runnable {
     public void run() {
         while (true) {
             if (newTaskFlag) {
-                newTaskFlag = false;
                 String zoneId = (currTask.getZone() != null) ? currTask.getZone().getId() + "" : "null";
                 System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                         + "Drone has received an new task: " + currTask.getTaskType() + " @ zone#" + zoneId);
