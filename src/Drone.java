@@ -87,6 +87,8 @@ public class Drone implements Runnable {
      * Depending on the task type, it triggers the corresponding event request.
      */
     private void handleNewTask() {
+        newTaskFlag = false;
+
         switch (currTask.getTaskType()) {
             case DroneTaskType.SERVICE_ZONE:
                 eventReqServiceZone();
