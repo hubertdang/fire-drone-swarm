@@ -1,7 +1,7 @@
 import java.util.*;
 
 /**
- * ServicingDronesInfo
+ * ZoneTriageInfo
  *
  * Stores dynamic context of response time for a specific zone. Including the expected arrival times
  * of drones, total agent flow rate, and methods to manipulate context.
@@ -9,30 +9,30 @@ import java.util.*;
  * servicingDrones := LinkedHashMap<droneId, {arrivalTime, zoneFlowRate}>
  */
 
-public class ServicingDronesInfo {
+public class ZoneTriageInfo {
     private final Integer zoneId;
     private final Float originalRequiredAgent;
     private final Position zonePosition;
     private LinkedHashMap<Integer, Map.Entry<Float, Float>> servicingDrones;
-    private float currentResponseTime;
+    private float extinguishingTime;
 
     /**
-     * Constructor for the ServicingDronesInfo class
+     * Constructor for the ZoneTriageInfo class
      * @param zone the zone to be serviced
      */
-    public ServicingDronesInfo(Zone zone) {
+    public ZoneTriageInfo(Zone zone) {
         this.zoneId = zone.getId();
         this.originalRequiredAgent = zone.getRequiredAgentAmount();
         this.zonePosition = zone.getPosition();
         servicingDrones = new LinkedHashMap<>();
-        currentResponseTime = -1F;
+        extinguishingTime = -1F;
     }
 
     /**
-     * getCurrentResponseTime
-     * @return the currentResponseTime for zone on fire
+     * getExtinguishingTime
+     * @return the current extinguishing time for zone on fire
      */
-    public float getCurrentResponseTime() { return currentResponseTime; }
+    public float getExtinguishingTime() { return extinguishingTime; }
 
     /**
      * getZoneId
@@ -57,6 +57,7 @@ public class ServicingDronesInfo {
      */
     public boolean addDrone(Integer droneId, Position dronePosition) {
         float distance = dronePosition.distanceFrom(zonePosition);
+        // Proper accel and deccel should be used but is overly complicated
         float arrivalTime = distance / Drone.TOP_SPEED;
         float zoneFlowRate = AgentTank.AGENT_DROP_RATE * (servicingDrones.size() + 1);
         float currentVolume = 0;
@@ -64,7 +65,7 @@ public class ServicingDronesInfo {
         float lastTime = 0;
 
         if ( servicingDrones.containsKey(droneId) ) { return false; }
-        if (arrivalTime < currentResponseTime || currentResponseTime == -1 ) {
+        if (arrivalTime < extinguishingTime || extinguishingTime == -1 ) {
             // add drone scheduling details to servicingDrones
             Map.Entry<Float, Float> serviceEntry = new AbstractMap.SimpleEntry<>(arrivalTime, zoneFlowRate);
             servicingDrones.put(droneId, serviceEntry);
@@ -107,6 +108,13 @@ public class ServicingDronesInfo {
     /**
      * updateResponseTime
      * Updates the total response time for the drones servicing this zone
+     *
+     * total response time for a zone = arrival time of first drone +
+     * (Agent needed / agent drop time * numdrones)
+     * drones can arrive at different times
+     * so sum of agent drop rates is scaled as they arrive
+     *
+     * Refer to Scheduler Algorithm Doc
      */
     private void updateResponseTime() {
         float currentVolume = 0;
@@ -142,7 +150,7 @@ public class ServicingDronesInfo {
             prevFlowRate = entryFlowRate;
         }
         // compute remaining time with full rate
-        currentResponseTime = lastTime + (originalRequiredAgent - currentVolume) / prevFlowRate;
+        extinguishingTime = lastTime + (originalRequiredAgent - currentVolume) / prevFlowRate;
     }
 
     /**

@@ -8,7 +8,7 @@ public class Scheduler implements Runnable {
     private static final float Wd = 0.1F; // weight of drone distance from a zone
     private static final float scoreThreshold = 0F; // the score needed in order to reschedule drone
     private static final Position BASE = new Position(0, 0);
-    private final HashMap<Zone, ServicingDronesInfo> zonesOnFire;
+    private final HashMap<Zone, ZoneTriageInfo> zonesOnFire;
     private final DroneBuffer droneBuffer;
     private final FireIncidentBuffer fireBuffer;
     private final DroneActionsTable droneActionsTable;
@@ -40,7 +40,7 @@ public class Scheduler implements Runnable {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Scheduler has received a new event.\n\t" + " adding to mission queue.");
                 Zone zoneToService = fireBuffer.popEventMessage();
-                zonesOnFire.put(zoneToService, new ServicingDronesInfo(zoneToService));
+                zonesOnFire.put(zoneToService, new ZoneTriageInfo(zoneToService));
                 scheduleAllDrones(); // scheduling algorithm updates drone actions table for all drones
             }
 
@@ -84,12 +84,13 @@ public class Scheduler implements Runnable {
                         droneActionsTable.addAction(droneInfo.droneID, newTask);
                         break;
                     case IDLE:
-                        /* remove drone from servicing zones */
-                        Iterator<Map.Entry<Zone, ServicingDronesInfo>> zoneServicingEntriesIter =
+                        /* remove drone from servicing zones - implies fire is extinguished */
+                        Iterator<Map.Entry<Zone, ZoneTriageInfo>> zoneServicingEntriesIter =
                                 zonesOnFire.entrySet().iterator();
                         while (zoneServicingEntriesIter.hasNext()) {
-                            Map.Entry<Zone, ServicingDronesInfo> zoneEntry = zoneServicingEntriesIter.next();
+                            Map.Entry<Zone, ZoneTriageInfo> zoneEntry = zoneServicingEntriesIter.next();
                             if (zoneEntry.getValue().getServicingDrones().containsKey(droneInfo.droneID)) {
+                                // Only 1 drone at the zone and its idle now, so we can safely remove the zoneOnFire
                                 if (zoneEntry.getValue().getSize() == 1) {
                                     // remove zoneOnFire
                                     System.out.println("[" + Thread.currentThread().getName()
@@ -125,6 +126,8 @@ public class Scheduler implements Runnable {
             /* remove Zone from on fire list id it has been serviced */
             if (droneInfo != null && droneInfo.getStateID() == DroneStateID.IDLE
                     && droneInfo.zoneToService.getSeverity() == FireSeverity.NO_FIRE){
+                // Acknowledge fire extinguished to FireIncidentSubsystem
+                fireBuffer.addAcknowledgementMessage(droneInfo.zoneToService);
                 zonesOnFire.remove(droneInfo.zoneToService);
             }
 
@@ -181,7 +184,7 @@ public class Scheduler implements Runnable {
         ArrayList<DroneInfo> freeDroneInfos = new ArrayList<>();
         ArrayList<Integer> busyDrones = new ArrayList<>();
 
-        for (Map.Entry<Zone, ServicingDronesInfo> zoneEntry : zonesOnFire.entrySet()) {
+        for (Map.Entry<Zone, ZoneTriageInfo> zoneEntry : zonesOnFire.entrySet()) {
             Set<Map.Entry<Integer, Map.Entry<Float, Float>>> servicingDrones =
                     zoneEntry.getValue().getServicingDrones().entrySet();
             for (Map.Entry<Integer, Map.Entry<Float, Float>> droneEntry : servicingDrones) {
@@ -196,10 +199,10 @@ public class Scheduler implements Runnable {
 
         /* Free up drones for all zones but let one drone stay */
 
-        Iterator<Map.Entry<Zone, ServicingDronesInfo>> servicesIterator =
+        Iterator<Map.Entry<Zone, ZoneTriageInfo>> servicesIterator =
                 zonesOnFire.entrySet().iterator();
         while (servicesIterator.hasNext()) {
-            Map.Entry<Zone, ServicingDronesInfo> zoneEntry = servicesIterator.next();
+            Map.Entry<Zone, ZoneTriageInfo> zoneEntry = servicesIterator.next();
             if (zoneEntry.getValue().getSize() > 1) {
                 // remove all but 1 drone from zone
                 Iterator<Map.Entry<Integer, Map.Entry<Float, Float>>> servicingDronesIterator =
@@ -235,10 +238,10 @@ public class Scheduler implements Runnable {
         if (zonesOnFire.isEmpty()) { return false; }
         /* if there is a zone without a drone go there */
 
-        Iterator<Map.Entry<Zone, ServicingDronesInfo>> servicesIterator =
+        Iterator<Map.Entry<Zone, ZoneTriageInfo>> servicesIterator =
                 zonesOnFire.entrySet().iterator();
         while (servicesIterator.hasNext()) {
-            Map.Entry<Zone, ServicingDronesInfo> zoneEntry = servicesIterator.next();
+            Map.Entry<Zone, ZoneTriageInfo> zoneEntry = servicesIterator.next();
             if ( zoneEntry.getValue().getSize() == 0 ) {
 
                 // create new task to service this zone
@@ -252,29 +255,24 @@ public class Scheduler implements Runnable {
             }
         }
 
-        /* All zones have 1 drone assign the drone to zone with worst response time */
+        /* Sort zones from longest to shortest extinguish time */
+        List<Map.Entry<Zone, ZoneTriageInfo>> sortedList = new ArrayList<>(zonesOnFire.entrySet());
+        sortedList.sort((a, b)
+                -> Float.compare(b.getValue().getExtinguishingTime(),
+                a.getValue().getExtinguishingTime()));
 
-        Zone worstZone = null;
-        float worstResponseTime = 0;
-
-        for (Map.Entry<Zone, ServicingDronesInfo> zoneEntry : zonesOnFire.entrySet() ) {
-            float currEntryResponseTime = zoneEntry.getValue().getCurrentResponseTime();
-            if (currEntryResponseTime > worstResponseTime) {
-                worstZone = zoneEntry.getKey();
-                worstResponseTime = currEntryResponseTime;
+        for ( Map.Entry<Zone, ZoneTriageInfo> zoneEntry : sortedList ) {
+            // add drone to servicing structure to keep track of response time
+            boolean droneAdded = zonesOnFire.get(zoneEntry.getKey()).addDrone(droneInfo.droneID, droneInfo.position);
+            if (droneAdded) {
+                // create new task to service this zone
+                DroneTask newTask = new DroneTask(droneInfo.getDroneID()
+                        , DroneTaskType.SERVICE_ZONE, zoneEntry.getKey());
+                // add task to actions table
+                droneActionsTable.addAction(droneInfo.droneID, newTask);
+                return true;
             }
         }
-
-        // create new task to service this zone
-        DroneTask newTask = new DroneTask(droneInfo.getDroneID()
-                , DroneTaskType.SERVICE_ZONE, worstZone);
-        // add drone to servicing structure to keep track of response time
-        boolean droneAdded = zonesOnFire.get(worstZone).addDrone(droneInfo.droneID, droneInfo.position);
-        if ( droneAdded ) {
-            // add task to actions table
-            droneActionsTable.addAction(droneInfo.droneID, newTask);
-        } // ToDo if the zone is too far away/will be fully serviced by the time drone arrives, drone should service any closer zone if one is available
-
-        return droneAdded;
+        return false;
     }
 }

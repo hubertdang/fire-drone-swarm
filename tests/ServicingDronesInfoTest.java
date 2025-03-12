@@ -4,12 +4,12 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ServicingDronesInfoTest {
-    private static ServicingDronesInfo servicing;
+    private static ZoneTriageInfo servicing;
 
     @BeforeAll
     static void start() {
         Zone zone = new Zone(1, 200, 0,4,0,4);
-        servicing = new ServicingDronesInfo(zone);
+        servicing = new ZoneTriageInfo(zone);
     }
 
     @Test
@@ -20,7 +20,7 @@ class ServicingDronesInfoTest {
         servicing.addDrone(2, drone2Pos);
         servicing.addDrone(3, drone3Pos);
         servicing.addDrone(1, drone1Pos);
-        float responseTime = servicing.getCurrentResponseTime();
+        float responseTime = servicing.getExtinguishingTime();
         assertEquals(42.5, responseTime, 0.1);
         // 42.5 is hard coded make dynamic ToDo
     }
