@@ -123,7 +123,7 @@ public class Scheduler implements Runnable {
             droneActionsTable.dispatchActions(droneBuffer);
 
 
-            /* remove Zone from on fire list id it has been serviced */
+            /* remove Zone from on fire list if it has been serviced */
             if (droneInfo != null && droneInfo.getStateID() == DroneStateID.IDLE
                     && droneInfo.zoneToService.getSeverity() == FireSeverity.NO_FIRE){
                 // Acknowledge fire extinguished to FireIncidentSubsystem
