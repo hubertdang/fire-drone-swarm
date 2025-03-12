@@ -53,9 +53,10 @@ public class DroneManager implements Runnable {
     public void processSchedulerTasks() {
         while (droneBuffer.hasDroneTask()) {
             DroneTask task = droneBuffer.popDroneTask();
+            String zoneId = (task.getZone() != null) ? task.getZone().getId() + "" : "null";
             if (task.getTaskType() != DroneTaskType.REQUEST_ALL_INFO) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Received task " + task.getTaskType() + " @ zone#" + task.getZone().getId() + " for drone#"
+                        + "Received task " + task.getTaskType() + " @ zone#" + zoneId + " for drone#"
                         + task.getDroneID());
                 dispatchTaskToDrone(dronesMap.get(task.getDroneID()), task);
             } else {

@@ -171,8 +171,8 @@ public class FireIncidentSubsystem implements Runnable {
                 if (servicedZone.getSeverity() == FireSeverity.NO_FIRE) {
                     clearZones.put(servicedZone.getId(), servicedZone);
                     fireZones.remove(servicedZone.getId());
-                    System.out.println("FireIncidentSubsystem: Zone: " + servicedZone.getId()
-                            + "'s fire has been extinguished.");
+                    System.out.println("[" + Thread.currentThread().getName() + "]: 👌 Zone "
+                            + servicedZone.getId() + "'s  fire has been extinguished.");
                 }
             }
 
