@@ -8,5 +8,4 @@ public enum DroneStateID {
     ARRIVED,            /* static, at the location of the zone to service */
     RELEASING_AGENT,
     IDLE,               /* no zone to service, maybe have agent left, static */
-    UNDEFINED,           /* state has not yet been defined, used by scheduler */
 }
