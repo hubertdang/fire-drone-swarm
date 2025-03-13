@@ -52,7 +52,7 @@ public class ReleasingAgent implements DroneState {
         context.updateState(DroneStateID.IDLE);
         context.stopAgent();
         context.getZoneToService().setSeverity(FireSeverity.NO_FIRE);
-        context.sendDroneInfo();
+        context.requestTask();
         context.setZoneToService(null);
 
     }

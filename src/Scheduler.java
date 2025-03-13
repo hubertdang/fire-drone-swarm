@@ -148,7 +148,7 @@ public class Scheduler implements Runnable {
     private void scheduleAllDrones() {
        /* Gather all drone data */
 
-        DroneTask getAllInfo = new DroneTask(0, DroneTaskType.REQUEST_ALL_INFO, null);
+        DroneTask getAllInfo = new DroneTask(0, DroneTaskType.REQUEST_INFO, null);
         droneBuffer.addDroneTask(getAllInfo);
         ArrayList<DroneInfo> droneInfoList = null;
         Object droneInfoListObj;
