@@ -12,6 +12,8 @@ public abstract class MessagePasser {
 
     /**
      * Creates a MessagePasser object with a specific port to bind its socket to.
+     *
+     * @param port The port to bind the socket to.
      */
     public MessagePasser(int port) {
         try {

@@ -3,22 +3,15 @@ import java.util.Map;
 
 import static java.lang.Thread.sleep;
 
-public class Drone implements Runnable {
+public class Drone extends MessagePasser implements Runnable {
     public static final float BASE_X = 0.0f;
     public static final float BASE_Y = 0.0f;
-    public static final float ARRIVAL_DISTANCE_THRESHOLD = 10.0f;             // m
-    public static final float TOP_SPEED = 20.0f;           // m/s
-    private static final float ACCEL_RATE = 3.0f;           // m/s²
-    private static final float DECEL_RATE = -5.0f;          // m/s²
-    private static final float CRUISE_ALTITUDE = 50.0f;     // arbitrary choice for demo
-    private static final float VERTICAL_SPEED = 5.0f;       // m/s upward/downward
-
-    // Speed up values for testing
-//    private static final float TOP_SPEED = 100.0f;          // m/s
-//    private static final float ACCEL_RATE = 20.0f;          // m/s²
-//    private static final float DECEL_RATE = -20.0f;         // m/s²
-//    private static final float CRUISE_ALTITUDE = 10.0f;     // arbitrary choice for demo
-//    private static final float VERTICAL_SPEED = 10.0f;      // m/s upward/downward
+    public static final float ARRIVAL_DISTANCE_THRESHOLD = 10.0f;   // m
+    public static final float TOP_SPEED = 20.0f;                    // m/s
+    public static final float ACCEL_RATE = 3.0f;                    // m/s²
+    public static final float DECEL_RATE = -5.0f;                   // m/s²
+    public static final float CRUISE_ALTITUDE = 50.0f;              // arbitrary choice for demo
+    public static final float VERTICAL_SPEED = 5.0f;                // m/s upward/downward
 
     private final int id;
     private final AgentTank agentTank;
@@ -28,7 +21,6 @@ public class Drone implements Runnable {
     private float currSpeed;
     private float currAltitude;
     private float decelDistance;
-    private final DroneManager droneManager;
 
     /* fields accessed by other threads */
     private volatile DroneStateID currStateID;
@@ -37,7 +29,8 @@ public class Drone implements Runnable {
     private volatile Position destination;
     private volatile Zone zoneToService;
 
-    public Drone(int id, DroneManager droneManager) {
+    public Drone(int id, int port) {
+        super(port);
         this.id = id;
         position = new Position(BASE_X, BASE_Y);
         currSpeed = 0f;
@@ -45,7 +38,6 @@ public class Drone implements Runnable {
         agentTank = new AgentTank();
         zoneToService = null;
         states = new HashMap<>();
-        this.droneManager = droneManager;
 
         addState(DroneStateID.BASE, new Base());
         addState(DroneStateID.TAKEOFF, new Takeoff());
@@ -67,9 +59,9 @@ public class Drone implements Runnable {
     public void run() {
         while (true) {
             if (newTaskFlag) {
-                String zoneId = (currTask.getZone() != null) ? currTask.getZone().getId() + "" : "null";
                 System.out.println("[" + Thread.currentThread().getName() + id + "]: "
-                        + "Drone has received an new task: " + currTask.getTaskType() + " @ zone#" + zoneId);
+                        + "Drone has received an new task: " + currTask.getTaskType() + " @ zone#"
+                        + currTask.getZone().getId());
                 handleNewTask();
             }
             try {
@@ -82,8 +74,8 @@ public class Drone implements Runnable {
     }
 
     /**
-     * Handles the execution of a new task based on its type.
-     * Depending on the task type, it triggers the corresponding event request.
+     * Handles the execution of a new task based on its type. Depending on the task type, it
+     * triggers the corresponding event request.
      */
     private void handleNewTask() {
         newTaskFlag = false;
@@ -250,10 +242,18 @@ public class Drone implements Runnable {
     }
 
     /**
-     * Sends the drone's info to the scheduler.
+     * Requests a new task from the scheduler.
      */
-    public void sendDroneInfo() {
-        droneManager.sendDroneInfo(id);
+    public void requestTask() {
+        DroneInfo info = new DroneInfo(
+                id, currStateID,
+                position,
+                getAgentTankAmount(),
+                zoneToService);
+        /* TODO: create a method to get scheduler's IP address and port instead of hard-coding */
+        send(info, "/172.17.57.52", 6000);
+        currTask = (DroneTask) receive();
+        setNewTaskFlag();
     }
 
     /* ------------------------------ EVENT TRIGGERS ------------------------------ */
