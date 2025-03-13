@@ -8,7 +8,7 @@ import java.net.*;
  */
 public abstract class MessagePasser {
     public static final int MESSAGE_MAX_SIZE = 1024;
-    private DatagramSocket socket;
+    public static DatagramSocket socket;
 
     /**
      * Creates a MessagePasser object with a specific port to bind its socket to.
@@ -28,7 +28,7 @@ public abstract class MessagePasser {
      * @param addressStr The address to send the message object to.
      * @param port The port to send the message object to.
      */
-    public void send(Object msg, String addressStr, int port) {
+    public static void send(Object msg, String addressStr, int port) {
         InetAddress address;
 
         byte[] serializedMsg = serialize(msg);
@@ -54,7 +54,7 @@ public abstract class MessagePasser {
         }
     }
 
-    public Object receive() {
+    public static Object receive() {
         byte[] buf = new byte[MESSAGE_MAX_SIZE];
 
         DatagramPacket packet = new DatagramPacket(buf, buf.length);
@@ -75,7 +75,7 @@ public abstract class MessagePasser {
      * @param msg The message to serialize.
      * @return The serialize message in bytes.
      */
-    private byte[] serialize(Object msg) {
+    public static byte[] serialize(Object msg) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
@@ -95,7 +95,7 @@ public abstract class MessagePasser {
      * @param length The length of the serialized message in bytes.
      * @return The deserialized message.
      */
-    private Object deserialize(byte[] msg, int length) {
+    public static Object deserialize(byte[] msg, int length) {
         Object deserializedMsg;
 
         ByteArrayInputStream bais = new ByteArrayInputStream(msg, 0, length);
@@ -109,4 +109,5 @@ public abstract class MessagePasser {
 
         return deserializedMsg;
     }
+
 }

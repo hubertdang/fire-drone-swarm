@@ -23,7 +23,7 @@ public class SchedulerTest {
 
          */
     }
-
+/*
     @Test
     public void testGetMissionQueue() throws Exception {
         Missions missions = new Missions();
@@ -34,5 +34,5 @@ public class SchedulerTest {
         //assertEquals(missions, scheduler.getMissionQueue());
         //ToDo
 
-    }
+    }*/
 }

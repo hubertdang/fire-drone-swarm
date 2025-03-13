@@ -1,8 +1,10 @@
+import java.io.Serializable;
+
 /**
  * Represents a zone in a 2D space with a unique ID, center position, fire severity,
  * and required agent amount for firefighting.
  */
-public class Zone {
+public class Zone implements Serializable {
     private final int id;
     private final Position position;
     private FireSeverity severity;
