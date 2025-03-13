@@ -26,7 +26,7 @@ public class SchedulerTest {
 
     @Test
     public void testGetMissionQueue() throws Exception {
-       // Missions missions = new Missions();
+        Missions missions = new Missions();
         Zone zone = new Zone(1, 50.0F, 50, 70, 0, 40);
         zone.setSeverity(FireSeverity.MODERATE);
         //missions.queue(zone);
