@@ -7,7 +7,7 @@ import java.net.*;
  * should not be instantiated on its own (should always be inherited).
  */
 public abstract class MessagePasser {
-    public static final int MESSAGE_MAX_SIZE = 1024;
+    private static final int MESSAGE_MAX_SIZE = 1024;
     private DatagramSocket socket;
 
     /**
@@ -18,7 +18,8 @@ public abstract class MessagePasser {
     public MessagePasser(int port) {
         try {
             socket = new DatagramSocket(port);
-        } catch (SocketException e) {
+        }
+        catch (SocketException e) {
             System.exit(1);
         }
     }
@@ -26,9 +27,9 @@ public abstract class MessagePasser {
     /**
      * Sends a message object to a specified address and port.
      *
-     * @param msg The message object to send.
+     * @param msg        The message object to send.
      * @param addressStr The address to send the message object to.
-     * @param port The port to send the message object to.
+     * @param port       The port to send the message object to.
      */
     public void send(Object msg, String addressStr, int port) {
         InetAddress address;
@@ -77,7 +78,7 @@ public abstract class MessagePasser {
      * @param msg The message to serialize.
      * @return The serialize message in bytes.
      */
-    private byte[] serialize(Object msg) {
+    public byte[] serialize(Object msg) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
@@ -93,7 +94,7 @@ public abstract class MessagePasser {
     /**
      * Deserializes a serialized message.
      *
-     * @param msg The serialized message to deserialize.
+     * @param msg    The serialized message to deserialize.
      * @param length The length of the serialized message in bytes.
      * @return The deserialized message.
      */
@@ -111,4 +112,5 @@ public abstract class MessagePasser {
 
         return deserializedMsg;
     }
+
 }
