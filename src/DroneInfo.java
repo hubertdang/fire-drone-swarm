@@ -1,3 +1,4 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
@@ -5,7 +6,7 @@ import java.util.ArrayList;
  * A class to pass drone's info from DroneSubsystem to Scheduler
  */
 
-public class DroneInfo {
+public class DroneInfo implements Serializable {
     final int droneID;
     final Position position;
     final float agentTankAmount;

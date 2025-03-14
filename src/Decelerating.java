@@ -75,7 +75,7 @@ public class Decelerating implements DroneState {
         }
         else {
             context.updateState(DroneStateID.ARRIVED);
-            context.sendDroneInfo();
+            context.requestTask();
         }
     }
 

@@ -1,10 +1,12 @@
+import java.io.Serializable;
+
 /**
  * Task Class
  * A class in the fire drone swarm system designed to aid in the generation
  * of messages passed between the scheduler and the drone.
  */
 
-public class DroneTask {
+public class DroneTask implements Serializable {
     private final int droneID;
     private final DroneTaskType taskType;
     private final Zone zone;
