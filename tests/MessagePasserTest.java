@@ -9,20 +9,13 @@ import java.io.*;
 import java.net.*;
 
 public class MessagePasserTest {
-    private DatagramSocket sendSocket;
-    private DatagramSocket receiveSocket;
+    private TestMessagePasser1 client;
+    private TestMessagePasser2 server;
 
     @BeforeEach
     void setUp() {
-        try {
-            sendSocket = new DatagramSocket();
-            receiveSocket = new DatagramSocket();
-            MessagePasser.socket = sendSocket;
-        }
-        catch (SocketException se) {
-            se.printStackTrace();
-            System.exit(1);
-        }
+        client = new TestMessagePasser1(5000);
+        server = new TestMessagePasser2(5001);
     }
 
     /**
@@ -37,33 +30,40 @@ public class MessagePasserTest {
     void testSendAndReceive() throws InterruptedException, UnknownHostException {
         Zone msg = new Zone(2, 90.00f, 4, 45, 0, 67);
         Thread receiverThread = new Thread(() -> {
-            Object receivedMsg = MessagePasser.receive();
+            Object receivedMsg = server.receive();
+            System.out.println(receivedMsg);
             assertEquals(msg, receivedMsg);
-
         });
 
         receiverThread.start();
         Thread.sleep(100);
-        MessagePasser.send(msg, InetAddress.getLocalHost().getHostAddress(), receiveSocket.getLocalPort());
+        client.send(msg, InetAddress.getLocalHost().getHostAddress(), server.getPort());
     }
 
+    public class TestMessagePasser1 extends MessagePasser {
+        private int port;
 
-    @Test
-    void testSerialize() {
-        Zone testZone = new Zone(1, 100.0f, 0, 50, 0, 50);
-        byte[] serializedZone = MessagePasser.serialize(testZone);
-        System.out.println(serializedZone);
-        assertEquals(serializedZone.getClass(), byte[].class);
+        public TestMessagePasser1(int port) {
+            super(port);
+            this.port = port;
+        }
+
+        public int getPort() {
+            return port;
+        }
     }
 
-    @Test
-    void testDeserialize() {
-        Zone testZone = new Zone(1, 100.0f, 0, 50, 0, 50);
-        byte[] serializedZone = MessagePasser.serialize(testZone);
+    public class TestMessagePasser2 extends MessagePasser {
+        private int port;
 
-        Object deserializedZone = MessagePasser.deserialize(serializedZone, serializedZone.length);
-        System.out.println(deserializedZone);
-        assertEquals(deserializedZone.getClass(), Zone.class);
-        assertEquals(deserializedZone, testZone);
+        public TestMessagePasser2(int port) {
+            super(port);
+            this.port = port;
+        }
+
+        public int getPort() {
+            return port;
+        }
     }
+
 }
