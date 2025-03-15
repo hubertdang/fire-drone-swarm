@@ -44,6 +44,10 @@ public class DroneInfo implements Serializable {
         return zoneToService.getRequiredAgentAmount();
     }
 
+    public Zone getZoneToService() {
+        return zoneToService;
+    }
+
     /**
      * droneInfoLookUp returns the ID specified Drone Info object from a list
      * @param droneId the id of drone to be looked up

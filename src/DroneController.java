@@ -41,27 +41,27 @@ public class DroneController extends MessagePasser implements Runnable {
         String zoneId = (task.getZone() != null) ? String.valueOf(task.getZone().getId()) : "null";
 
         System.out.println("[" + Thread.currentThread().getName() + "]: " + "Received task "
-                + task.getTaskType() + " @ zone#" + zoneId + " for drone#" + task.getDroneID());
+                + task.getTaskType() + " @ Zone# " + zoneId + " for Drone# " + task.getDroneID());
 
         switch (task.getTaskType()) {
             case SERVICE_ZONE:
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Dispatching SERVICE_ZONE task to drone#" + drone.getId());
+                        + "Dispatching SERVICE_ZONE task to Drone# " + drone.getId());
                 drone.setDestination(task.getZone().getPosition());
                 drone.setZoneToService(task.getZone());
                 break;
             case RELEASE_AGENT:
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Dispatching RELEASE_AGENT task to drone#" + drone.getId());
+                        + "Dispatching RELEASE_AGENT task to Drone# " + drone.getId());
                 break;
             case RECALL:
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Dispatching RECALL task to drone#" + drone.getId());
+                        + "Dispatching RECALL task to Drone# " + drone.getId());
                 drone.setDestination(new Position(Drone.BASE_X, Drone.BASE_Y));
                 break;
             case REQUEST_INFO:
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Processing REQUEST_ALL_INFO task for drone#" + drone.getId());
+                        + "Processing REQUEST_ALL_INFO task for Drone# " + drone.getId());
                 DroneInfo info = new DroneInfo(
                         drone.getId(),
                         drone.getCurrStateID(),
@@ -69,7 +69,8 @@ public class DroneController extends MessagePasser implements Runnable {
                         drone.getAgentTankAmount(),
                         drone.getZoneToService());
                 /* TODO: create a method to get scheduler's IP address and port instead of hard-coding */
-                send(info, "/172.17.57.52", 6000);
+                send(info, "localhost", 7000);
+                break;
             default:
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Unknown task type.");
@@ -83,6 +84,9 @@ public class DroneController extends MessagePasser implements Runnable {
      * @param task The task to dispatch.
      */
     private void dispatchTask(DroneTask task) {
+        if(task.getTaskType() == DroneTaskType.REQUEST_INFO) {
+            return;
+        }
         drone.setCurrTask(task);
         drone.setNewTaskFlag();
     }
