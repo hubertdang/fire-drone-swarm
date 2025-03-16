@@ -1,7 +1,4 @@
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * A DroneActionsTable to store the actions of drones.
@@ -55,6 +52,7 @@ public class DroneActionsTable {
 
         Iterator<Map.Entry<Integer, DroneTask>> iterator =
                 actionsTable.entrySet().iterator();
+        Set<DroneTaskType> allTaskTypes = EnumSet.allOf(DroneTaskType.class);
 
         while (iterator.hasNext()) {
             Map.Entry<Integer, DroneTask> entry = iterator.next();
@@ -70,8 +68,8 @@ public class DroneActionsTable {
                 if (entry.getKey() == droneID) {
                     // If the droneID is specified, send the task to that drone only.
                     messagePasser.send(entry.getValue(), "localhost", 5000 + entry.getKey());
-                    if (entry.getValue().getTaskType() == DroneTaskType.SERVICE_ZONE) {
-                        // For SERVICE_ZONE tasks, send the task to both the Drone and the DroneController.
+                    if (allTaskTypes.contains(entry.getValue().getTaskType())){
+                        // // For any task type, send the task to both the Drone and the DroneController.
                         // This unblocks the Drone and dispatches the zone service to the DroneController.
                         messagePasser.send(entry.getValue(), "localhost", 6000 + entry.getKey());
                     }

@@ -3,20 +3,15 @@
 A control system and simulator for a firefighting drone swarm.
 
 ## 📂 Project Structure
-
 | **File**                               | **Description**                                                                                 |
 |----------------------------------------|-------------------------------------------------------------------------------------------------|
 | `FireIncidentSubsystem.java`           | Handles fire events and drone requests, communicating with `Scheduler`                          |
-| `FireIncidentBuffer.java`              | Represents the buffer used between the fire incident subsystem and the scheduler.               |
 | `Scheduler.java`                       | Processes fire incidents and drone requests.                                                    |
-| `Missions.java`                        | Represents the missions for the drones.                                                         |
 | `SimEvent.java`                        | Represents a fire event message.                                                                |
 | `DroneTask.java`                       | Represents a task used to aid in the generation of messages passed between scheduler and drone. |
 | `DroneTaskType.java`                   | Enum defining the types of tasks that can be assigned to a drone.                               |
 | `Drone.java`                           | Represents a drone in the simulation.                                                           |
-| `DroneBuffer.java`                     | Represents the buffer used between drone adn scheduler.                                         |
 | `DroneInfo.java`                       | Represents the information of a specific drone                                                  |
-| `DroneManager.java`                    | Represents the manager of the drones.                                                           |
 | `DroneStateID.java`                    | Enum defining the states of the drone.                                                          |
 | `DroneActionsTable.java`               | Represents the drone actions table of the scheduler.                                            |
 | `DroneScores.java`                     | Represents the scores of the drones.                                                            |
@@ -34,20 +29,21 @@ A control system and simulator for a firefighting drone swarm.
 | `Landing.java`                         | Landing drone state                                                                             |
 | `Takingoff.java`                       | Taking off drone state                                                                          |
 | `ReleasingAgent.java`                  | Releasing agent drone state                                                                     |
-| `SchedulerSubstate.java`               | Interface for scheduler substates.                                                              |
-| `HappyPathSubState.java`               | Happy path substate of the drone.                                                               |
-| `ResupplySubState.java`                | Rsupply substate of the drone.                                                                  |
 | `Main.java`                            | Entry point for running the simulation.                                                         |
-| `tests/FireIncidentSubsystemTest.java` | Unit tests for `FireIncidentSubsystem`.                                                         | 
+| `DroneRequestHandler.java`             | Handles requests for new drone tasks.                                                           |
+| `DroneSubsystem.java`                  | Manages the drone subsystem.                                                                    |
+| `FireEventHandler.java`                | Handles fire events.                                                                            |
+| `SchedulerSubsystem.java`              | Manages the scheduler subsystem.                                                                |
+| `DroneController.java`                 | Controls the drone operations.                                                                  |
+| `tests/FireIncidentSubsystemTest.java` | Unit tests for `FireIncidentSubsystem`.                                                         |
 | `tests/ZoneTest.java`                  | Unit tests for `Zone`.                                                                          |
 | `tests/DroneTest.java`                 | Unit tests for `Drone`.                                                                         |
 | `tests/SchedulerTest.java`             | Unit tests for `Scheduler`.                                                                     |
 | `tests/MissionsTest.java`              | Unit tests for `MissionQueue`.                                                                  |
 | `tests/AgentTankTest.java`             | Unit tests for `AgentTank`.                                                                     |
-| `tests/DroneBufferTest.java`           | Unit tests for `DroneBuffer`.                                                                   |
-| `tests/FireIncidentBufferTest.java`    | Unit tests for `FireIncidentBuffer`.                                                            |
 | `tests/SimEventTest.java`              | Unit tests for `SimEvent`.                                                                      |
 | `tests/PositionTest.java`              | Unit tests for `Position`.                                                                      |
+| `tests/MessagePasserTest.java`         | Unit tests for `MessagePasser`.                                                                 |
 | `sample_input_files/zones.csv`         | Sample test file containing zone definitions.                                                   |
 | `sample_input_files/events.csv`        | Sample test file containing fire incident events.                                               |
 | `docs/UML_Class_Diagram.pdf`           | UML Class diagram of the system.                                                                |
@@ -70,7 +66,7 @@ cd fire-drone-swarm
 ### **2. Open the Project in IntelliJ IDEA**
 1. Open IntelliJ IDEA.
 2. Click on `Open`.
-3. Compile and run `Main.java` inside your IDE to run the simulation.
+3. Compile and run `DroneSubsystem`,`SchedulerSubsystem`,`FireIncidentSubsystem` inside your IDE to run the simulation.
 4. To run unit tests, click on unit test file and run the test
 
 ## Developer Workflow
@@ -129,6 +125,19 @@ cd fire-drone-swarm
 10. Create your pull request. Follow the instructions listed [here](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request#creating-the-pull-request).
 11. Once your pull request is ready to merge, please **squash and merge** to limit the number of commits to master.
 ![image](https://github.com/user-attachments/assets/e829f914-5a12-4ec0-a8e7-1ee3f6358397)
+
+## Iteration 3: Breakdown of Responsibilities
+In general, the team approached the project collaboratively, working together to solve problems and make decisions. However, each team member was responsible for specific tasks and components of the project.
+The breakdown of responsibilities is as follows:
+- Amilesh: `Drone`,`DroneActionsTable`,`DroneRequestHandler`,`DroneSubsystem`,`FireEventHandler`,`FireIncidentSubsystem`
+,`Scheduler`,`SchedulerSubsystem`,
+- Hubert: `Decelerating`, `Drone`,`DroneController`,`DroneSubsystem`, `DroneTaskType`, `Landing`, `ReleasingAgent`
+- David: `DroneActionsTable`,`DroneRequestHandler`,`FireIncidentSubsystem`,`Scheduler`
+- Aashna: `Drone`, `Takeoff`, `Accelerating`
+- Shenhao Gong: `MessagePasser`, `DroneInfo`,`DroneTask`,`Position`,`Zone`
+- Manit: UML class diagram, UML state diagram, `SchedulerTest`, `MessagePasserTest`
+
+
 
 ## Iteration 2: Breakdown of Responsibilities
 In general, the team approached the project collaboratively, working together to solve problems and make decisions. However, each team member was responsible for specific tasks and components of the project.
