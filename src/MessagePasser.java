@@ -73,6 +73,40 @@ public abstract class MessagePasser {
     }
 
     /**
+     * Receives packets on socket for a specified amount of time in ms.
+     * @return the received packet as an Object, or null if timeout is reached.
+     */
+    public Object receive(int timeout) {
+        try {
+            socket.setSoTimeout(timeout);
+        }
+        catch (SocketException e) {
+            throw new RuntimeException(e);
+        }
+        byte[] buf = new byte[MESSAGE_MAX_SIZE];
+
+        DatagramPacket packet = new DatagramPacket(buf, buf.length);
+
+        try {
+            socket.receive(packet);
+        }
+        catch (SocketTimeoutException e) {
+            try {
+                socket.setSoTimeout(0);
+            }
+            catch (SocketException ex) {
+                throw new RuntimeException(ex);
+            }
+            return null;
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return deserialize(packet.getData(), packet.getLength());
+    }
+
+    /**
      * Serializes a message.
      *
      * @param msg The message to serialize.

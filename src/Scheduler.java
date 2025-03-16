@@ -71,7 +71,7 @@ public class Scheduler {
 
     }
 
-    public synchronized void processDroneInfo(DroneInfo droneInfo) {
+    public synchronized void processDroneInfo(DroneInfo droneInfo, MessagePasser messagePasser) {
         DroneTask newTask;
         switch (droneInfo.getStateID()) {
             case ARRIVED:
@@ -85,7 +85,7 @@ public class Scheduler {
                     Map.Entry<Zone, ZoneTriageInfo> zoneEntry = zoneServicingEntriesIter.next();
                     if (zoneEntry.getValue().getServicingDrones().containsKey(droneInfo.droneID)) {
                         // remove zoneOnFire
-
+                        messagePasser.send(droneInfo.zoneToService, "localhost", 9000);
                         zoneServicingEntriesIter.remove();
                         break;
                     }
