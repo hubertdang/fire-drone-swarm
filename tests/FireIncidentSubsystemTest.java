@@ -12,7 +12,7 @@ public class FireIncidentSubsystemTest {
 
     @BeforeEach
     public void setUp() {
-        fireIncidentSubsystem = new FireIncidentSubsystem(new FireIncidentBuffer());
+        //fireIncidentSubsystem = new FireIncidentSubsystem(new FireIncidentBuffer());
     }
 
     @Test

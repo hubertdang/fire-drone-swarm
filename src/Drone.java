@@ -251,8 +251,17 @@ public class Drone extends MessagePasser implements Runnable {
                 getAgentTankAmount(),
                 zoneToService);
         /* TODO: create a method to get scheduler's IP address and port instead of hard-coding */
-        send(info, "/172.17.57.52", 6000);
+        send(info, "localhost", 7001);
         currTask = (DroneTask) receive();
+        if (currTask.getTaskType() == DroneTaskType.RECALL) {
+            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                    + "Received new task: " + currTask.getTaskType());
+        }
+        else {
+            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                    + "Received new task: " + currTask.getTaskType() + " @ zone#"
+                    + currTask.getZone().getId());
+        }
         setNewTaskFlag();
     }
 

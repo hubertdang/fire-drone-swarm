@@ -9,14 +9,13 @@ import java.util.HashMap;
 import static java.lang.Thread.sleep;
 
 
-public class FireIncidentSubsystem implements Runnable {
+public class FireIncidentSubsystem extends MessagePasser implements Runnable {
     public static final HashMap<FireSeverity, Integer> AGENT_AMOUNT = new HashMap<FireSeverity, Integer>() {{ // Amount of agents required in liters for each fire severity
         put(FireSeverity.NO_FIRE, 0);
         put(FireSeverity.LOW, 10);
         put(FireSeverity.MODERATE, 20);
         put(FireSeverity.HIGH, 30);
     }};
-    private final FireIncidentBuffer fireBuffer;
     private final HashMap<Integer, Zone> clearZones;
     private final HashMap<Integer, Zone> fireZones;
     private final ArrayList<SimEvent> events;
@@ -24,10 +23,10 @@ public class FireIncidentSubsystem implements Runnable {
     /**
      * Constructs a FireIncidentSubsystem with the given fireBuffer.
      *
-     * @param fireBuffer the scheduler to be used
+     * @param port the port number for the FireIncidentSubsystem
      */
-    public FireIncidentSubsystem(FireIncidentBuffer fireBuffer) {
-        this.fireBuffer = fireBuffer;
+    public FireIncidentSubsystem(int port) {
+        super(port);
         this.clearZones = new HashMap<Integer, Zone>();
         this.fireZones = new HashMap<Integer, Zone>(); // no fires when we initialize
         this.events = new ArrayList<SimEvent>();
@@ -45,7 +44,8 @@ public class FireIncidentSubsystem implements Runnable {
             System.out.println("[" + Thread.currentThread().getName() + "]: " + "🤖Manual request for drone @ zone#" + zone.getId());
             clearZones.remove(zone.getId());
             fireZones.put(zone.getId(), zone);
-            fireBuffer.addEventMessage(zone);
+            send(zone, "localhost", 7000);
+
         }
         else {
             System.out.println("[" + Thread.currentThread().getName() + "]: " + "🔥Zone " + zone.getId() + " is already on fire");
@@ -59,10 +59,10 @@ public class FireIncidentSubsystem implements Runnable {
      * @param eventTime the time the event occurred
      */
     private void trackFire(Zone zone, long eventTime) {
-        System.out.println("[" + Thread.currentThread().getName() + "]: " + "🔥Fire detected @ zone#" + zone.getId());
+        System.out.println("[" + Thread.currentThread().getName() + "]: " + "🔥Fire detected @ Zone#" + zone.getId());
         clearZones.remove(zone.getId());
         fireZones.put(zone.getId(), zone);
-        fireBuffer.addEventMessage(zone);
+        send(zone, "localhost", 7000);
     }
 
     /**
@@ -165,16 +165,6 @@ public class FireIncidentSubsystem implements Runnable {
                 eventIndexTime = events.get(eventIndex).getTime();
             }
 
-            // check buffer for acknowledgement that fire has been put out
-            if (fireBuffer.newAcknowledgement()) {
-                Zone servicedZone = fireBuffer.popAcknowledgementMessage();
-                if (servicedZone.getSeverity() == FireSeverity.NO_FIRE) {
-                    clearZones.put(servicedZone.getId(), servicedZone);
-                    fireZones.remove(servicedZone.getId());
-                    System.out.println("[" + Thread.currentThread().getName() + "]: 👌 Zone "
-                            + servicedZone.getId() + "'s  fire has been extinguished.");
-                }
-            }
 
             // sleep polling thread to allow other threads to run
             try {
@@ -230,7 +220,7 @@ public class FireIncidentSubsystem implements Runnable {
             zone = fireZones.get(zoneId);
             if (zone == null) {
                 System.err.println("[" + Thread.currentThread().getName() + "]: "
-                                       + "Zone " + zoneId + " not found in either clearZones or fireZones.");
+                        + "Zone " + zoneId + " not found in either clearZones or fireZones.");
                 return;
             }
         }
@@ -299,6 +289,15 @@ public class FireIncidentSubsystem implements Runnable {
                 .getOffset(java.time.Instant.ofEpochMilli(currentTimeMillis))
                 .getTotalSeconds() * 1000L;
         return (currentTimeMillis + offset) % (24 * 60 * 60 * 1000L);
+    }
+
+    public static void main(String[] args) {
+        FireIncidentSubsystem fireIncidentSubsystem = new FireIncidentSubsystem(9000);
+        fireIncidentSubsystem.readSimZoneFile(new File("./sample_input_files/zones.csv"));
+        fireIncidentSubsystem.readSimEventFile(new File("./sample_input_files/events.csv"));
+
+        Thread fireIncidentSubsystemThread = new Thread(fireIncidentSubsystem, "🐦‍🔥FIS");
+        fireIncidentSubsystemThread.start();
     }
 
     /**
