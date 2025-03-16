@@ -26,8 +26,8 @@ public class DroneRequestHandler extends MessagePasser implements Runnable {
                         + " | STATE = " + droneInfo.stateID
                         + " | POSITION = " + droneInfo.getPosition()
                         + " | TANK = " + String.format("%.2f L", droneInfo.getAgentTankAmount()));
-                scheduler.processDroneInfo(droneInfo);
-                scheduler.dispatchActions(this,droneInfo.droneID);
+                scheduler.processDroneInfo(droneInfo, this);
+                scheduler.dispatchActions(this, droneInfo.droneID);
             }
             try {
                 Thread.sleep(2000);

@@ -165,13 +165,15 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
                 eventIndexTime = events.get(eventIndex).getTime();
             }
 
-
-            // sleep polling thread to allow other threads to run
-            try {
-                sleep(5000);
-            }
-            catch (InterruptedException e) {
-                throw new RuntimeException(e);
+            // check for acknowledgement that fire has been put out
+            Zone servicedZone = (Zone) receive(5000);
+            if ( servicedZone != null ) {
+                if (servicedZone.getSeverity() == FireSeverity.NO_FIRE) {
+                    clearZones.put(servicedZone.getId(), servicedZone);
+                    fireZones.remove(servicedZone.getId());
+                    System.out.println("[" + Thread.currentThread().getName() + "]: 👌 Zone "
+                            + servicedZone.getId() + "'s  fire has been extinguished.");
+                }
             }
         }
 

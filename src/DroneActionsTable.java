@@ -78,10 +78,9 @@ public class DroneActionsTable {
                     System.out.println("[" + Thread.currentThread().getName()
                             + "]: Scheduler has dispatched Task: " + entry.getValue().getTaskType() + " to Drone: "
                             + entry.getKey() + " for Zone: " + entry.getValue().getZone());
-                    iterator.remove();
                 }
-
             }
+            iterator.remove();
         }
     }
 }

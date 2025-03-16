@@ -8,7 +8,7 @@ public class SchedulerTest {
 
     @BeforeEach
     public void setUp() {
-        scheduler = new Scheduler(new DroneBuffer(), new FireIncidentBuffer());
+        scheduler = new Scheduler();
     }
 
 }
