@@ -50,7 +50,8 @@ public class DroneInfo implements Serializable {
 
     /**
      * droneInfoLookUp returns the ID specified Drone Info object from a list
-     * @param droneId the id of drone to be looked up
+     *
+     * @param droneId  the id of drone to be looked up
      * @param infoList a list of DroneInfo objects
      * @return desired DroneInfo object
      */

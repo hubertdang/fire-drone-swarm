@@ -84,22 +84,15 @@ public class Scheduler {
                 while (zoneServicingEntriesIter.hasNext()) {
                     Map.Entry<Zone, ZoneTriageInfo> zoneEntry = zoneServicingEntriesIter.next();
                     if (zoneEntry.getValue().getServicingDrones().containsKey(droneInfo.droneID)) {
-                        // Only 1 drone at the zone and its idle now, so we can safely remove the zoneOnFire
-                        if (zoneEntry.getValue().getSize() == 1) {
-                            // remove zoneOnFire
-                            System.out.println("[" + Thread.currentThread().getName()
-                                    + "]: Fire Extinguished received from all servicing drones for Zone: "
-                                    + zoneEntry.getKey().getId());
-                            zoneServicingEntriesIter.remove();
-                            break;
-                        }
-                        else {
-                            zoneEntry.getValue().removeDrone(droneInfo.droneID);
-                            break;
-                        }
+                        // remove zoneOnFire
+
+                        zoneServicingEntriesIter.remove();
+                        break;
                     }
                 }
-
+                System.out.println("[" + Thread.currentThread().getName()
+                        + "]: Fire Extinguished received from Drone#"+droneInfo.getDroneID()
+                        +" Zone: " + droneInfo.getZoneToService());
 
                 newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RECALL);
                 droneActionsTable.addAction(droneInfo.droneID, newTask);
@@ -114,8 +107,8 @@ public class Scheduler {
         }
     }
 
-    public synchronized void dispatchActions(MessagePasser messagePasser) {
-        droneActionsTable.dispatchActions(messagePasser);
+    public synchronized void dispatchActions(MessagePasser messagePasser,int droneID) {
+        droneActionsTable.dispatchActions(messagePasser, droneID);
 
     }
 

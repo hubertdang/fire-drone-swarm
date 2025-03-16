@@ -84,7 +84,7 @@ public class DroneController extends MessagePasser implements Runnable {
      * @param task The task to dispatch.
      */
     private void dispatchTask(DroneTask task) {
-        if(task.getTaskType() == DroneTaskType.REQUEST_INFO) {
+        if (task.getTaskType() == DroneTaskType.REQUEST_INFO) {
             return;
         }
         drone.setCurrTask(task);

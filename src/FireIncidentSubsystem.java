@@ -165,16 +165,6 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
                 eventIndexTime = events.get(eventIndex).getTime();
             }
 
-            // check buffer for acknowledgement that fire has been put out
-//            if (fireBuffer.newAcknowledgement()) {
-//                Zone servicedZone = fireBuffer.popAcknowledgementMessage();
-//                if (servicedZone.getSeverity() == FireSeverity.NO_FIRE) {
-//                    clearZones.put(servicedZone.getId(), servicedZone);
-//                    fireZones.remove(servicedZone.getId());
-//                    System.out.println("[" + Thread.currentThread().getName() + "]: 👌 Zone "
-//                            + servicedZone.getId() + "'s  fire has been extinguished.");
-//                }
-//            }
 
             // sleep polling thread to allow other threads to run
             try {
@@ -230,7 +220,7 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
             zone = fireZones.get(zoneId);
             if (zone == null) {
                 System.err.println("[" + Thread.currentThread().getName() + "]: "
-                                       + "Zone " + zoneId + " not found in either clearZones or fireZones.");
+                        + "Zone " + zoneId + " not found in either clearZones or fireZones.");
                 return;
             }
         }

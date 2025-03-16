@@ -1,5 +1,3 @@
-import java.util.*;
-
 /**
  * A DroneRequestHandler to handle drone requests.
  */
@@ -29,7 +27,7 @@ public class DroneRequestHandler extends MessagePasser implements Runnable {
                         + " | POSITION = " + droneInfo.getPosition()
                         + " | TANK = " + String.format("%.2f L", droneInfo.getAgentTankAmount()));
                 scheduler.processDroneInfo(droneInfo);
-                scheduler.dispatchActions(this);
+                scheduler.dispatchActions(this,droneInfo.droneID);
             }
             try {
                 Thread.sleep(2000);

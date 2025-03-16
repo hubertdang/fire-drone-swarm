@@ -31,7 +31,7 @@ public class FireEventHandler extends MessagePasser implements Runnable {
                         + "Scheduler has received a new event.\n\t" + " adding to mission queue.");
                 scheduler.putZoneOnFire(storedZone);
                 scheduleAllDrones(); // scheduling algorithm updates drone actions table for all drones
-                scheduler.dispatchActions(this);
+                scheduler.dispatchActions(this,-1);
             }
 
             Zone fireZone = (Zone) receive();
@@ -40,7 +40,7 @@ public class FireEventHandler extends MessagePasser implements Runnable {
                         + "Scheduler has received a new event.\n\t" + " adding to mission queue.");
                 scheduler.putZoneOnFire(fireZone);
                 scheduleAllDrones(); // scheduling algorithm updates drone actions table for all drones
-                scheduler.dispatchActions(this);
+                scheduler.dispatchActions(this,-1);
             }
             else {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "

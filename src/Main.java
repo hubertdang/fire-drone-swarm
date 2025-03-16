@@ -23,11 +23,11 @@ public class Main {
         // Instantiate threads
         System.out.println("--- \nNote: \nFIS-fireSubsystemThread \nDM-droneSubsystemThread \nSD-schedulerThread \nD-droneThread \n---");
         Thread fireSubsystemThread = new Thread(fireIncidentSubsystem, "🐦‍🔥FIS");
-        //Thread schedulerThread = new Thread(scheduler, "📅SD");
+
 
         // run threads
         fireSubsystemThread.start();
-        //schedulerThread.start();
+
 
         // exit program when Fire Incident Subsystem indicates no more events to service
         while (fireSubsystemThread.isAlive()) {

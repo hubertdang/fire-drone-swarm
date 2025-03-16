@@ -253,7 +253,7 @@ public class Drone extends MessagePasser implements Runnable {
         /* TODO: create a method to get scheduler's IP address and port instead of hard-coding */
         send(info, "localhost", 7001);
         currTask = (DroneTask) receive();
-        if(currTask.getTaskType() == DroneTaskType.RECALL){
+        if (currTask.getTaskType() == DroneTaskType.RECALL) {
             System.out.println("[" + Thread.currentThread().getName() + id + "]: "
                     + "Received new task: " + currTask.getTaskType());
         }

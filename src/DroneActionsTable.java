@@ -51,7 +51,7 @@ public class DroneActionsTable {
      *
      * @param messagePasser the message passer to send the actions
      */
-    public synchronized void dispatchActions(MessagePasser messagePasser) {
+    public synchronized void dispatchActions(MessagePasser messagePasser, int droneID) {
 
         Iterator<Map.Entry<Integer, DroneTask>> iterator =
                 actionsTable.entrySet().iterator();
@@ -64,26 +64,22 @@ public class DroneActionsTable {
                 messagePasser.send(entry.getValue(), "localhost", 6000 + entry.getKey());
                 System.out.println("[" + Thread.currentThread().getName()
                         + "]: Scheduler has dispatched Task: " + entry.getValue().getTaskType() + " to DroneController: "
-                        + entry.getKey());
+                        + entry.getKey() + " for Zone " + entry.getValue().getZone());
             }
             else {
-                if (entry.getValue().getTaskType() == DroneTaskType.SERVICE_ZONE) {
-                    // For SERVICE_ZONE tasks, send the task to both the Drone and the DroneController.
-                    // This unblocks the Drone and dispatches the zone service to the DroneController.
+                if (entry.getKey() == droneID) {
+                    // If the droneID is specified, send the task to that drone only.
                     messagePasser.send(entry.getValue(), "localhost", 5000 + entry.getKey());
-                    messagePasser.send(entry.getValue(), "localhost", 6000 + entry.getKey());
+                    if (entry.getValue().getTaskType() == DroneTaskType.SERVICE_ZONE) {
+                        // For SERVICE_ZONE tasks, send the task to both the Drone and the DroneController.
+                        // This unblocks the Drone and dispatches the zone service to the DroneController.
+                        messagePasser.send(entry.getValue(), "localhost", 6000 + entry.getKey());
+                    }
                     System.out.println("[" + Thread.currentThread().getName()
                             + "]: Scheduler has dispatched Task: " + entry.getValue().getTaskType() + " to Drone: "
                             + entry.getKey() + " for Zone: " + entry.getValue().getZone());
+                    iterator.remove();
                 }
-                else {
-                    // otherwise just send to Drone
-                    messagePasser.send(entry.getValue(), "localhost", 5000 + entry.getKey());
-                    System.out.println("[" + Thread.currentThread().getName()
-                            + "]: Scheduler has dispatched Task: " + entry.getValue().getTaskType() + " to Drone: "
-                            + entry.getKey() + " for Zone: " + entry.getValue().getZone());
-                }
-                iterator.remove();
 
             }
         }
