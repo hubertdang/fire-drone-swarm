@@ -91,8 +91,8 @@ public class Scheduler {
                     }
                 }
                 System.out.println("[" + Thread.currentThread().getName()
-                        + "]: Fire Extinguished received from Drone#"+droneInfo.getDroneID()
-                        +" Zone: " + droneInfo.getZoneToService());
+                        + "]: Fire Extinguished received from Drone#" + droneInfo.getDroneID()
+                        + " Zone: " + droneInfo.getZoneToService());
 
                 newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RECALL);
                 droneActionsTable.addAction(droneInfo.droneID, newTask);
@@ -107,7 +107,7 @@ public class Scheduler {
         }
     }
 
-    public synchronized void dispatchActions(MessagePasser messagePasser,int droneID) {
+    public synchronized void dispatchActions(MessagePasser messagePasser, int droneID) {
         droneActionsTable.dispatchActions(messagePasser, droneID);
 
     }
@@ -161,5 +161,24 @@ public class Scheduler {
             }
         }
         return false;
+    }
+
+
+    /**
+     * Returns the zonesOnFire.
+     *
+     * @return zonesOnFire
+     */
+    public HashMap<Zone, ZoneTriageInfo> getZonesOnFire() {
+        return zonesOnFire;
+    }
+
+    /**
+     * Returns the droneActionsTable
+     *
+     * @return droneActionsTable
+     */
+    public DroneActionsTable getDroneActionsTable() {
+        return droneActionsTable;
     }
 }
