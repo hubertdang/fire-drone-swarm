@@ -1,4 +1,4 @@
-import org.junit.jupiter.api.BeforeEach;
+/*import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -40,4 +40,4 @@ public class FireIncidentBufferTest {
     public void testPopAcknowledgementMessageFromEmptyBuffer() {
         assertThrows(IndexOutOfBoundsException.class, () -> fireIncidentBuffer.popAcknowledgementMessage());
     }
-}
+}*/

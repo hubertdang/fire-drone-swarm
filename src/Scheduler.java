@@ -162,4 +162,22 @@ public class Scheduler {
         }
         return false;
     }
+
+    /**
+     * Returns the zonesOnFire.
+     *
+     * @return zonesOnFire
+     */
+    public HashMap<Zone, ZoneTriageInfo> getZonesOnFire() {
+        return zonesOnFire;
+    }
+
+    /**
+     * Returns the droneActionsTable
+     *
+     * @return droneActionsTable
+     */
+    public DroneActionsTable getDroneActionsTable() {
+        return droneActionsTable;
+    }
 }
