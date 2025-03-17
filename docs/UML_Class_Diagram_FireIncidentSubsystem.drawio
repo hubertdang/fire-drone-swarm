@@ -1,0 +1,78 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36" version="26.1.1">
+  <diagram name="Page-1" id="l8JWWn1mgFh3_-fhd1bB">
+    <mxGraphModel dx="1009" dy="5354" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="4681" pageHeight="3300" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="VmVmnxtivFvGydA_5FIV-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=block;endFill=0;endSize=22;" edge="1" parent="1" source="iawhTrxei7uKys8adqZG-1" target="VmVmnxtivFvGydA_5FIV-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iawhTrxei7uKys8adqZG-1" value="FireIncidentSubsystem" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="810" y="-820" width="410" height="400" as="geometry">
+            <mxRectangle x="600" y="260" width="160" height="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="iawhTrxei7uKys8adqZG-2" value="&lt;div&gt;+ &lt;u&gt;AGENT_AMOUNT: HashMap&amp;lt;FireSeverity, Integer&amp;gt;&lt;/u&gt;&lt;/div&gt;&lt;div&gt;- fireBuffer: FireIncidentBuffer&lt;/div&gt;- clearZones: HashMap&amp;lt;Integer, Zone&amp;gt;&lt;div&gt;- fireZones: HashMap&amp;lt;Integer, Zone&amp;gt;&lt;br&gt;&lt;div&gt;- events: ArrayList&amp;lt;SimEvent&amp;gt;&lt;br&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="iawhTrxei7uKys8adqZG-1" vertex="1">
+          <mxGeometry y="26" width="410" height="94" as="geometry" />
+        </mxCell>
+        <mxCell id="iawhTrxei7uKys8adqZG-3" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" parent="iawhTrxei7uKys8adqZG-1" vertex="1">
+          <mxGeometry y="120" width="410" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="iawhTrxei7uKys8adqZG-4" value="+ FireIncidentSubsystem(fireBuffer: FireIncidentBuffer)&lt;div&gt;- manualReqDrone(zone: Zone, eventTime: long, eventType: String): void&lt;/div&gt;&lt;div&gt;- trackFire(zone: Zone, eventTime: long): void&lt;/div&gt;&lt;div&gt;+ readSimEventFile(eventFile: File): void&lt;/div&gt;&lt;div&gt;+ readSimZoneFile(zoneFile: File): void&lt;/div&gt;&lt;div&gt;+ run(): void&lt;/div&gt;&lt;div&gt;+ simStart(): void&lt;/div&gt;&lt;div&gt;- hasActiveFiresOrUpcomingEvents(eventIndex: int): boolean&lt;/div&gt;&lt;div&gt;+ isEventReadyToProcess(eventIndex: int, eventIndexTime: long. currentTime: long): boolean&lt;/div&gt;&lt;div&gt;- sendEvent(event: SimEvent): void&lt;/div&gt;&lt;div&gt;- isOnFire(zone: Zone): boolean&lt;/div&gt;&lt;div&gt;- sortEventsByTime(&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;events:&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;ArrayList&amp;lt;SimEvent&amp;gt;):&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;void&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;- timeToMillis(time:&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;String&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;):&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;long&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;- getCurrentTime():&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;long&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;+ getClearZones():&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;HashMap&amp;lt;Integer, Zone&amp;gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;+ getEvents():&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;ArrayList&amp;lt;SimEvent&amp;gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;+ getFireZones():&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;HashMap&amp;lt;Integer, Zone&amp;gt;&lt;/span&gt;&lt;/div&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="iawhTrxei7uKys8adqZG-1" vertex="1">
+          <mxGeometry y="128" width="410" height="272" as="geometry" />
+        </mxCell>
+        <mxCell id="iawhTrxei7uKys8adqZG-5" value="FireIncidentBuffer" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="1310" y="-820" width="340" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="iawhTrxei7uKys8adqZG-6" value="&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;-&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;acknowledgmentMessages:&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;ArrayList&amp;lt;Zone&amp;gt;&lt;/span&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;- eventMessages: ArrayList&amp;lt;Zone&amp;gt;&lt;/div&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="iawhTrxei7uKys8adqZG-5" vertex="1">
+          <mxGeometry y="26" width="340" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="iawhTrxei7uKys8adqZG-7" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" parent="iawhTrxei7uKys8adqZG-5" vertex="1">
+          <mxGeometry y="80" width="340" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="iawhTrxei7uKys8adqZG-8" value="&lt;div&gt;+ FireIncidentBuffer()&lt;/div&gt;&lt;div&gt;+ popAcknowledgementMessage(): Zone&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;div&gt;+ popEventMessage(): Zone&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;+ addEventMessage(event: Zone): void&lt;/div&gt;&lt;/div&gt;&lt;div&gt;+ addAcknowledgementMessage(zoneMessage: Zone): void&lt;/div&gt;&lt;div&gt;+ newEvent(): boolean&lt;/div&gt;&lt;div&gt;+&amp;nbsp;newAcknowledgement(): boolean&lt;/div&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="iawhTrxei7uKys8adqZG-5" vertex="1">
+          <mxGeometry y="88" width="340" height="122" as="geometry" />
+        </mxCell>
+        <mxCell id="iawhTrxei7uKys8adqZG-9" value="" style="endArrow=diamondThin;endFill=1;endSize=24;html=1;rounded=0;exitX=0.501;exitY=1.021;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="iawhTrxei7uKys8adqZG-8" target="iawhTrxei7uKys8adqZG-4" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1853" y="-105.59000000000003" as="sourcePoint" />
+            <mxPoint x="1490" y="-510" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1480" y="-556" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="iawhTrxei7uKys8adqZG-10" value="SimEvent" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="820" y="-310" width="390" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="iawhTrxei7uKys8adqZG-11" value="&lt;div&gt;- time: long&lt;/div&gt;&lt;div&gt;- zoneId: int&lt;/div&gt;&lt;div&gt;- eventType: String&lt;/div&gt;&lt;div&gt;- severity: FireSeverity&lt;/div&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="iawhTrxei7uKys8adqZG-10" vertex="1">
+          <mxGeometry y="26" width="390" height="74" as="geometry" />
+        </mxCell>
+        <mxCell id="iawhTrxei7uKys8adqZG-12" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" parent="iawhTrxei7uKys8adqZG-10" vertex="1">
+          <mxGeometry y="100" width="390" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="iawhTrxei7uKys8adqZG-13" value="&lt;div&gt;+ SimEvent(time: long, zoneId: int, eventType: String, severity: String)&lt;/div&gt;&lt;div&gt;+ getTime(): long&lt;/div&gt;&lt;div&gt;+ getZoneId(): int&lt;/div&gt;&lt;div&gt;+ getEventType(): String&lt;/div&gt;&lt;div&gt;+ getSeverity(): FireSeverity&lt;/div&gt;&lt;div&gt;+ toString(): String&lt;/div&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="iawhTrxei7uKys8adqZG-10" vertex="1">
+          <mxGeometry y="108" width="390" height="112" as="geometry" />
+        </mxCell>
+        <mxCell id="iawhTrxei7uKys8adqZG-14" value="" style="endArrow=diamondThin;endFill=1;endSize=24;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" source="iawhTrxei7uKys8adqZG-10" target="iawhTrxei7uKys8adqZG-4" edge="1">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="908" y="-182" as="sourcePoint" />
+            <mxPoint x="1305" y="-420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VmVmnxtivFvGydA_5FIV-9" value="MessagePasser" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1070" y="-1120" width="330" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="VmVmnxtivFvGydA_5FIV-10" value="- MESSAGE_MAX_SIZE: int&lt;div&gt;- socket: DatagramSocket&lt;/div&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="VmVmnxtivFvGydA_5FIV-9">
+          <mxGeometry y="26" width="330" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="VmVmnxtivFvGydA_5FIV-11" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="VmVmnxtivFvGydA_5FIV-9">
+          <mxGeometry y="60" width="330" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="VmVmnxtivFvGydA_5FIV-12" value="+ send(Object, String, int)&lt;div&gt;+ receive(int)&lt;/div&gt;&lt;div&gt;- deserialize(byte[], int) : Object&lt;/div&gt;&lt;div&gt;+ receive(): Object&lt;/div&gt;&lt;div&gt;+ serialize(Object) : byte[]&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="VmVmnxtivFvGydA_5FIV-9">
+          <mxGeometry y="68" width="330" height="82" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
