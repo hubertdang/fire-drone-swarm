@@ -1,6 +1,8 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SchedulerTest {
@@ -8,31 +10,34 @@ public class SchedulerTest {
 
     @BeforeEach
     public void setUp() {
-        scheduler = new Scheduler(new DroneBuffer(), new FireIncidentBuffer());
+        scheduler = new Scheduler();
     }
 
     @Test
-    public void testHandleFireReq() throws Exception {
-        Zone zone = new Zone(1, 50.0F, 50, 70, 0, 40);
-        zone.setSeverity(FireSeverity.MODERATE);
-        /*
-        assertTrue(scheduler.getMissionQueue().isEmpty());
-        scheduler.handleFireReq(zone);
-        assertFalse(scheduler.getMissionQueue().isEmpty());
-        //assertEquals(scheduler.getMissionQueue().peek(), zone); Todo
-
-         */
+    public void testPutZoneOnFire() {
+        Zone zone = new Zone(1, 80.0f, 0, 50, 0, 40);
+        scheduler.putZoneOnFire(zone);
+        assertFalse(scheduler.getZonesOnFire().isEmpty());
+        assertTrue(scheduler.getZonesOnFire().containsKey(zone));
     }
 
     @Test
-    public void testGetMissionQueue() throws Exception {
-        Missions missions = new Missions();
-        Zone zone = new Zone(1, 50.0F, 50, 70, 0, 40);
-        zone.setSeverity(FireSeverity.MODERATE);
-        //missions.queue(zone);
-        //scheduler.getMissionQueue().queue(zone);
-        //assertEquals(missions, scheduler.getMissionQueue());
-        //ToDo
+    public void testScheduleDrones() {
+        Zone zone1 = new Zone(1, 80.0f, 0, 50, 0, 40);
+        zone1.setSeverity(FireSeverity.MODERATE);
+        Zone zone2 = new Zone(2, 100.0f, 50, 100, 0, 50);
+        zone2.setSeverity(FireSeverity.HIGH);
+        scheduler.putZoneOnFire(zone1);
+        scheduler.putZoneOnFire(zone2);
 
+        Drone drone = new Drone(1, 5000);
+        ArrayList<DroneInfo> droneInfoList = new ArrayList<>();
+        droneInfoList.add(new DroneInfo(drone.getId(), drone.getCurrStateID(), drone.getPosition(), drone.getAgentTankAmount(), drone.getZoneToService()));
+
+        scheduler.scheduleDrones(droneInfoList);
+
+        DroneActionsTable droneActionsTable = scheduler.getDroneActionsTable();
+        assertEquals(DroneTaskType.SERVICE_ZONE, droneActionsTable.getAction(1).getTaskType());
+        assertEquals(zone2, droneActionsTable.getAction(1).getZone());
     }
 }

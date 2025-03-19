@@ -1,7 +1,9 @@
+import java.io.Serializable;
+
 /**
  * Represents a position in a 2D space with x and y coordinates.
  */
-public class Position {
+public class Position implements Serializable {
     private float x;
     private float y;
 

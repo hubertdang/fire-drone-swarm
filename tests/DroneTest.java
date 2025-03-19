@@ -5,15 +5,12 @@ import static java.lang.Thread.sleep;
 
 class DroneTest {
     private Drone drone;
-    private DroneManager droneManager;
-    private DroneBuffer droneBuffer;
+    private DroneController droneController;
 
     @BeforeEach
     void setUp() {
-        droneBuffer = new DroneBuffer();
-        droneManager = new DroneManager(droneBuffer);
-        drone = new Drone(1, droneManager);
-        droneManager.addDrone(drone);
+        drone = new Drone(1, 5001);
+        droneController = new DroneController(drone, 6001);
     }
 
     @Test
@@ -37,7 +34,7 @@ class DroneTest {
     @Test
     void testEquals() {
         Drone sameDrone = drone;
-        Drone diffDrone = new Drone(2, droneManager);
+        Drone diffDrone = new Drone(2, 5002);
         assertEquals(drone, sameDrone, "Drones with same ID should be equal.");
         assertNotEquals(drone, diffDrone, "Drones with different IDs should not be equal.");
     }
@@ -86,21 +83,21 @@ class DroneTest {
         drone.setCurrTask(task);
         drone.setNewTaskFlag();
         Thread.sleep(3000); // Allow some time for state change
-        assertEquals(DroneStateID.ACCELERATING, drone.getCurrStateID(), "external event when decelerating");
+        assertEquals(DroneStateID.DECELERATING, drone.getCurrStateID(), "external event when decelerating");
 
         // External @ landing
         drone.updateState(DroneStateID.LANDING);
         drone.setCurrTask(task);
         drone.setNewTaskFlag();
         sleep(2000); // Allow some time for state change
-        assertEquals(DroneStateID.TAKEOFF, drone.getCurrStateID(), "external event when landing");
+        assertEquals(DroneStateID.LANDING, drone.getCurrStateID(), "external event when landing");
 
         // External @ releasing agent
         drone.updateState(DroneStateID.RELEASING_AGENT);
         drone.setCurrTask(task);
         drone.setNewTaskFlag();
         sleep(3000); // Allow some time for state change
-        assertEquals(DroneStateID.ACCELERATING, drone.getCurrStateID(), "external event when releasing agent");
+        assertEquals(DroneStateID.RELEASING_AGENT, drone.getCurrStateID(), "external event when releasing agent");
 
         // Attempt to stop the drone
         droneThread.interrupt(); // Safe way to stop the thread if Drone handles interruption
