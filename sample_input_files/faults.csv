@@ -1,0 +1,7 @@
+droneId,Fault Code,Fault Time,Fault Type
+1,2,23:15:01,NJ
+2,3,24:35:24,PLCM
+1,8,45:12:06,NJ		
+1,1,23:05:19,DSMF
+1,4,26:05:01,PLCM
+2,5,27:01:01,DSMF
