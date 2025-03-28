@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -92,14 +93,15 @@ public class DroneSubsystem {
                 //System.out.println(f.getFaultTime());
                 if (f.getFaultTime() == getCurrentTime()) {
                     System.out.println(f.toString());
+                    DroneFault currentFault = droneFaults.remove(droneFaults.indexOf(f));
                     if (f.getFaultType().equals(Faults.NJ)) {
-
+                        /*TODO: Actions for Nozzle Jam Fault*/
                     }
                     else if (f.getFaultType().equals(Faults.DSMF)) {
-
+                        /*TODO: Actions for Drone Stuck Mid-Flight Fault*/
                     }
                     else if (f.getFaultType().equals(Faults.PLCM)) {
-
+                        /*TODO: Actions for Packet Loss or Corrupted Message Fault*/
                     }
                     else {
                         System.out.println("Unknown Fault: " + f.getFaultType());
@@ -110,16 +112,12 @@ public class DroneSubsystem {
     }
 
     /**
-     * Get the current time in milliseconds
+     * Get the current time in seconds passed since midnight
      *
-     * @return the current time in milliseconds
+     * @return the current time in seconds passed since midnight
      */
     private static long getCurrentTime() {
-        long currentTimeMillis = System.currentTimeMillis();
-        long offset = ZoneOffset.systemDefault()
-                .getRules()
-                .getOffset(java.time.Instant.ofEpochMilli(currentTimeMillis))
-                .getTotalSeconds() * 1000L;
-        return (currentTimeMillis + offset) % (24 * 60 * 60 * 1000L);
+        LocalTime now = LocalTime.now(); // Get current local time
+        return now.toSecondOfDay();
     }
 }
