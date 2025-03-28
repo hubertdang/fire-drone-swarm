@@ -1,5 +1,5 @@
 public enum Faults {
-    DSMF, // Drone Stuck Mid-Flight
-    NJ, // Nozzle Jammed
-    PLCM // Packet Loss or Corrupted Messages
+    DRONE_STUCK, // Drone Stuck Mid-Flight
+    NOZZLE_JAMMED, // Nozzle Jammed
+    CORRUPTED_MESSAGE // Packet Loss or Corrupted Messages
 }

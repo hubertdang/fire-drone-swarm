@@ -2,10 +2,9 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.Iterator;
+
 
 public class DroneSubsystem {
 
@@ -88,25 +87,26 @@ public class DroneSubsystem {
 
         // a loop that injects faults when fault time is reached
         while (true) {
-            for (DroneFault f : droneFaults) {
-                if (f.getFaultTime() == getCurrentTime()) {
-                    System.out.println(f.toString());
-                    DroneFault currentFault = droneFaults.remove(droneFaults.indexOf(f));
-
-                    if (f.getFaultType().equals(Faults.NJ)) {
+            Iterator<DroneFault> iterator = droneFaults.iterator();
+            while (iterator.hasNext()) {
+                DroneFault currentFault = iterator.next();
+                if (currentFault.getFaultTime() == getCurrentTime()) {
+                    System.out.println(currentFault.toString());
+                    iterator.remove();
+                    if (currentFault.getFaultType().equals(Faults.NOZZLE_JAMMED)) {
                         // actions to be taken when nozzle jams
                         /*TODO: Actions for Nozzle Jam Fault*/
                     }
-                    else if (f.getFaultType().equals(Faults.DSMF)) {
+                    else if (currentFault.getFaultType().equals(Faults.DRONE_STUCK)) {
                         // actions to be taken when drone is stuck mid-flight
                         /*TODO: Actions for Drone Stuck Mid-Flight Fault*/
                     }
-                    else if (f.getFaultType().equals(Faults.PLCM)) {
+                    else if (currentFault.getFaultType().equals(Faults.CORRUPTED_MESSAGE)) {
                         // actions to be taken when there is a packet loss or corrupted message
                         /*TODO: Actions for Packet Loss or Corrupted Message Fault*/
                     }
                     else {
-                        System.out.println("Unknown Fault: " + f.getFaultType());
+                        System.out.println("Unknown Fault: " + currentFault.getFaultType());
                     }
                 }
             }
