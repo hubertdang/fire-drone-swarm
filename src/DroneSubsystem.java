@@ -93,9 +93,8 @@ public class DroneSubsystem {
             while (iterator.hasNext()) {
                 DroneFault currentFault = iterator.next();
 
-                if (Math.abs(currentFault.getFaultTime() - TimeUtils.getCurrentTime()) <= 3000) {
-                    //System.out.println(currentFault.getFaultTime() + " | " + TimeUtils.getCurrentTime() + " #AASHNA FAULT DETECTED");
-                    System.out.println("🚨 " + currentFault.toString());
+                if (Math.abs(currentFault.getFaultTime() - TimeUtils.getCurrentTime()) <= 2000) {
+                    //System.out.println("🚨 " + currentFault.toString());
 
                     Drone affectedDrone = drones.get(currentFault.getDroneId());
                     if (affectedDrone != null) {
