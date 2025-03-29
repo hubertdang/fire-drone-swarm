@@ -70,6 +70,7 @@ public class DroneController extends MessagePasser implements Runnable {
                         drone.getZoneToService());
                 /* TODO: create a method to get scheduler's IP address and port instead of hard-coding */
                 send(info, "localhost", 7000);
+                System.out.println(info.toString());
                 break;
             default:
                 System.out.println("[" + Thread.currentThread().getName() + "]: "

@@ -389,13 +389,8 @@ public class Drone extends MessagePasser implements Runnable {
         }
 
         // TODO: Send drone info back to the scheduler
-//        DroneInfo info = new DroneInfo(
-//                id, currStateID,
-//                position,
-//                getAgentTankAmount(),
-//                zoneToService,
-//                fault);
-//        send(info, "localhost", SCHEDULER_PORT);
+        DroneInfo info = new DroneInfo( id, fault);
+        send(info, "localhost", SCHEDULER_PORT);
     }
 
     /* ------------------------------ AGENT CONTROL ------------------------------ */

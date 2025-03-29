@@ -127,6 +127,8 @@ public class Scheduler {
      * @return true if drone was scheduled, false otherwise
      */
     private boolean scheduleDrone(DroneInfo droneInfo) {
+        System.out.println();
+
         if (zonesOnFire.isEmpty()) {
             return false;
         }

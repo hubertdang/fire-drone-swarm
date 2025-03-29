@@ -79,6 +79,7 @@ public class FireEventHandler extends MessagePasser implements Runnable {
             send(getInfo, "localhost", 6000 + i);
             while (!(message instanceof DroneInfo)) {
                 message = receive(1000);
+                System.out.println("#REMOVE" + message);
                 if (message instanceof Zone) {
                     // we received a fire event, add to queue
                     System.out.println("[" + Thread.currentThread().getName() + "]: "
