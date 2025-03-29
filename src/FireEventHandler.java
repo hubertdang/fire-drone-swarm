@@ -61,7 +61,7 @@ public class FireEventHandler extends MessagePasser implements Runnable {
      *
      * @return an ArrayList of DroneInfo objects
      */
-    private ArrayList<DroneInfo> getAllDroneInfos() {
+    public ArrayList<DroneInfo> getAllDroneInfos() {
         ArrayList<DroneInfo> droneInfos = new ArrayList<>();
         // TODO: Implement a method to dynamically determine the number of drones in the system.
         // Currently, the number of drones is hardcoded in a for loop.
@@ -78,18 +78,19 @@ public class FireEventHandler extends MessagePasser implements Runnable {
             Object message = null;
             send(getInfo, "localhost", 6000 + i);
             while (!(message instanceof DroneInfo)) {
-                message = receive();
+                message = receive(1000);
                 if (message instanceof Zone) {
                     // we received a fire event, add to queue
                     System.out.println("[" + Thread.currentThread().getName() + "]: "
                             + "Received a fire event, adding it the fire queue");
                     fireQueue.add((Zone) message);
                 }
+                else if (message instanceof DroneInfo) {
+                    System.out.println("[" + Thread.currentThread().getName() + "]: "
+                            + "Received DroneInfo from Drone#" + i);
+                    droneInfos.add((DroneInfo) message);
+                } else {break;}
             }
-            System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + "Received DroneInfo from Drone#" + i);
-            DroneInfo droneInfo = (DroneInfo) message;
-            droneInfos.add(droneInfo);
         }
         return droneInfos;
     }

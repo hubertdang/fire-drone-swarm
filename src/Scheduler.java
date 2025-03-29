@@ -36,7 +36,14 @@ public class Scheduler {
         }
         for (DroneInfo droneInfo : droneInfoList) {
             if (!busyDrones.contains(droneInfo.droneID)) {
-                freeDroneInfos.add(droneInfo);
+                if (droneInfo.fault != null) {
+                    System.out.println("[" + Thread.currentThread().getName() + "]: "
+                            + "Drone#" + droneInfo.droneID
+                            + " | OFFLINE "
+                            + " | FAULT = " + droneInfo.fault);
+                } else {
+                    freeDroneInfos.add(droneInfo);
+                }
             }
         }
         /* Free up drones for all zones but let one drone stay */
