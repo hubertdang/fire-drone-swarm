@@ -12,6 +12,7 @@ public class DroneInfo implements Serializable {
     final float agentTankAmount;
     final DroneStateID stateID;
     final Zone zoneToService;
+    final Faults fault;
 
     public DroneInfo(int droneID, DroneStateID stateID, Position position, float agentTankAmount, Zone zoneToService) {
         this.droneID = droneID;
@@ -19,6 +20,23 @@ public class DroneInfo implements Serializable {
         this.position = position;
         this.agentTankAmount = agentTankAmount;
         this.zoneToService = zoneToService;
+        this.fault = null;
+    }
+
+    /**
+     * Drone Info fault constructor
+     */
+    public DroneInfo(int droneID, Faults fault) {
+        this.stateID = null;
+        this.position = null;
+        this.agentTankAmount = -1;
+        this.zoneToService = null;
+        this.droneID = droneID;
+        this.fault = fault;
+    }
+
+    public Faults getFault() {
+        return fault;
     }
 
     public DroneStateID getStateID() {
