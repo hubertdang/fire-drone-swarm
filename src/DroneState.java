@@ -25,7 +25,7 @@ public interface DroneState {
      *
      * @param context The context of the drone.
      */
-    void handleFault(Drone context);
+    void faultDetected(Drone context);
 
     /**
      * Handles the event when the drone is out of agent.

@@ -34,12 +34,15 @@ public class DroneSubsystem {
                 int droneId = Integer.parseInt(data[0].trim());
                 int faultCode = Integer.parseInt(data[1].trim());
 
-                String[] time = data[2].trim().split(":");
-                int hours = Integer.parseInt(time[0]);
-                int minutes = Integer.parseInt(time[1]);
-                int seconds = Integer.parseInt(time[2]);
-                // convert fault time to seconds since midnight
-                long faultTime = hours * 3600L + minutes * 60L + seconds;
+                String time = data[2];
+                long faultTime = TimeUtils.csvTimeToMillis(time);
+
+//                String[] time = data[2].trim().split(":");
+//                int hours = Integer.parseInt(time[0]);
+//                int minutes = Integer.parseInt(time[1]);
+//                int seconds = Integer.parseInt(time[2]);
+//                // convert fault time to seconds since midnight
+//                long faultTime = hours * 3600L + minutes * 60L + seconds;
 
                 FaultID faultType = FaultID.valueOf(String.valueOf(data[3].trim()));
                 droneFaults.add(new DroneFault(droneId, faultCode, faultTime, faultType));
@@ -68,13 +71,14 @@ public class DroneSubsystem {
     public static void main(String[] args) throws IOException {
         drones = new HashMap<>();
         droneFaults = new ArrayList<>();
+        TimeUtils.setOffset();
 
         for (int i = 0; i < NUMBER_OF_DRONES; i++) {
             Drone drone = new Drone();
             DroneController controller = new DroneController(drone);
             drones.put(drone.getId(), drone);
 
-            Thread droneThread = new Thread(drone, "🛫D");
+            Thread droneThread = new Thread(drone, "🛫D" + drone.getId());
             Thread controllerThread = new Thread(controller, "🛫DC" + drone.getId());
 
             droneThread.start();
@@ -85,15 +89,13 @@ public class DroneSubsystem {
 
         // a loop that injects faults when fault time is reached
         while (!droneFaults.isEmpty()) {
-            System.out.println("#AASHNA FAULT HERE?");
             Iterator<DroneFault> iterator = droneFaults.iterator();
             while (iterator.hasNext()) {
                 DroneFault currentFault = iterator.next();
-                System.out.println(currentFault.getFaultTime() + " | " + getCurrentTime());
 
-                if (currentFault.getFaultTime() <= getCurrentTime()) {
-                    System.out.println(currentFault.getFaultTime() + " | " + getCurrentTime() + " #AASHNA FAULT DETECTED");
-                    //System.out.println(currentFault.toString());
+                if (Math.abs(currentFault.getFaultTime() - TimeUtils.getCurrentTime()) <= 3000) {
+                    //System.out.println(currentFault.getFaultTime() + " | " + TimeUtils.getCurrentTime() + " #AASHNA FAULT DETECTED");
+                    System.out.println("🚨 " + currentFault.toString());
 
                     Drone affectedDrone = drones.get(currentFault.getDroneId());
                     if (affectedDrone != null) {
@@ -111,16 +113,6 @@ public class DroneSubsystem {
                 e.printStackTrace();
             }
         }
-    }
-
-    /**
-     * Get the current time in seconds passed since midnight
-     *
-     * @return the current time in seconds passed since midnight
-     */
-    private static long getCurrentTime() {
-        LocalTime now = LocalTime.now(); // Get current local time
-        return now.toSecondOfDay();
     }
 
     /**

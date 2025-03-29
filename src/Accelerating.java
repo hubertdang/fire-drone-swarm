@@ -36,7 +36,7 @@ public class Accelerating implements DroneState {
      * @param context The context of the drone.
      */
     @Override
-    public void handleFault(Drone context){
+    public void faultDetected(Drone context){
         context.updateState(DroneStateID.FAULT);
         context.handleFault();
     }

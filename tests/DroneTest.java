@@ -60,42 +60,42 @@ class DroneTest {
         // External @ takeOff
         drone.updateState(DroneStateID.TAKEOFF);
         drone.setCurrTask(task);
-        drone.setNewTaskFlag();
+        drone.setExternalEventFlag();
         sleep(2000); // Allow some time for state change
         assertEquals(DroneStateID.TAKEOFF, drone.getCurrStateID(), "external event when taking off");
 
         // External @ accelerating
         drone.updateState(DroneStateID.ACCELERATING);
         drone.setCurrTask(task);
-        drone.setNewTaskFlag();
+        drone.setExternalEventFlag();
         sleep(2000); // Allow some time for state change
         assertEquals(DroneStateID.ACCELERATING, drone.getCurrStateID(), "external event when accelerating");
 
         // External @ flying
         drone.updateState(DroneStateID.FLYING);
         drone.setCurrTask(task);
-        drone.setNewTaskFlag();
+        drone.setExternalEventFlag();
         sleep(2000); // Allow some time for state change
         assertEquals(DroneStateID.FLYING, drone.getCurrStateID(), "external event when flying");
 
         // External @ decelerating
         drone.updateState(DroneStateID.DECELERATING);
         drone.setCurrTask(task);
-        drone.setNewTaskFlag();
+        drone.setExternalEventFlag();
         Thread.sleep(3000); // Allow some time for state change
         assertEquals(DroneStateID.DECELERATING, drone.getCurrStateID(), "external event when decelerating");
 
         // External @ landing
         drone.updateState(DroneStateID.LANDING);
         drone.setCurrTask(task);
-        drone.setNewTaskFlag();
+        drone.setExternalEventFlag();
         sleep(2000); // Allow some time for state change
         assertEquals(DroneStateID.LANDING, drone.getCurrStateID(), "external event when landing");
 
         // External @ releasing agent
         drone.updateState(DroneStateID.RELEASING_AGENT);
         drone.setCurrTask(task);
-        drone.setNewTaskFlag();
+        drone.setExternalEventFlag();
         sleep(3000); // Allow some time for state change
         assertEquals(DroneStateID.RELEASING_AGENT, drone.getCurrStateID(), "external event when releasing agent");
 
