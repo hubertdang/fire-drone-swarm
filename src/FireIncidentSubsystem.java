@@ -140,16 +140,16 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
         int eventIndex = 0;
         long eventIndexTime = 0;
         System.out.println("[" + Thread.currentThread().getName() + "]: " + "Simulation started at: "
-                + TimeUtils.secondsToTimestamp(startTime));
+                + TimeUtils.millisecondsToTimestamp(startTime));
 
         while (hasActiveFiresOrUpcomingEvents(eventIndex)) {
             long currentTime = getCurrentTime();
             System.out.println("[" + Thread.currentThread().getName() + "]: " + "Current time: "
-                    + TimeUtils.secondsToTimestamp(currentTime));
+                    + TimeUtils.millisecondsToTimestamp(currentTime));
             if (eventIndex < events.size()) { // Check if we have reached the end of the events
                 eventIndexTime = events.get(eventIndex).getTime();
                 System.out.println("[" + Thread.currentThread().getName() + "]: " + "Next event time: "
-                        + TimeUtils.secondsToTimestamp(eventIndexTime));
+                        + TimeUtils.millisecondsToTimestamp(eventIndexTime));
             }
 
 

@@ -1,4 +1,4 @@
-public class Arrived implements DroneState {
+public class Fault implements DroneState {
     /**
      * Handles the event when a new mission is assigned.
      *
@@ -6,9 +6,7 @@ public class Arrived implements DroneState {
      */
     @Override
     public void reqServiceZone(Drone context) {
-        // already at flying altitude, can begin heading to the new zone
-        context.updateState(DroneStateID.ACCELERATING);
-        context.accelerate();
+        throw new IllegalStateException("Invalid event for the current state.");
     }
 
     /**
@@ -18,8 +16,7 @@ public class Arrived implements DroneState {
      */
     @Override
     public void reqRelAgent(Drone context) {
-        context.updateState(DroneStateID.RELEASING_AGENT);
-        context.releaseAgent();
+        throw new IllegalStateException("Invalid event for the current state.");
     }
 
     /**
@@ -39,7 +36,6 @@ public class Arrived implements DroneState {
      */
     @Override
     public void handleFault(Drone context){
-        context.updateState(DroneStateID.FAULT);
         context.handleFault();
     }
 

@@ -3,13 +3,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 
 public class DroneSubsystem {
 
-    // a list of drone faults that will be injected
-    private static ArrayList<DroneFault> droneFaults;
+    private static final int NUMBER_OF_DRONES = 2;
+    private static ArrayList<DroneFault> droneFaults; // a list of drone faults that will be injected
+    private static HashMap<Integer, Drone> drones;
 
     /**
      * Reads a file containing drone faults and adds them to arraylist droneFaults.
@@ -39,7 +41,7 @@ public class DroneSubsystem {
                 // convert fault time to seconds since midnight
                 long faultTime = hours * 3600L + minutes * 60L + seconds;
 
-                Faults faultType = Faults.valueOf(String.valueOf(data[3].trim()));
+                FaultID faultType = FaultID.valueOf(String.valueOf(data[3].trim()));
                 droneFaults.add(new DroneFault(droneId, faultCode, faultTime, faultType));
             }
         }
@@ -64,51 +66,49 @@ public class DroneSubsystem {
     }
 
     public static void main(String[] args) throws IOException {
-        /* TODO: Find a way to not hardcode port numbers (maybe with static field and offsetting */
-        Drone drone = new Drone(1, 5001);
-        DroneController droneController = new DroneController(drone, 6001);
-        Drone drone1 = new Drone(2, 5002);
-        DroneController droneController1 = new DroneController(drone1, 6002);
-        droneFaults = new ArrayList<>(); // initialize the arraylist for storing drone faults
+        drones = new HashMap<>();
+        droneFaults = new ArrayList<>();
 
-        // read the file containing drone faults and store all faults in the arraylist droneFaults
+        for (int i = 0; i < NUMBER_OF_DRONES; i++) {
+            Drone drone = new Drone();
+            DroneController controller = new DroneController(drone);
+            drones.put(drone.getId(), drone);
+
+            Thread droneThread = new Thread(drone, "🛫D");
+            Thread controllerThread = new Thread(controller, "🛫DC" + drone.getId());
+
+            droneThread.start();
+            controllerThread.start();
+        }
+
         readFaultsFile("./sample_input_files/faults.csv");
 
-        Thread droneThread = new Thread(drone, "🛫D");
-        Thread droneControllerThread = new Thread(droneController, "🛫DC");
-
-        Thread droneThread1 = new Thread(drone1, "🛫D");
-        Thread droneControllerThread1 = new Thread(droneController1, "🛫DC2");
-
-        droneThread.start();
-        droneControllerThread.start();
-        droneThread1.start();
-        droneControllerThread1.start();
-
         // a loop that injects faults when fault time is reached
-        while (true) {
+        while (!droneFaults.isEmpty()) {
+            System.out.println("#AASHNA FAULT HERE?");
             Iterator<DroneFault> iterator = droneFaults.iterator();
             while (iterator.hasNext()) {
                 DroneFault currentFault = iterator.next();
-                if (currentFault.getFaultTime() == getCurrentTime()) {
-                    System.out.println(currentFault.toString());
+                System.out.println(currentFault.getFaultTime() + " | " + getCurrentTime());
+
+                if (currentFault.getFaultTime() <= getCurrentTime()) {
+                    System.out.println(currentFault.getFaultTime() + " | " + getCurrentTime() + " #AASHNA FAULT DETECTED");
+                    //System.out.println(currentFault.toString());
+
+                    Drone affectedDrone = drones.get(currentFault.getDroneId());
+                    if (affectedDrone != null) {
+                        affectedDrone.setFault(currentFault.getFaultType());
+                    } else {
+                        System.out.println("No drone found with ID: " + currentFault.getDroneId());
+                    }
+
                     iterator.remove();
-                    if (currentFault.getFaultType().equals(Faults.NOZZLE_JAMMED)) {
-                        // actions to be taken when nozzle jams
-                        /*TODO: Actions for Nozzle Jam Fault*/
-                    }
-                    else if (currentFault.getFaultType().equals(Faults.DRONE_STUCK)) {
-                        // actions to be taken when drone is stuck mid-flight
-                        /*TODO: Actions for Drone Stuck Mid-Flight Fault*/
-                    }
-                    else if (currentFault.getFaultType().equals(Faults.CORRUPTED_MESSAGE)) {
-                        // actions to be taken when there is a packet loss or corrupted message
-                        /*TODO: Actions for Packet Loss or Corrupted Message Fault*/
-                    }
-                    else {
-                        System.out.println("Unknown Fault: " + currentFault.getFaultType());
-                    }
                 }
+            }
+            try {
+                Thread.sleep(1000); // check every second
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }
