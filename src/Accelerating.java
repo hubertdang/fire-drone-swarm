@@ -31,6 +31,17 @@ public class Accelerating implements DroneState {
     }
 
     /**
+     * Handles the event when a drone has faulted.
+     *
+     * @param context The context of the drone.
+     */
+    @Override
+    public void handleFault(Drone context){
+        context.updateState(DroneStateID.FAULT);
+        context.handleFault();
+    }
+
+    /**
      * Handles the event when the drone is out of agent.
      *
      * @param context The context of the drone.

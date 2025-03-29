@@ -6,8 +6,8 @@ public class DroneController extends MessagePasser implements Runnable {
      *
      * @param port The port to
      */
-    public DroneController(Drone drone, int port) {
-        super(port);
+    public DroneController(Drone drone) {
+        super(6000 + drone.getId());
         this.drone = drone;
     }
 

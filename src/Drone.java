@@ -4,6 +4,11 @@ import java.util.Map;
 import static java.lang.Thread.sleep;
 
 public class Drone extends MessagePasser implements Runnable {
+
+    private static int idCount = 1;
+
+    private final int SCHEDULER_PORT = 7001;
+
     public static final float BASE_X = 0.0f;
     public static final float BASE_Y = 0.0f;
     public static final float ARRIVAL_DISTANCE_THRESHOLD = 10.0f;   // m
@@ -21,6 +26,7 @@ public class Drone extends MessagePasser implements Runnable {
     private float currSpeed;
     private float currAltitude;
     private float decelDistance;
+    private FaultID fault;
 
     /* fields accessed by other threads */
     private volatile DroneStateID currStateID;
@@ -29,9 +35,10 @@ public class Drone extends MessagePasser implements Runnable {
     private volatile Position destination;
     private volatile Zone zoneToService;
 
-    public Drone(int id, int port) {
-        super(port);
-        this.id = id;
+    public Drone() {
+        super(5000 + idCount);
+        this.id = idCount;
+        idCount ++;
         position = new Position(BASE_X, BASE_Y);
         currSpeed = 0f;
         currAltitude = 0f;
@@ -251,7 +258,7 @@ public class Drone extends MessagePasser implements Runnable {
                 getAgentTankAmount(),
                 zoneToService);
         /* TODO: create a method to get scheduler's IP address and port instead of hard-coding */
-        send(info, "localhost", 7001);
+        send(info, "localhost", SCHEDULER_PORT);
         currTask = (DroneTask) receive();
         if (currTask.getTaskType() == DroneTaskType.RECALL) {
             System.out.println("[" + Thread.currentThread().getName() + id + "]: "
@@ -328,6 +335,59 @@ public class Drone extends MessagePasser implements Runnable {
      */
     public void eventLanded() {
         currState.landed(this);
+    }
+
+    /**
+     * Sets the fault for this drone.
+     * @param fault The fault type to assign to the drone.
+     */
+    public void setFault(FaultID fault) {this.fault = fault;}
+
+    /**
+     * Retrieves the current fault assigned to this drone.
+     * @return The fault type currently set for the drone.
+     */
+    public FaultID getFault() {return this.fault;}
+
+    /**
+     * TODO:FINISH THIS AASHNA
+     */
+    public void handleFault() {
+        FaultID fault = getFault();
+
+        if (fault == null) {
+            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                    + "No fault detected.");
+            return;
+        }
+
+        switch (fault) {
+            case DRONE_STUCK:
+                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                        + "⚠️ " + fault + ": Drone is stuck mid-flight. Requesting immediate assistance.");
+                break;
+            case NOZZLE_JAMMED:
+                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                        + "⚠️ " + fault + ": Nozzle jammed. Spraying operation halted.");
+                break;
+            case CORRUPTED_MESSAGE:
+                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                        + "⚠️ " + fault + ": Communication error detected: Corrupted message or packet loss.");
+                break;
+            default:
+                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                        + "⚠️ " + fault + ": Unknown fault detected.");
+                break;
+        }
+
+        // TODO: Send drone info back to the scheduler
+//        DroneInfo info = new DroneInfo(
+//                id, currStateID,
+//                position,
+//                getAgentTankAmount(),
+//                zoneToService,
+//                fault);
+//        send(info, "localhost", SCHEDULER_PORT);
     }
 
     /* ------------------------------ AGENT CONTROL ------------------------------ */

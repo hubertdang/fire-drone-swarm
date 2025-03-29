@@ -21,6 +21,13 @@ public interface DroneState {
     void reqRecall(Drone context);
 
     /**
+     * Handles the event when a drone has faulted.
+     *
+     * @param context The context of the drone.
+     */
+    void handleFault(Drone context);
+
+    /**
      * Handles the event when the drone is out of agent.
      *
      * @param context The context of the drone.
