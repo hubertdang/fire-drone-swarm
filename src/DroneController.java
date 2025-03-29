@@ -88,6 +88,6 @@ public class DroneController extends MessagePasser implements Runnable {
             return;
         }
         drone.setCurrTask(task);
-        drone.setNewTaskFlag();
+        drone.setExternalEventFlag();
     }
 }

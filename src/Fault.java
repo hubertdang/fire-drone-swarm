@@ -35,7 +35,7 @@ public class Fault implements DroneState {
      * @param context The context of the drone.
      */
     @Override
-    public void handleFault(Drone context){
+    public void faultDetected(Drone context){
         context.handleFault();
     }
 

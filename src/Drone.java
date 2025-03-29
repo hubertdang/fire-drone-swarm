@@ -31,7 +31,7 @@ public class Drone extends MessagePasser implements Runnable {
     /* fields accessed by other threads */
     private volatile DroneStateID currStateID;
     private volatile DroneTask currTask;
-    private volatile boolean newTaskFlag;
+    private volatile boolean externalEventFlag;
     private volatile Position destination;
     private volatile Zone zoneToService;
 
@@ -53,6 +53,7 @@ public class Drone extends MessagePasser implements Runnable {
         addState(DroneStateID.DECELERATING, new Decelerating());
         addState(DroneStateID.ARRIVED, new Arrived());
         addState(DroneStateID.RELEASING_AGENT, new ReleasingAgent());
+        addState(DroneStateID.FAULT, new Fault());
         addState(DroneStateID.IDLE, new Idle());
         addState(DroneStateID.LANDING, new Landing());
 
@@ -65,11 +66,11 @@ public class Drone extends MessagePasser implements Runnable {
     @Override
     public void run() {
         while (true) {
-            if (newTaskFlag) {
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+            if (externalEventFlag) {
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Drone has received an new task: " + currTask.getTaskType() + " @ zone#"
                         + currTask.getZone().getId());
-                handleNewTask();
+                handleExternalEvent();
             }
             try {
                 sleep(2000);
@@ -84,8 +85,13 @@ public class Drone extends MessagePasser implements Runnable {
      * Handles the execution of a new task based on its type. Depending on the task type, it
      * triggers the corresponding event request.
      */
-    private void handleNewTask() {
-        newTaskFlag = false;
+    private void handleExternalEvent() {
+        externalEventFlag = false;
+
+        if (fault != null){
+            eventFaultDetected();
+            return;
+        }
 
         switch (currTask.getTaskType()) {
             case DroneTaskType.SERVICE_ZONE:
@@ -116,7 +122,7 @@ public class Drone extends MessagePasser implements Runnable {
      * @param stateID The enum ID of the state.
      */
     public void updateState(DroneStateID stateID) {
-        System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+        System.out.println("[" + Thread.currentThread().getName() + "]: "
                 + "♻️State change | " + currStateID + " -> " + stateID);
         currState = states.get(stateID);
         currStateID = stateID;
@@ -134,8 +140,8 @@ public class Drone extends MessagePasser implements Runnable {
     /**
      * Sets the "new task" flag.
      */
-    public synchronized void setNewTaskFlag() {
-        newTaskFlag = true;
+    public synchronized void setExternalEventFlag() {
+        externalEventFlag = true;
     }
 
     /**
@@ -245,7 +251,7 @@ public class Drone extends MessagePasser implements Runnable {
 
     @Override
     public String toString() {
-        return "[Drone#" + id + ", pos=(" + position.getX() + "," + position.getY() + ")]";
+        return "[Drone#" + ", pos=(" + position.getX() + "," + position.getY() + ")]";
     }
 
     /**
@@ -261,15 +267,15 @@ public class Drone extends MessagePasser implements Runnable {
         send(info, "localhost", SCHEDULER_PORT);
         currTask = (DroneTask) receive();
         if (currTask.getTaskType() == DroneTaskType.RECALL) {
-            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+            System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "Received new task: " + currTask.getTaskType());
         }
         else {
-            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+            System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "Received new task: " + currTask.getTaskType() + " @ zone#"
                     + currTask.getZone().getId());
         }
-        setNewTaskFlag();
+        setExternalEventFlag();
     }
 
     /* ------------------------------ EVENT TRIGGERS ------------------------------ */
@@ -331,6 +337,13 @@ public class Drone extends MessagePasser implements Runnable {
     }
 
     /**
+     * Triggers the event of being requested to handle a fault in the current state.
+     */
+    public void eventFaultDetected() {
+        currState.faultDetected(this);
+    }
+
+    /**
      * Triggers the event of landing the drone.
      */
     public void eventLanded() {
@@ -341,7 +354,10 @@ public class Drone extends MessagePasser implements Runnable {
      * Sets the fault for this drone.
      * @param fault The fault type to assign to the drone.
      */
-    public void setFault(FaultID fault) {this.fault = fault;}
+    public void setFault(FaultID fault) {
+        this.fault = fault;
+        setExternalEventFlag();
+    }
 
     /**
      * Retrieves the current fault assigned to this drone.
@@ -353,29 +369,21 @@ public class Drone extends MessagePasser implements Runnable {
      * TODO:FINISH THIS AASHNA
      */
     public void handleFault() {
-        FaultID fault = getFault();
-
-        if (fault == null) {
-            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
-                    + "No fault detected.");
-            return;
-        }
-
-        switch (fault) {
+        switch (getFault()) {
             case DRONE_STUCK:
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "⚠️ " + fault + ": Drone is stuck mid-flight. Requesting immediate assistance.");
                 break;
             case NOZZLE_JAMMED:
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "⚠️ " + fault + ": Nozzle jammed. Spraying operation halted.");
                 break;
             case CORRUPTED_MESSAGE:
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "⚠️ " + fault + ": Communication error detected: Corrupted message or packet loss.");
                 break;
             default:
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "⚠️ " + fault + ": Unknown fault detected.");
                 break;
         }
@@ -396,7 +404,7 @@ public class Drone extends MessagePasser implements Runnable {
      * Executes agent release operation
      */
     public void releaseAgent() {
-        System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+        System.out.println("[" + Thread.currentThread().getName() + "]: "
                 + "💦Starting agent release.");
 
         long previousTime = System.nanoTime();
@@ -406,7 +414,7 @@ public class Drone extends MessagePasser implements Runnable {
 
         agentTank.openNozzle();
 
-        while (agentTank.isNozzleOpen() && !newTaskFlag) {
+        while (agentTank.isNozzleOpen() && !externalEventFlag) {
             currentTime = System.nanoTime();
             deltaTime = (currentTime - previousTime) / 1_000_000_000f; // convert to second
             previousTime = currentTime;
@@ -417,12 +425,12 @@ public class Drone extends MessagePasser implements Runnable {
             agentTank.decreaseAgent(agentToDrop);
             zoneToService.setRequiredAgentAmount(zoneToService.getRequiredAgentAmount()
                     - agentToDrop);
-            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+            System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "💧Releasing " + String.format("%.2f L ", agentToDrop)
                     + "| TANK = " + String.format("%.2f L ", agentTank.getCurrAgentAmount()));
 
             if (zoneToService.getRequiredAgentAmount() <= 0) {
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "🧯Fire Extinguished.");
                 eventFireExtinguished();
             }
@@ -435,8 +443,8 @@ public class Drone extends MessagePasser implements Runnable {
             }
         }
 
-        if (newTaskFlag) {
-            handleNewTask();
+        if (externalEventFlag) {
+            handleExternalEvent();
         }
     }
 
@@ -446,7 +454,7 @@ public class Drone extends MessagePasser implements Runnable {
      */
     public void stopAgent() {
         agentTank.closeNozzle();
-        System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+        System.out.println("[" + Thread.currentThread().getName() + "]: "
                 + "💦Stopped releasing agent.");
     }
 
@@ -457,12 +465,12 @@ public class Drone extends MessagePasser implements Runnable {
      * This only affects the z plane.
      */
     public void takeoff() {
-        System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
+        System.out.println("[" + Thread.currentThread().getName() + "]: "
                 + "Taking off..."
                 + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
 
         long previousTime = System.nanoTime();
-        while (this.currAltitude < CRUISE_ALTITUDE && !newTaskFlag) {
+        while (this.currAltitude < CRUISE_ALTITUDE && !externalEventFlag) {
             long currentTime = System.nanoTime();
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
             previousTime = currentTime;
@@ -475,7 +483,7 @@ public class Drone extends MessagePasser implements Runnable {
                 this.currAltitude = CRUISE_ALTITUDE;
             }
 
-            System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
+            System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "Climbing... "
                     + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
 
@@ -488,11 +496,11 @@ public class Drone extends MessagePasser implements Runnable {
             }
         }
 
-        if (newTaskFlag) {
-            handleNewTask();
+        if (externalEventFlag) {
+            handleExternalEvent();
         }
         else {
-            System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
+            System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "Takeoff complete. "
                     + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
             eventReachMaxHeight();
@@ -505,7 +513,7 @@ public class Drone extends MessagePasser implements Runnable {
      * This only affects the x & y plane.
      */
     public void accelerate() {
-        System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
+        System.out.println("[" + Thread.currentThread().getName() + "]: "
                 + "Start Accelerating... "
                 + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
                 + "| POSITION = " + this.position);
@@ -513,7 +521,7 @@ public class Drone extends MessagePasser implements Runnable {
         float distance, initialVelocity;
         long previousTime = System.nanoTime();
 
-        while (!newTaskFlag) {
+        while (!externalEventFlag) {
             long currentTime = System.nanoTime();
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
             previousTime = currentTime;
@@ -522,7 +530,7 @@ public class Drone extends MessagePasser implements Runnable {
 
             // 1. If we're already within the deceleration distance, don't try to reach max speed.
             if (this.getDistanceFromDestination() <= this.getDecelDistance()) {
-                System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Reached deceleration distance, cannot reach max speed. Stopping acceleration. "
                         + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
                         + "| POSITION = " + this.position);
@@ -532,7 +540,7 @@ public class Drone extends MessagePasser implements Runnable {
             // 2. We haven't reached top speed yet, so accelerate. v = vᵢ +at
             initialVelocity = this.currSpeed;
             this.currSpeed += ACCEL_RATE * deltaTime;
-            System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
+            System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "Accelerating... "
                     + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
                     + "| POSITION = " + this.position);
@@ -540,7 +548,7 @@ public class Drone extends MessagePasser implements Runnable {
             // 3. If this acceleration pushes us to or beyond top speed, cap it and break.
             if (this.currSpeed >= TOP_SPEED) {
                 this.currSpeed = TOP_SPEED;
-                System.out.println("[" + Thread.currentThread().getName() + this.id + "]: "
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Reached Max Speed. Stopping acceleration. "
                         + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
                         + "| POSITION = " + this.position);
@@ -561,8 +569,8 @@ public class Drone extends MessagePasser implements Runnable {
             }
         }
 
-        if (newTaskFlag) {
-            handleNewTask();
+        if (externalEventFlag) {
+            handleExternalEvent();
         }
         else {
             eventReachTopSpeed();
@@ -578,18 +586,18 @@ public class Drone extends MessagePasser implements Runnable {
         long currentTime;
         float deltaTime;
 
-        while (!newTaskFlag) {
+        while (!externalEventFlag) {
             currentTime = System.nanoTime();
             deltaTime = (currentTime - previousTime) / 1_000_000_000f;
             previousTime = currentTime;
 
-            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+            System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "Flying... "
                     + "| POSITION = " + this.position);
 
             // If we're at or within the deceleration distance, exit the loop
             if (this.getDistanceFromDestination() <= this.getDecelDistance()) {
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Reached deceleration distance. Ending flight. "
                         + "| POSITION = " + this.position);
                 break;
@@ -607,8 +615,8 @@ public class Drone extends MessagePasser implements Runnable {
             }
         }
 
-        if (newTaskFlag) {
-            handleNewTask();
+        if (externalEventFlag) {
+            handleExternalEvent();
         }
         else {
             eventReachDecelRange();
@@ -620,7 +628,7 @@ public class Drone extends MessagePasser implements Runnable {
      * This only affects the x & y plane.
      */
     public void decelerate() {
-        System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+        System.out.println("[" + Thread.currentThread().getName() + "]: "
                 + "Starting deceleration... "
                 + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
                 + "| POSITION = " + this.position);
@@ -628,7 +636,7 @@ public class Drone extends MessagePasser implements Runnable {
         float initialVelocity;
         long previousTime = System.nanoTime();
 
-        while (!newTaskFlag) {
+        while (!externalEventFlag) {
             long currentTime = System.nanoTime();
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
             previousTime = currentTime;
@@ -636,7 +644,7 @@ public class Drone extends MessagePasser implements Runnable {
             // 1. If we're basically at the destination, stop.
             if (this.getDistanceFromDestination() < ARRIVAL_DISTANCE_THRESHOLD) {
                 currSpeed = 0;
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "At the destination. Ending deceleration. "
                         + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
                         + "| POSITION = " + this.position);
@@ -646,7 +654,7 @@ public class Drone extends MessagePasser implements Runnable {
             // 2. We haven't reached destination yet, so decelerate. v = vᵢ +at
             initialVelocity = currSpeed;
             currSpeed += DECEL_RATE * deltaTime;
-            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+            System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "Decelerating ..."
                     + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
                     + "| POSITION = " + this.position);
@@ -654,7 +662,7 @@ public class Drone extends MessagePasser implements Runnable {
             // 3. If we've reached zero speed, there's no further deceleration to do.
             if (currSpeed <= 0) {
                 currSpeed = 0;
-                System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Have completely decelerated and stopped."
                         + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
                         + "| POSITION = " + this.position);
@@ -675,8 +683,8 @@ public class Drone extends MessagePasser implements Runnable {
             }
         }
 
-        if (newTaskFlag) {
-            handleNewTask();
+        if (externalEventFlag) {
+            handleExternalEvent();
         }
         else {
             eventReachDestination();
@@ -688,13 +696,13 @@ public class Drone extends MessagePasser implements Runnable {
      * This only affects the z plane.
      */
     public void land() {
-        System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+        System.out.println("[" + Thread.currentThread().getName() + "]: "
                 + "Begin Landing..."
                 + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
 
         long previousTime = System.nanoTime();
 
-        while (currAltitude > 0f && !newTaskFlag) {
+        while (currAltitude > 0f && !externalEventFlag) {
             long currentTime = System.nanoTime();
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
             previousTime = currentTime;
@@ -707,7 +715,7 @@ public class Drone extends MessagePasser implements Runnable {
                 currAltitude = 0f;
             }
 
-            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+            System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "Descending ... "
                     + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
 
@@ -720,14 +728,14 @@ public class Drone extends MessagePasser implements Runnable {
             }
         }
 
-        if (!newTaskFlag) {
-            System.out.println("[" + Thread.currentThread().getName() + id + "]: "
+        if (!externalEventFlag) {
+            System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "Landing complete. "
                     + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
             eventLanded();
         }
         else {
-            handleNewTask();
+            handleExternalEvent();
         }
     }
 
