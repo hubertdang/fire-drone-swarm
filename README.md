@@ -35,6 +35,8 @@ A control system and simulator for a firefighting drone swarm.
 | `FireEventHandler.java`                | Handles fire events.                                                                            |
 | `SchedulerSubsystem.java`              | Manages the scheduler subsystem.                                                                |
 | `DroneController.java`                 | Controls the drone operations.                                                                  |
+| `DroneFault.java`                      | Represents faults in the drone.                                                                 |
+| `FaultID.java`                         | Enum defining the types of faults that can occur in a drone.                                    |
 | `tests/FireIncidentSubsystemTest.java` | Unit tests for `FireIncidentSubsystem`.                                                         |
 | `tests/ZoneTest.java`                  | Unit tests for `Zone`.                                                                          |
 | `tests/DroneTest.java`                 | Unit tests for `Drone`.                                                                         |
@@ -44,12 +46,14 @@ A control system and simulator for a firefighting drone swarm.
 | `tests/SimEventTest.java`              | Unit tests for `SimEvent`.                                                                      |
 | `tests/PositionTest.java`              | Unit tests for `Position`.                                                                      |
 | `tests/MessagePasserTest.java`         | Unit tests for `MessagePasser`.                                                                 |
+| `tests/DroneSubsystemTest.java`        | Unit tests for `DroneSubsystem`.                                                                |
 | `sample_input_files/zones.csv`         | Sample test file containing zone definitions.                                                   |
 | `sample_input_files/events.csv`        | Sample test file containing fire incident events.                                               |
 | `docs/UML_Class_Diagram.pdf`           | UML Class diagram of the system.                                                                |
 | `docs/UML_Sequence_Diagram.pdf`        | UML Sequence diagram of the system.                                                             |
 | `docs/Scheduler_State_Machine.pdf`     | State machine diagram of the scheduler.                                                         |
 | `docs/Drone_State_Machine.pdf`         | State machine diagram of the drone.                                                             |
+| `docs/Timing_Diagram.pdf`              | Timing diagram of the system.                                                                   |
 ## ⚙️ Setup Instructions
 
 ### **Prerequisites**
@@ -125,6 +129,16 @@ cd fire-drone-swarm
 10. Create your pull request. Follow the instructions listed [here](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request#creating-the-pull-request).
 11. Once your pull request is ready to merge, please **squash and merge** to limit the number of commits to master.
 ![image](https://github.com/user-attachments/assets/e829f914-5a12-4ec0-a8e7-1ee3f6358397)
+
+## Iteration 4: Breakdown of Responsibilities
+In general, the team approached the project collaboratively, working together to solve problems and make decisions. However, each team member was responsible for specific tasks and components of the project.
+The breakdown of responsibilities is as follows:
+- Amilesh: UML Class diagram for Scheduler, pair programmed with David for Scheduler, debugging Drone
+- Hubert: Pair programmed with Aashna, reviewed PRs, debugging Scheduler 
+- David: `FireEventHandler`,`DroneRequestHandler`,`MessagePasser`,`Scheduler`, `DroneInfo`, debugging Drone
+- Aashna: `Drone`, `Takeoff`, `Accelerating`, `DroneSubsystem`, `DroneTaskType`, `DroneTask`, debugging Scheduler 
+- Shenhao Gong: UML Timing Diagram, `DroneSubsystemTest`
+- Manit: `DroneFault`,`DroneSubsystem`,`FaultID`
 
 ## Iteration 3: Breakdown of Responsibilities
 In general, the team approached the project collaboratively, working together to solve problems and make decisions. However, each team member was responsible for specific tasks and components of the project.
