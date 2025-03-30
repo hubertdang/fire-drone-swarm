@@ -1,5 +1,3 @@
-import java.sql.Time;
-
 /**
  * DroneFault class represents faults that will be injected in the drone.
  */
