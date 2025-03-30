@@ -11,9 +11,9 @@ public class DroneSubsystemTest {
     @BeforeEach
     void setUp() {
         faults = new ArrayList<>();
-        faults.add(new DroneFault(1, 2, 14 * 3600 + 34 * 60 + 24, Faults.NOZZLE_JAMMED)); // 52441
-        faults.add(new DroneFault(2, 3, 14 * 3600 + 34 * 60 + 1, Faults.CORRUPTED_MESSAGE)); // 52464
-        faults.add(new DroneFault(1, 1, 14 * 3600 + 34 * 60 + 47, Faults.DRONE_STUCK)); // 52487
+        faults.add(new DroneFault(1, 2, 14 * 3600 + 34 * 60 + 24, FaultID .NOZZLE_JAMMED)); // 52441
+        faults.add(new DroneFault(2, 3, 14 * 3600 + 34 * 60 + 1, FaultID .CORRUPTED_MESSAGE)); // 52464
+        faults.add(new DroneFault(1, 1, 14 * 3600 + 34 * 60 + 47, FaultID .DRONE_STUCK)); // 52487
         faults.sort(Comparator.comparingLong(DroneFault::getFaultTime));
 
     }
@@ -24,19 +24,19 @@ public class DroneSubsystemTest {
         assertEquals(2, f1.getDroneId());
         assertEquals(3, f1.getFaultCode());
         assertEquals(52441L, f1.getFaultTime());
-        assertEquals(Faults.CORRUPTED_MESSAGE, f1.getFaultType());
+        assertEquals(FaultID .CORRUPTED_MESSAGE, f1.getFaultType());
 
         DroneFault f2 = faults.get(1);
         assertEquals(1, f2.getDroneId());
         assertEquals(2, f2.getFaultCode());
         assertEquals(52464L, f2.getFaultTime());
-        assertEquals(Faults.NOZZLE_JAMMED, f2.getFaultType());
+        assertEquals(FaultID .NOZZLE_JAMMED, f2.getFaultType());
 
         DroneFault f3 = faults.get(2);
         assertEquals(1, f3.getDroneId());
         assertEquals(1, f3.getFaultCode());
         assertEquals(52487L, f3.getFaultTime());
-        assertEquals(Faults.DRONE_STUCK, f3.getFaultType());
+        assertEquals(FaultID .DRONE_STUCK, f3.getFaultType());
     }
 
     @Test

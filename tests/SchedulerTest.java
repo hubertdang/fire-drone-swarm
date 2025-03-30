@@ -30,7 +30,7 @@ public class SchedulerTest {
         scheduler.putZoneOnFire(zone1);
         scheduler.putZoneOnFire(zone2);
 
-        Drone drone = new Drone(1, 5000);
+        Drone drone = new Drone();
         ArrayList<DroneInfo> droneInfoList = new ArrayList<>();
         droneInfoList.add(new DroneInfo(drone.getId(), drone.getCurrStateID(), drone.getPosition(), drone.getAgentTankAmount(), drone.getZoneToService()));
 
