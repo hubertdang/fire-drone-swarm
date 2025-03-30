@@ -32,19 +32,19 @@ public class ZoneTriageInfo {
      * getExtinguishingTime
      * @return the current extinguishing time for zone on fire
      */
-    public synchronized float getExtinguishingTime() { return extinguishingTime; }
+    public float getExtinguishingTime() { return extinguishingTime; }
 
     /**
      * getZoneId
      * @return the zoneId associated with service object
      */
-    public synchronized int getZoneId() { return zoneId; }
+    public int getZoneId() { return zoneId; }
 
     /**
      * getServicingDrones
      * @return servicingDrones LinkedHashMap structure
      */
-    public synchronized LinkedHashMap<Integer, Map.Entry<Float, Float>> getServicingDrones() {
+    public LinkedHashMap<Integer, Map.Entry<Float, Float>> getServicingDrones() {
         return servicingDrones;
     }
 
@@ -55,7 +55,7 @@ public class ZoneTriageInfo {
      * @param dronePosition the position of drone
      * @return true if the drone was added to servicingDrones, false otherwise
      */
-    public synchronized boolean addDrone(Integer droneId, Position dronePosition) {
+    public boolean addDrone(Integer droneId, Position dronePosition) {
         float distance = dronePosition.distanceFrom(zonePosition);
         // Proper accel and deccel should be used but is overly complicated
         float arrivalTime = distance / Drone.TOP_SPEED;
@@ -83,7 +83,7 @@ public class ZoneTriageInfo {
      * @param droneId the ID of drone to remove
      * @return true if successful, false otherwise
      */
-    public synchronized boolean removeDrone(int droneId) {
+    public boolean removeDrone(int droneId) {
         Map.Entry<Float, Float> entry = servicingDrones.remove(droneId);
         if (entry != null) {
             updateResponseTime();
@@ -95,7 +95,7 @@ public class ZoneTriageInfo {
      * sortServicingDrones
      * configures the servicingDronesStructure in order of ascending drone arrival times
      */
-    private synchronized void sortServicingDrones() {
+    private void sortServicingDrones() {
         servicingDrones = servicingDrones.entrySet()
                 .stream()
                 .sorted(Comparator.comparing
@@ -116,7 +116,7 @@ public class ZoneTriageInfo {
      *
      * Refer to Scheduler Algorithm Doc
      */
-    private synchronized void updateResponseTime() {
+    private void updateResponseTime() {
         float currentVolume = 0;
         float prevFlowRate = 0;
         float lastTime = 0;
@@ -157,5 +157,5 @@ public class ZoneTriageInfo {
      * getSize
      * @return the number of entries in LinkedHashMap
      */
-    public synchronized int getSize() { return servicingDrones.size(); }
+    public int getSize() { return servicingDrones.size(); }
 }
