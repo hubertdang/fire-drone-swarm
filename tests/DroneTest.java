@@ -9,8 +9,8 @@ class DroneTest {
 
     @BeforeEach
     void setUp() {
-        drone = new Drone(1, 5001);
-        droneController = new DroneController(drone, 6001);
+        drone = new Drone();
+        droneController = new DroneController(drone);
     }
 
     @Test
@@ -34,7 +34,7 @@ class DroneTest {
     @Test
     void testEquals() {
         Drone sameDrone = drone;
-        Drone diffDrone = new Drone(2, 5002);
+        Drone diffDrone = new Drone();
         assertEquals(drone, sameDrone, "Drones with same ID should be equal.");
         assertNotEquals(drone, diffDrone, "Drones with different IDs should not be equal.");
     }
@@ -54,7 +54,7 @@ class DroneTest {
     void testExternalEvent() throws InterruptedException {
         Thread droneThread = new Thread(drone, "🛫D");
         Zone zone = new Zone(1, 10, 10, 20, 10, 20);
-        DroneTask task = new DroneTask(1, DroneTaskType.SERVICE_ZONE, zone);
+        DroneTask task = new DroneTask(1, DroneTaskType.SERVICE_ZONE, zone, 0);
         droneThread.start(); // Start the drone thread
 
         // External @ takeOff
@@ -125,10 +125,10 @@ class DroneTest {
         drone.setZoneToService(testZone);
         assertEquals(drone.getCurrStateID(), DroneStateID.BASE);
 
-        drone.setCurrTask(new DroneTask(1, DroneTaskType.SERVICE_ZONE));
+        drone.setCurrTask(new DroneTask(1, DroneTaskType.SERVICE_ZONE, null, 0));
         drone.eventReqServiceZone();
 
-        drone.setCurrTask(new DroneTask(1, DroneTaskType.RELEASE_AGENT));
+        drone.setCurrTask(new DroneTask(1, DroneTaskType.RELEASE_AGENT, null,0));
         drone.eventReqRelAgent();
     }
 
@@ -151,23 +151,23 @@ class DroneTest {
         drone.setZoneToService(testZone);
         assertEquals(drone.getCurrStateID(), DroneStateID.BASE);
 
-        drone.setCurrTask(new DroneTask(1, DroneTaskType.SERVICE_ZONE));
+        drone.setCurrTask(new DroneTask(1, DroneTaskType.SERVICE_ZONE, null, 0));
         drone.eventReqServiceZone();
 
         drone.setDestination(testZone2.getPosition());
         drone.setZoneToService(testZone2);
-        drone.setCurrTask(new DroneTask(1, DroneTaskType.SERVICE_ZONE));
+        drone.setCurrTask(new DroneTask(1, DroneTaskType.SERVICE_ZONE, null, 0));
         drone.eventReqServiceZone();
 
-        drone.setCurrTask(new DroneTask(1, DroneTaskType.RELEASE_AGENT));
+        drone.setCurrTask(new DroneTask(1, DroneTaskType.RELEASE_AGENT, null, 0));
         drone.eventReqRelAgent();
 
         drone.setDestination(testZone.getPosition());
         drone.setZoneToService(testZone);
-        drone.setCurrTask(new DroneTask(1, DroneTaskType.SERVICE_ZONE));
+        drone.setCurrTask(new DroneTask(1, DroneTaskType.SERVICE_ZONE, null, 0));
         drone.eventReqServiceZone();
 
-        drone.setCurrTask(new DroneTask(1, DroneTaskType.RELEASE_AGENT));
+        drone.setCurrTask(new DroneTask(1, DroneTaskType.RELEASE_AGENT, null, 0));
         drone.eventReqRelAgent();
 
     }
@@ -185,7 +185,7 @@ class DroneTest {
         assertEquals(DroneStateID.IDLE, drone.getCurrStateID());
         drone.setDestination(new Position(0, 0));
         drone.eventReqRecall();
-        drone.setCurrTask(new DroneTask(1, DroneTaskType.RECALL));
+        drone.setCurrTask(new DroneTask(1, DroneTaskType.RECALL, null, 0));
     }
 
 }
