@@ -10,17 +10,19 @@ public class DroneTask implements Serializable {
     private final int droneID;
     private final DroneTaskType taskType;
     private final Zone zone;
+    public final int port;
 
     /**
-     * Task constructor 1 takes a desired task, and sets the event to a default value;
-     * to convey message between scheduler and drone.
+     * Task constructor 2 takes a desired task, and Zone to convey message between scheduler and drone
      *
+     * @param zone          the Zone to service.
      * @param droneTaskType the status message to be interpreted by a Drone.
      */
-    public DroneTask(int droneID, DroneTaskType droneTaskType) {
+    public DroneTask(int droneID, DroneTaskType droneTaskType, Zone zone, int port) {
         this.droneID = droneID;
         this.taskType = droneTaskType;
-        this.zone = null;
+        this.zone = zone;
+        this.port = port;
     }
 
     /**
@@ -33,6 +35,7 @@ public class DroneTask implements Serializable {
         this.droneID = droneID;
         this.taskType = droneTaskType;
         this.zone = zone;
+        this.port = -1;
     }
 
     /**
