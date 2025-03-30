@@ -244,6 +244,48 @@ public class Drone extends MessagePasser implements Runnable {
         this.currTask = task;
     }
 
+    /**
+     * Sets the fault for this drone.
+     * @param fault The fault type to assign to the drone.
+     */
+    public void setFault(FaultID fault) {
+        this.fault = fault;
+        setExternalEventFlag();
+    }
+
+    /**
+     * Retrieves the current fault assigned to this drone.
+     * @return The fault type currently set for the drone.
+     */
+    public FaultID getFault() {return this.fault;}
+
+    /**
+     * Handles the current fault by logging an error message and notifying the scheduler.
+     */
+    public void handleFault() {
+        switch (getFault()) {
+            case DRONE_STUCK:
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "⚠️ " + fault + ": Drone is stuck mid-flight. Requesting immediate assistance.");
+                break;
+            case NOZZLE_JAMMED:
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "⚠️ " + fault + ": Nozzle jammed. Spraying operation halted.");
+                break;
+            case CORRUPTED_MESSAGE:
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "⚠️ " + fault + ": Communication error detected: Corrupted message or packet loss.");
+                break;
+            default:
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "⚠️ " + fault + ": Unknown fault detected.");
+                break;
+        }
+
+        DroneInfo info = new DroneInfo( id, fault);
+        send(info, "localhost", SCHEDULER_PORT);
+    }
+
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof Drone) && ((Drone) obj).id == this.id;
@@ -348,49 +390,6 @@ public class Drone extends MessagePasser implements Runnable {
      */
     public void eventLanded() {
         currState.landed(this);
-    }
-
-    /**
-     * Sets the fault for this drone.
-     * @param fault The fault type to assign to the drone.
-     */
-    public void setFault(FaultID fault) {
-        this.fault = fault;
-        setExternalEventFlag();
-    }
-
-    /**
-     * Retrieves the current fault assigned to this drone.
-     * @return The fault type currently set for the drone.
-     */
-    public FaultID getFault() {return this.fault;}
-
-    /**
-     * TODO:FINISH THIS AASHNA
-     */
-    public void handleFault() {
-        switch (getFault()) {
-            case DRONE_STUCK:
-                System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "⚠️ " + fault + ": Drone is stuck mid-flight. Requesting immediate assistance.");
-                break;
-            case NOZZLE_JAMMED:
-                System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "⚠️ " + fault + ": Nozzle jammed. Spraying operation halted.");
-                break;
-            case CORRUPTED_MESSAGE:
-                System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "⚠️ " + fault + ": Communication error detected: Corrupted message or packet loss.");
-                break;
-            default:
-                System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "⚠️ " + fault + ": Unknown fault detected.");
-                break;
-        }
-
-        // TODO: Send drone info back to the scheduler
-        DroneInfo info = new DroneInfo( id, fault);
-        send(info, "localhost", SCHEDULER_PORT);
     }
 
     /* ------------------------------ AGENT CONTROL ------------------------------ */
