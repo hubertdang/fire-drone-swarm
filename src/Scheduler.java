@@ -1,14 +1,12 @@
 import java.util.*;
 
 public class Scheduler {
-    public static final int FEH_PORT = 7000;
-    public static final int DRH_PORT = 7001;
     private static final float Wnz = 4F; // weight of new zone for calcs
     private static final float Wcz = 2F; // weight of current zone for calcs
     private static final float Wd = 0.1F; // weight of drone distance from a zone
     private static final float scoreThreshold = 0F; // the score needed in order to reschedule drone
     private static final Position BASE = new Position(0, 0);
-    private final Map<Zone, ZoneTriageInfo> zonesOnFire;
+    private final HashMap<Zone, ZoneTriageInfo> zonesOnFire;
     private final DroneActionsTable droneActionsTable;
 
 
@@ -17,7 +15,7 @@ public class Scheduler {
      * Initialises the drone and mission queue.
      */
     public Scheduler() {
-        this.zonesOnFire = Collections.synchronizedMap(new HashMap<>());
+        this.zonesOnFire = new HashMap<>();
         this.droneActionsTable = new DroneActionsTable();
     }
 
@@ -38,7 +36,7 @@ public class Scheduler {
         }
         for (DroneInfo droneInfo : droneInfoList) {
             if (!busyDrones.contains(droneInfo.droneID)) {
-                if (droneInfo.getStateID() == DroneStateID.FAULT) {
+                if (droneInfo.fault != null) {
                     System.out.println("[" + Thread.currentThread().getName() + "]: "
                             + "Drone#" + droneInfo.droneID
                             + " | OFFLINE "
@@ -84,7 +82,7 @@ public class Scheduler {
         DroneTask newTask;
         switch (droneInfo.getStateID()) {
             case ARRIVED:
-                newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RELEASE_AGENT, droneInfo.getZoneToService(), DRH_PORT);
+                newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RELEASE_AGENT, droneInfo.getZoneToService());
                 droneActionsTable.addAction(droneInfo.droneID, newTask);
                 break;
             case IDLE:
@@ -100,13 +98,12 @@ public class Scheduler {
                     }
                 }
                 System.out.println("[" + Thread.currentThread().getName()
-                        + "]: 🧯 Fire Extinguished received from Drone#" + droneInfo.getDroneID()
+                        + "]: Fire Extinguished received from Drone#" + droneInfo.getDroneID()
                         + " Zone: " + droneInfo.getZoneToService());
 
-                newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RECALL, null, DRH_PORT);
-
-                if (!scheduleDrone(droneInfo)) {droneActionsTable.addAction(droneInfo.droneID, newTask);}
-
+                newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RECALL);
+                droneActionsTable.addAction(droneInfo.droneID, newTask);
+                scheduleDrone(droneInfo); // will override recall task if the drone can be rerouted
                 break;
             case BASE:
                 scheduleDrone(droneInfo); // may do nothing if no fires to respond to
@@ -139,7 +136,7 @@ public class Scheduler {
                 zonesOnFire.entrySet().iterator();
         while (servicesIterator.hasNext()) {
             Map.Entry<Zone, ZoneTriageInfo> zoneEntry = servicesIterator.next();
-            if (zoneEntry.getValue().getSize() == 0) { //load balancing
+            if (zoneEntry.getValue().getSize() == 0) {
 
                 // create new task to service this zone
                 DroneTask newTask = new DroneTask(droneInfo.getDroneID()
@@ -164,7 +161,7 @@ public class Scheduler {
             if (droneAdded) {
                 // create new task to service this zone
                 DroneTask newTask = new DroneTask(droneInfo.getDroneID()
-                        , DroneTaskType.SERVICE_ZONE, zoneEntry.getKey(), 7000);
+                        , DroneTaskType.SERVICE_ZONE, zoneEntry.getKey());
                 // add task to actions table
                 droneActionsTable.addAction(droneInfo.droneID, newTask);
                 return true;
@@ -179,7 +176,7 @@ public class Scheduler {
      *
      * @return zonesOnFire
      */
-    public Map<Zone, ZoneTriageInfo> getZonesOnFire() {
+    public HashMap<Zone, ZoneTriageInfo> getZonesOnFire() {
         return zonesOnFire;
     }
 

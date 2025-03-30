@@ -72,12 +72,10 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
      */
     public void readSimEventFile(File eventFile) {
         try (BufferedReader br = new BufferedReader(new FileReader(eventFile))) {
-            String line = br.readLine(); // skip the header
-
+            String line = br.readLine(); // skip the header of the file
             while ((line = br.readLine()) != null) {
                 String[] eventData = line.split(",");
-                String timeStr = eventData[0].trim();
-                long time = timeToMillis(timeStr);
+                long time = timeToMillis(eventData[0].trim());
                 int zoneId = Integer.parseInt(eventData[1].trim());
                 String eventType = eventData[2].trim();
                 String severity = eventData[3].trim();
@@ -85,13 +83,14 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
                 SimEvent event = new SimEvent(time, zoneId, eventType, severity);
                 events.add(event);
             }
-
             sortEventsByTime(events);
-            System.out.println("[" + Thread.currentThread().getName() + "]: Events added successfully from event file");
-        } catch (IOException e) {
-            System.err.println("[" + Thread.currentThread().getName() + "]: ‼️ Error reading event file: " + e.getMessage());
-        } catch (NumberFormatException e) {
-            System.err.println("[" + Thread.currentThread().getName() + "]: ‼️ Error parsing event data: " + e.getMessage());
+            System.out.println("[" + Thread.currentThread().getName() + "]: " + "Events added successfully from event file");
+        }
+        catch (IOException e) {
+            System.err.println("[" + Thread.currentThread().getName() + "]: " + "‼️Error reading zone file: " + e.getMessage());
+        }
+        catch (NumberFormatException e) {
+            System.err.println("[" + Thread.currentThread().getName() + "]: " + "‼️Error parsing event data: " + e.getMessage());
         }
     }
 
@@ -137,21 +136,20 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
      * Start the simulation, send events to the scheduler and check if the fires have been put out
      */
     public void simStart() {
-        TimeUtils.setOffset();
-        long startTime = TimeUtils.getCurrentTime();
+        long startTime = getCurrentTime();
         int eventIndex = 0;
         long eventIndexTime = 0;
         System.out.println("[" + Thread.currentThread().getName() + "]: " + "Simulation started at: "
-                + TimeUtils.millisecondsToTimestamp(startTime));
+                + TimeUtils.secondsToTimestamp(startTime));
 
         while (hasActiveFiresOrUpcomingEvents(eventIndex)) {
-            long currentTime = TimeUtils.getCurrentTime();
+            long currentTime = getCurrentTime();
             System.out.println("[" + Thread.currentThread().getName() + "]: " + "Current time: "
-                    + TimeUtils.millisecondsToTimestamp(currentTime));
+                    + TimeUtils.secondsToTimestamp(currentTime));
             if (eventIndex < events.size()) { // Check if we have reached the end of the events
                 eventIndexTime = events.get(eventIndex).getTime();
                 System.out.println("[" + Thread.currentThread().getName() + "]: " + "Next event time: "
-                        + TimeUtils.millisecondsToTimestamp(eventIndexTime));
+                        + TimeUtils.secondsToTimestamp(eventIndexTime));
             }
 
 
@@ -160,7 +158,7 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
                 System.out.println("[" + Thread.currentThread().getName() + "]: " + "Sending event to scheduler");
                 sendEvent(events.get(eventIndex));
                 eventIndex++;
-                currentTime = TimeUtils.getCurrentTime();
+                currentTime = getCurrentTime();
                 if (events.size() == eventIndex) { // Check if we have reached the end of the events
                     break;
                 }
@@ -281,19 +279,19 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
         return minutes * 60L + seconds;
     }
 
-//    /**
-//     * Get the current time in milliseconds
-//     *
-//     * @return the current time in milliseconds
-//     */
-//    private long getCurrentTime() {
-//        long currentTimeMillis = System.currentTimeMillis();
-//        long offset = ZoneOffset.systemDefault()
-//                .getRules()
-//                .getOffset(java.time.Instant.ofEpochMilli(currentTimeMillis))
-//                .getTotalSeconds() * 1000L;
-//        return (currentTimeMillis + offset) % (24 * 60 * 60 * 1000L);
-//    }
+    /**
+     * Get the current time in milliseconds
+     *
+     * @return the current time in milliseconds
+     */
+    private long getCurrentTime() {
+        long currentTimeMillis = System.currentTimeMillis();
+        long offset = ZoneOffset.systemDefault()
+                .getRules()
+                .getOffset(java.time.Instant.ofEpochMilli(currentTimeMillis))
+                .getTotalSeconds() * 1000L;
+        return (currentTimeMillis + offset) % (24 * 60 * 60 * 1000L);
+    }
 
     public static void main(String[] args) {
         FireIncidentSubsystem fireIncidentSubsystem = new FireIncidentSubsystem(9000);

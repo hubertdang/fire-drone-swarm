@@ -3,9 +3,11 @@ public class DroneController extends MessagePasser implements Runnable {
 
     /**
      * Creates a MessagePasser object with a specific port to bind its socket to.
+     *
+     * @param port The port to
      */
-    public DroneController(Drone drone) {
-        super(6000 + drone.getId());
+    public DroneController(Drone drone, int port) {
+        super(port);
         this.drone = drone;
     }
 
@@ -44,7 +46,7 @@ public class DroneController extends MessagePasser implements Runnable {
         switch (task.getTaskType()) {
             case SERVICE_ZONE:
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Dispatching SERVICE_ZONE task to Drone#" + drone.getId());
+                        + "Dispatching SERVICE_ZONE task to Drone# " + drone.getId());
                 drone.setDestination(task.getZone().getPosition());
                 drone.setZoneToService(task.getZone());
                 break;
@@ -67,8 +69,7 @@ public class DroneController extends MessagePasser implements Runnable {
                         drone.getAgentTankAmount(),
                         drone.getZoneToService());
                 /* TODO: create a method to get scheduler's IP address and port instead of hard-coding */
-
-                send(info, "localhost", task.port);
+                send(info, "localhost", 7000);
                 break;
             default:
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
@@ -87,6 +88,6 @@ public class DroneController extends MessagePasser implements Runnable {
             return;
         }
         drone.setCurrTask(task);
-        drone.setExternalEventFlag();
+        drone.setNewTaskFlag();
     }
 }

@@ -3,15 +3,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 
 
 public class DroneSubsystem {
 
-    private static final int NUMBER_OF_DRONES = 2;
-    private static ArrayList<DroneFault> droneFaults; // a list of drone faults that will be injected
-    private static HashMap<Integer, Drone> drones;
+    // a list of drone faults that will be injected
+    private static ArrayList<DroneFault> droneFaults;
 
     /**
      * Reads a file containing drone faults and adds them to arraylist droneFaults.
@@ -34,17 +32,14 @@ public class DroneSubsystem {
                 int droneId = Integer.parseInt(data[0].trim());
                 int faultCode = Integer.parseInt(data[1].trim());
 
-                String time = data[2];
-                long faultTime = TimeUtils.csvTimeToMillis(time);
+                String[] time = data[2].trim().split(":");
+                int hours = Integer.parseInt(time[0]);
+                int minutes = Integer.parseInt(time[1]);
+                int seconds = Integer.parseInt(time[2]);
+                // convert fault time to seconds since midnight
+                long faultTime = hours * 3600L + minutes * 60L + seconds;
 
-//                String[] time = data[2].trim().split(":");
-//                int hours = Integer.parseInt(time[0]);
-//                int minutes = Integer.parseInt(time[1]);
-//                int seconds = Integer.parseInt(time[2]);
-//                // convert fault time to seconds since midnight
-//                long faultTime = hours * 3600L + minutes * 60L + seconds;
-
-                FaultID faultType = FaultID.valueOf(String.valueOf(data[3].trim()));
+                Faults faultType = Faults.valueOf(String.valueOf(data[3].trim()));
                 droneFaults.add(new DroneFault(droneId, faultCode, faultTime, faultType));
             }
         }
@@ -69,49 +64,63 @@ public class DroneSubsystem {
     }
 
     public static void main(String[] args) throws IOException {
-        drones = new HashMap<>();
-        droneFaults = new ArrayList<>();
-        TimeUtils.setOffset();
+        /* TODO: Find a way to not hardcode port numbers (maybe with static field and offsetting */
+        Drone drone = new Drone(1, 5001);
+        DroneController droneController = new DroneController(drone, 6001);
+        Drone drone1 = new Drone(2, 5002);
+        DroneController droneController1 = new DroneController(drone1, 6002);
+        droneFaults = new ArrayList<>(); // initialize the arraylist for storing drone faults
 
-        for (int i = 0; i < NUMBER_OF_DRONES; i++) {
-            Drone drone = new Drone();
-            DroneController controller = new DroneController(drone);
-            drones.put(drone.getId(), drone);
-
-            Thread droneThread = new Thread(drone, "🛫D" + drone.getId());
-            Thread controllerThread = new Thread(controller, "🛫DC" + drone.getId());
-
-            droneThread.start();
-            controllerThread.start();
-        }
-
+        // read the file containing drone faults and store all faults in the arraylist droneFaults
         readFaultsFile("./sample_input_files/faults.csv");
 
+        Thread droneThread = new Thread(drone, "🛫D");
+        Thread droneControllerThread = new Thread(droneController, "🛫DC");
+
+        Thread droneThread1 = new Thread(drone1, "🛫D");
+        Thread droneControllerThread1 = new Thread(droneController1, "🛫DC2");
+
+        droneThread.start();
+        droneControllerThread.start();
+        droneThread1.start();
+        droneControllerThread1.start();
+
         // a loop that injects faults when fault time is reached
-        while (!droneFaults.isEmpty()) {
+        while (true) {
             Iterator<DroneFault> iterator = droneFaults.iterator();
             while (iterator.hasNext()) {
                 DroneFault currentFault = iterator.next();
-
-                if (Math.abs(currentFault.getFaultTime() - TimeUtils.getCurrentTime()) <= 2000) {
-                    //System.out.println("🚨 " + currentFault.toString());
-
-                    Drone affectedDrone = drones.get(currentFault.getDroneId());
-                    if (affectedDrone != null) {
-                        affectedDrone.setFault(currentFault.getFaultType());
-                    } else {
-                        System.out.println("No drone found with ID: " + currentFault.getDroneId());
-                    }
-
+                if (currentFault.getFaultTime() == getCurrentTime()) {
+                    System.out.println(currentFault.toString());
                     iterator.remove();
+                    if (currentFault.getFaultType().equals(Faults.NOZZLE_JAMMED)) {
+                        // actions to be taken when nozzle jams
+                        /*TODO: Actions for Nozzle Jam Fault*/
+                    }
+                    else if (currentFault.getFaultType().equals(Faults.DRONE_STUCK)) {
+                        // actions to be taken when drone is stuck mid-flight
+                        /*TODO: Actions for Drone Stuck Mid-Flight Fault*/
+                    }
+                    else if (currentFault.getFaultType().equals(Faults.CORRUPTED_MESSAGE)) {
+                        // actions to be taken when there is a packet loss or corrupted message
+                        /*TODO: Actions for Packet Loss or Corrupted Message Fault*/
+                    }
+                    else {
+                        System.out.println("Unknown Fault: " + currentFault.getFaultType());
+                    }
                 }
             }
-            try {
-                Thread.sleep(1000); // check every second
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
+    }
+
+    /**
+     * Get the current time in seconds passed since midnight
+     *
+     * @return the current time in seconds passed since midnight
+     */
+    private static long getCurrentTime() {
+        LocalTime now = LocalTime.now(); // Get current local time
+        return now.toSecondOfDay();
     }
 
     /**
