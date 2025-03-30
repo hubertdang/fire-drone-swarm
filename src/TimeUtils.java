@@ -4,9 +4,6 @@ import java.time.format.DateTimeFormatter;
 public class TimeUtils {
     private static final String TARGET_TIME_STR = "17:03:50";
     private static volatile  long offsetMilliseconds = 0;
-    private static boolean offsetSet = false;
-
-    public static boolean isOffsetSet() { return offsetSet;}
 
     /**
      * Converts a duration in milliseconds to a timestamp in HH:mm:ss:SSS format.
@@ -25,8 +22,6 @@ public class TimeUtils {
 
     /**
      * Sets the time offset so that the simulated time aligns with a target timestamp.
-     *
-     * @param targetTimeStr A string in HH:mm:ss format representing the desired start time.
      */
     public synchronized static void setOffset() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -36,9 +31,8 @@ public class TimeUtils {
         long actualMillis = LocalTime.now().toSecondOfDay() * 1000L;
 
         offsetMilliseconds = targetMillis - actualMillis;
-        offsetSet = true;
 
-        System.out.println("Offset set to: " + offsetMilliseconds + "ms");
+        //System.out.println("Offset set to: " + offsetMilliseconds + "ms");
     }
 
     /**
