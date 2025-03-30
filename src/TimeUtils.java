@@ -2,7 +2,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 public class TimeUtils {
-    private static final String TARGET_TIME_STR = "17:03:50";
+    private static final String TARGET_TIME_STR = "17:04:00";
     private static volatile  long offsetMilliseconds = 0;
 
     /**
@@ -15,9 +15,9 @@ public class TimeUtils {
         long hours = milliseconds / 3600000;
         long minutes = (milliseconds % 3600000) / 60000;
         long seconds = (milliseconds % 60000) / 1000;
-        long remainingMilliseconds = milliseconds % 1000;
+        //long remainingMilliseconds = milliseconds % 1000;
 
-        return String.format("%02d:%02d:%02d:%03d", hours, minutes, seconds, remainingMilliseconds);
+        return String.format("%02d:%02d:%02d ", hours, minutes, seconds);
     }
 
     /**

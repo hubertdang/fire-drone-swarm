@@ -45,6 +45,7 @@ public class Drone extends MessagePasser implements Runnable {
         agentTank = new AgentTank();
         zoneToService = null;
         states = new HashMap<>();
+        externalEventFlag = false;
 
         addState(DroneStateID.BASE, new Base());
         addState(DroneStateID.TAKEOFF, new Takeoff());
@@ -68,8 +69,8 @@ public class Drone extends MessagePasser implements Runnable {
         while (true) {
             if (externalEventFlag) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Drone has received an new task: " + currTask.getTaskType() + " @ zone#"
-                        + currTask.getZone().getId());
+                        + "Drone has received an new task: " + getCurrTask().getTaskType() + " @ zone#"
+                        + getCurrTask().getZone().getId());
                 handleExternalEvent();
             }
             try {
@@ -242,6 +243,13 @@ public class Drone extends MessagePasser implements Runnable {
      */
     public synchronized void setCurrTask(DroneTask task) {
         this.currTask = task;
+    }
+
+    /**
+     * @return currTask
+     */
+    public synchronized DroneTask getCurrTask() {
+        return this.currTask;
     }
 
     /**
