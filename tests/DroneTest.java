@@ -188,4 +188,17 @@ class DroneTest {
         drone.setCurrTask(new DroneTask(1, DroneTaskType.RECALL, null, 0));
     }
 
+    /**
+     * Tests that setting a DRONE_STUCK fault changes the drone's state from BASE to FAULT.
+     */
+    @Test
+    void testFaultDetection() throws InterruptedException {
+        assertEquals(drone.getCurrStateID(), DroneStateID.BASE);
+
+        drone.setFault(FaultID.DRONE_STUCK);
+        drone.eventFaultDetected();
+        sleep(2000); // Allow some time for state change
+        assertEquals(drone.getCurrStateID(), DroneStateID.FAULT);
+    }
+
 }
