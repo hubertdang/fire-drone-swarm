@@ -7,6 +7,5 @@ public enum DroneStateID {
     LANDING,            /* decelerating downwards to reach speed 0 and land on the ground */
     ARRIVED,            /* static, at the location of the zone to service */
     RELEASING_AGENT,
-    FAULT,
     IDLE,               /* no zone to service, maybe have agent left, static */
 }

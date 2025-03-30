@@ -34,9 +34,7 @@ public class FireEventHandler extends MessagePasser implements Runnable {
                 scheduler.dispatchActions(this,-1);
             }
 
-            Object data = receive();
-            //if (data instanceof Zone) fireZone
-            Zone fireZone = (Zone) data;
+            Zone fireZone = (Zone) receive();
             if (fireZone != null) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Scheduler has received a new event.\n\t" + " adding to mission queue.");
@@ -73,14 +71,14 @@ public class FireEventHandler extends MessagePasser implements Runnable {
         // For example, Drone with ID 1 will have ports 5001 and 6001 for its Drone
         // and DroneController respectively.
         for (int i = 1; i < 3; i++) {
-            DroneTask getInfo = new DroneTask(i, DroneTaskType.REQUEST_INFO, null, Scheduler.FEH_PORT);
+            DroneTask getInfo = new DroneTask(i, DroneTaskType.REQUEST_INFO, null);
             System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "Requesting info from Drone#" + i);
 
             Object message = null;
             send(getInfo, "localhost", 6000 + i);
-            while (true) {
-                message = receive(2000);
+            while (!(message instanceof DroneInfo)) {
+                message = receive(1000);
                 if (message instanceof Zone) {
                     // we received a fire event, add to queue
                     System.out.println("[" + Thread.currentThread().getName() + "]: "
@@ -91,7 +89,6 @@ public class FireEventHandler extends MessagePasser implements Runnable {
                     System.out.println("[" + Thread.currentThread().getName() + "]: "
                             + "Received DroneInfo from Drone#" + i);
                     droneInfos.add((DroneInfo) message);
-                    break;
                 } else {break;}
             }
         }

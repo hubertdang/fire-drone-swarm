@@ -1,3 +1,5 @@
+import java.sql.Time;
+
 /**
  * DroneFault class represents faults that will be injected in the drone.
  */
@@ -5,7 +7,7 @@ public class DroneFault {
     private final int droneId;
     private final int faultCode;
     private final long faultTime;
-    private final FaultID faultType;
+    private final Faults faultType;
 
     /**
      * Constructor for Drone Faults.
@@ -16,7 +18,7 @@ public class DroneFault {
      * @param faultTime then time when fault is supposed to occur
      * @param faultType the type of fault
      */
-    public DroneFault(int droneId, int faultCode, long faultTime, FaultID faultType) {
+    public DroneFault(int droneId, int faultCode, long faultTime, Faults faultType) {
         this.droneId = droneId;
         this.faultCode = faultCode;
         this.faultTime = faultTime;
@@ -58,7 +60,7 @@ public class DroneFault {
      *
      * @return faultType
      */
-    public FaultID getFaultType() {
+    public Faults getFaultType() {
         return faultType;
     }
 

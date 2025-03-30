@@ -28,7 +28,7 @@ public class DroneRequestHandler extends MessagePasser implements Runnable {
         // For example, Drone with ID 1 will have ports 5001 and 6001 for its Drone
         // and DroneController respectively.
         for (int i = 1; i < 3; i++) {
-            DroneTask getInfo = new DroneTask(i, DroneTaskType.REQUEST_INFO, null, Scheduler.DRH_PORT);
+            DroneTask getInfo = new DroneTask(i, DroneTaskType.REQUEST_INFO, null);
             System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "Requesting info from Drone#" + i);
 
@@ -66,23 +66,17 @@ public class DroneRequestHandler extends MessagePasser implements Runnable {
                 scheduler.dispatchActions(this, droneInfo.droneID);
             } else if (droneInfo.fault != null) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "⚠️ Scheduler has received a drone info from Drone#" + droneInfo.droneID
+                        + "Scheduler has received a drone info from Drone#" + droneInfo.droneID
                         + " | FAULT = " + droneInfo.fault);
-
-                Set<Map.Entry<Zone, ZoneTriageInfo>> zonesOnFire = scheduler.getZonesOnFire().entrySet();
-                for (Map.Entry<Zone, ZoneTriageInfo> entry : zonesOnFire) {
-                    if (entry.getValue().getServicingDrones().containsKey(droneInfo.droneID)){
-                        Zone zone = entry.getKey();
-                        scheduler.getZonesOnFire().get(zone).removeDrone(droneInfo.droneID);
-
-                        System.out.println("[" + Thread.currentThread().getName() + "]: "
-                                + "Removed Drone#" + droneInfo.droneID
-                                + " from Zone#" + entry.getKey().getId());
-
-                        break;
-                    }
+                // remove the faulted drone from servicing list
+                HashMap<Zone, ZoneTriageInfo> zoneServices = scheduler.getZonesOnFire();
+                Iterator<Map.Entry<Zone, ZoneTriageInfo>> servicesIterator = zoneServices.entrySet().iterator();
+                while (servicesIterator.hasNext()) {
+                    Map.Entry<Zone, ZoneTriageInfo> zoneEntry = servicesIterator.next();
+                    LinkedHashMap<Integer, Map.Entry<Float, Float>> servicingDrones =
+                            zoneEntry.getValue().getServicingDrones();
+                    servicingDrones.remove(droneInfo.droneID);
                 }
-
                 scheduler.scheduleDrones(getAllDroneInfos());
             }
             try {
