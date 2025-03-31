@@ -1,4 +1,4 @@
-public class Idle implements DroneState {
+public class Fault implements DroneState {
     /**
      * Handles the event when a new mission is assigned.
      *
@@ -6,8 +6,7 @@ public class Idle implements DroneState {
      */
     @Override
     public void reqServiceZone(Drone context) {
-        context.updateState(DroneStateID.ACCELERATING);
-        context.accelerate();
+        throw new IllegalStateException("Invalid event for the current state.");
     }
 
     /**
@@ -27,8 +26,7 @@ public class Idle implements DroneState {
      */
     @Override
     public void reqRecall(Drone context) {
-        context.updateState(DroneStateID.ACCELERATING);
-        context.accelerate();
+        throw new IllegalStateException("Invalid event for the current state.");
     }
 
     /**
@@ -38,7 +36,6 @@ public class Idle implements DroneState {
      */
     @Override
     public void faultDetected(Drone context){
-        context.updateState(DroneStateID.FAULT);
         context.handleFault();
     }
 

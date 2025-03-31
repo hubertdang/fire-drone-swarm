@@ -9,8 +9,8 @@ class DroneTest {
 
     @BeforeEach
     void setUp() {
-        drone = new Drone(1, 5001);
-        droneController = new DroneController(drone, 6001);
+        drone = new Drone();
+        droneController = new DroneController(drone);
     }
 
     @Test
@@ -34,7 +34,7 @@ class DroneTest {
     @Test
     void testEquals() {
         Drone sameDrone = drone;
-        Drone diffDrone = new Drone(2, 5002);
+        Drone diffDrone = new Drone();
         assertEquals(drone, sameDrone, "Drones with same ID should be equal.");
         assertNotEquals(drone, diffDrone, "Drones with different IDs should not be equal.");
     }
@@ -54,48 +54,48 @@ class DroneTest {
     void testExternalEvent() throws InterruptedException {
         Thread droneThread = new Thread(drone, "🛫D");
         Zone zone = new Zone(1, 10, 10, 20, 10, 20);
-        DroneTask task = new DroneTask(1, DroneTaskType.SERVICE_ZONE, zone);
+        DroneTask task = new DroneTask(1, DroneTaskType.SERVICE_ZONE, zone, 0);
         droneThread.start(); // Start the drone thread
 
         // External @ takeOff
         drone.updateState(DroneStateID.TAKEOFF);
         drone.setCurrTask(task);
-        drone.setNewTaskFlag();
+        drone.setExternalEventFlag();
         sleep(2000); // Allow some time for state change
         assertEquals(DroneStateID.TAKEOFF, drone.getCurrStateID(), "external event when taking off");
 
         // External @ accelerating
         drone.updateState(DroneStateID.ACCELERATING);
         drone.setCurrTask(task);
-        drone.setNewTaskFlag();
+        drone.setExternalEventFlag();
         sleep(2000); // Allow some time for state change
         assertEquals(DroneStateID.ACCELERATING, drone.getCurrStateID(), "external event when accelerating");
 
         // External @ flying
         drone.updateState(DroneStateID.FLYING);
         drone.setCurrTask(task);
-        drone.setNewTaskFlag();
+        drone.setExternalEventFlag();
         sleep(2000); // Allow some time for state change
         assertEquals(DroneStateID.FLYING, drone.getCurrStateID(), "external event when flying");
 
         // External @ decelerating
         drone.updateState(DroneStateID.DECELERATING);
         drone.setCurrTask(task);
-        drone.setNewTaskFlag();
+        drone.setExternalEventFlag();
         Thread.sleep(3000); // Allow some time for state change
         assertEquals(DroneStateID.DECELERATING, drone.getCurrStateID(), "external event when decelerating");
 
         // External @ landing
         drone.updateState(DroneStateID.LANDING);
         drone.setCurrTask(task);
-        drone.setNewTaskFlag();
+        drone.setExternalEventFlag();
         sleep(2000); // Allow some time for state change
         assertEquals(DroneStateID.LANDING, drone.getCurrStateID(), "external event when landing");
 
         // External @ releasing agent
         drone.updateState(DroneStateID.RELEASING_AGENT);
         drone.setCurrTask(task);
-        drone.setNewTaskFlag();
+        drone.setExternalEventFlag();
         sleep(3000); // Allow some time for state change
         assertEquals(DroneStateID.RELEASING_AGENT, drone.getCurrStateID(), "external event when releasing agent");
 
@@ -125,10 +125,10 @@ class DroneTest {
         drone.setZoneToService(testZone);
         assertEquals(drone.getCurrStateID(), DroneStateID.BASE);
 
-        drone.setCurrTask(new DroneTask(1, DroneTaskType.SERVICE_ZONE));
+        drone.setCurrTask(new DroneTask(1, DroneTaskType.SERVICE_ZONE, null, 0));
         drone.eventReqServiceZone();
 
-        drone.setCurrTask(new DroneTask(1, DroneTaskType.RELEASE_AGENT));
+        drone.setCurrTask(new DroneTask(1, DroneTaskType.RELEASE_AGENT, null,0));
         drone.eventReqRelAgent();
     }
 
@@ -151,23 +151,23 @@ class DroneTest {
         drone.setZoneToService(testZone);
         assertEquals(drone.getCurrStateID(), DroneStateID.BASE);
 
-        drone.setCurrTask(new DroneTask(1, DroneTaskType.SERVICE_ZONE));
+        drone.setCurrTask(new DroneTask(1, DroneTaskType.SERVICE_ZONE, null, 0));
         drone.eventReqServiceZone();
 
         drone.setDestination(testZone2.getPosition());
         drone.setZoneToService(testZone2);
-        drone.setCurrTask(new DroneTask(1, DroneTaskType.SERVICE_ZONE));
+        drone.setCurrTask(new DroneTask(1, DroneTaskType.SERVICE_ZONE, null, 0));
         drone.eventReqServiceZone();
 
-        drone.setCurrTask(new DroneTask(1, DroneTaskType.RELEASE_AGENT));
+        drone.setCurrTask(new DroneTask(1, DroneTaskType.RELEASE_AGENT, null, 0));
         drone.eventReqRelAgent();
 
         drone.setDestination(testZone.getPosition());
         drone.setZoneToService(testZone);
-        drone.setCurrTask(new DroneTask(1, DroneTaskType.SERVICE_ZONE));
+        drone.setCurrTask(new DroneTask(1, DroneTaskType.SERVICE_ZONE, null, 0));
         drone.eventReqServiceZone();
 
-        drone.setCurrTask(new DroneTask(1, DroneTaskType.RELEASE_AGENT));
+        drone.setCurrTask(new DroneTask(1, DroneTaskType.RELEASE_AGENT, null, 0));
         drone.eventReqRelAgent();
 
     }
@@ -185,7 +185,20 @@ class DroneTest {
         assertEquals(DroneStateID.IDLE, drone.getCurrStateID());
         drone.setDestination(new Position(0, 0));
         drone.eventReqRecall();
-        drone.setCurrTask(new DroneTask(1, DroneTaskType.RECALL));
+        drone.setCurrTask(new DroneTask(1, DroneTaskType.RECALL, null, 0));
+    }
+
+    /**
+     * Tests that setting a DRONE_STUCK fault changes the drone's state from BASE to FAULT.
+     */
+    @Test
+    void testFaultDetection() throws InterruptedException {
+        assertEquals(drone.getCurrStateID(), DroneStateID.BASE);
+
+        drone.setFault(FaultID.DRONE_STUCK);
+        drone.eventFaultDetected();
+        sleep(2000); // Allow some time for state change
+        assertEquals(drone.getCurrStateID(), DroneStateID.FAULT);
     }
 
 }

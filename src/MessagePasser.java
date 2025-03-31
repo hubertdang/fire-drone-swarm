@@ -63,6 +63,7 @@ public abstract class MessagePasser {
         DatagramPacket packet = new DatagramPacket(buf, buf.length);
 
         try {
+            socket.setSoTimeout(0);
             socket.receive(packet);
         }
         catch (IOException e) {

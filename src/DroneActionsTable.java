@@ -34,6 +34,10 @@ public class DroneActionsTable {
         return actionsTable.getOrDefault(droneId, null);
     }
 
+    public HashMap getActionsTable() {
+        return this.actionsTable;
+    }
+
     /**
      * Removes an action from the drone actions table.
      *
