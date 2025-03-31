@@ -2,7 +2,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 public class TimeUtils {
-    private static final String TARGET_TIME_STR = "17:04:00";
+    private static final String TARGET_TIME_STR = "17:04:10";
     private static volatile  long offsetMilliseconds = 0;
 
     /**

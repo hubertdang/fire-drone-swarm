@@ -65,9 +65,8 @@ public class DroneController extends MessagePasser implements Runnable {
                         drone.getCurrStateID(),
                         drone.getPosition(),
                         drone.getAgentTankAmount(),
-                        drone.getZoneToService());
-                /* TODO: create a method to get scheduler's IP address and port instead of hard-coding */
-
+                        drone.getZoneToService(),
+                        FaultID.NONE);
                 send(info, "localhost", task.port);
                 break;
             default:
