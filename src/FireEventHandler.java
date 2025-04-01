@@ -28,7 +28,7 @@ public class FireEventHandler extends MessagePasser implements Runnable {
             if (!fireQueue.isEmpty()) {
                 Zone storedZone = fireQueue.pop();
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Scheduler has received a new event.\n\t" + " adding to mission queue.");
+                        + "Received a new event");
                 scheduler.putZoneOnFire(storedZone);
                 scheduleAllDrones(); // scheduling algorithm updates drone actions table for all drones
                 scheduler.dispatchActions(this,-1);
@@ -39,7 +39,7 @@ public class FireEventHandler extends MessagePasser implements Runnable {
             Zone fireZone = (Zone) data;
             if (fireZone != null) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Scheduler has received a new event.\n\t" + " adding to mission queue.");
+                        + "Received a new event");
                 scheduler.putZoneOnFire(fireZone);
                 scheduleAllDrones(); // scheduling algorithm updates drone actions table for all drones
                 scheduler.dispatchActions(this,-1);
@@ -87,10 +87,11 @@ public class FireEventHandler extends MessagePasser implements Runnable {
                             + "Received a fire event, adding it the fire queue");
                     fireQueue.add((Zone) message);
                 }
-                else if (message instanceof DroneInfo) {
+                else if (message instanceof DroneInfo droneInfo) {
                     System.out.println("[" + Thread.currentThread().getName() + "]: "
                             + "Received DroneInfo from Drone#" + i);
-                    droneInfos.add((DroneInfo) message);
+                    //if (droneInfo.getStateID() != DroneStateID.FAULT) droneInfos.add(droneInfo);
+                    droneInfos.add(droneInfo);
                     break;
                 } else {break;}
             }

@@ -45,6 +45,8 @@ public class Drone extends MessagePasser implements Runnable {
         agentTank = new AgentTank();
         zoneToService = null;
         states = new HashMap<>();
+        fault = FaultID.NONE;
+        externalEventFlag = false;
 
         addState(DroneStateID.BASE, new Base());
         addState(DroneStateID.TAKEOFF, new Takeoff());
@@ -67,9 +69,6 @@ public class Drone extends MessagePasser implements Runnable {
     public void run() {
         while (true) {
             if (externalEventFlag) {
-                System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Drone has received an new task: " + currTask.getTaskType() + " @ zone#"
-                        + currTask.getZone().getId());
                 handleExternalEvent();
             }
             try {
@@ -88,10 +87,17 @@ public class Drone extends MessagePasser implements Runnable {
     private void handleExternalEvent() {
         externalEventFlag = false;
 
-        if (fault != null){
+        if (getFault() != FaultID.NONE){
             eventFaultDetected();
             return;
         }
+
+        String destination = getCurrTask().getZone() != null ?  "zone#"
+                + getCurrTask().getZone().getId() : "base";
+
+        System.out.println("[" + Thread.currentThread().getName() + "]: "
+                + "Drone has received an new task: " + getCurrTask().getTaskType()
+                + " @ " +destination);
 
         switch (currTask.getTaskType()) {
             case DroneTaskType.SERVICE_ZONE:
@@ -245,6 +251,13 @@ public class Drone extends MessagePasser implements Runnable {
     }
 
     /**
+     * @return currTask
+     */
+    public synchronized DroneTask getCurrTask() {
+        return this.currTask;
+    }
+
+    /**
      * Sets the fault for this drone.
      * @param fault The fault type to assign to the drone.
      */
@@ -264,6 +277,10 @@ public class Drone extends MessagePasser implements Runnable {
      */
     public void handleFault() {
         switch (getFault()) {
+            case NONE:
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "Everything is dandy!");
+                break;
             case DRONE_STUCK:
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "⚠️ " + fault + ": Drone is stuck mid-flight. Requesting immediate assistance.");
@@ -282,7 +299,13 @@ public class Drone extends MessagePasser implements Runnable {
                 break;
         }
 
-        DroneInfo info = new DroneInfo( id, fault);
+        DroneInfo info = new DroneInfo(
+                this.getId(),
+                this.getCurrStateID(),
+                this.getPosition(),
+                this.getAgentTankAmount(),
+                this.getZoneToService(),
+                fault);
         send(info, "localhost", SCHEDULER_PORT);
     }
 
@@ -304,7 +327,8 @@ public class Drone extends MessagePasser implements Runnable {
                 id, currStateID,
                 position,
                 getAgentTankAmount(),
-                zoneToService);
+                zoneToService,
+                getFault());
         /* TODO: create a method to get scheduler's IP address and port instead of hard-coding */
         send(info, "localhost", SCHEDULER_PORT);
         currTask = (DroneTask) receive();

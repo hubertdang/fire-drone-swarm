@@ -113,7 +113,7 @@ public class Scheduler {
                 break;
             default:
                 System.out.println("[" + Thread.currentThread().getName()
-                        + "]: Scheduler unable to process DroneInfo: " + droneInfo);
+                        + "]: Unable to process DroneInfo: " + droneInfo);
         }
     }
 

@@ -1,7 +1,6 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -36,13 +35,6 @@ public class DroneSubsystem implements Runnable{
 
                 String time = data[2];
                 long faultTime = TimeUtils.csvTimeToMillis(time);
-
-//                String[] time = data[2].trim().split(":");
-//                int hours = Integer.parseInt(time[0]);
-//                int minutes = Integer.parseInt(time[1]);
-//                int seconds = Integer.parseInt(time[2]);
-//                // convert fault time to seconds since midnight
-//                long faultTime = hours * 3600L + minutes * 60L + seconds;
 
                 FaultID faultType = FaultID.valueOf(String.valueOf(data[3].trim()));
                 droneFaults.add(new DroneFault(droneId, faultCode, faultTime, faultType));

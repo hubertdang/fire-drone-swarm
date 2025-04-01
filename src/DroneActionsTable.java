@@ -65,7 +65,7 @@ public class DroneActionsTable {
                 // If it's the FireEventHandler thread, send to DroneController port
                 messagePasser.send(entry.getValue(), "localhost", 6000 + entry.getKey());
                 System.out.println("[" + Thread.currentThread().getName()
-                        + "]: Scheduler has dispatched Task: " + entry.getValue().getTaskType() + " to DroneController: "
+                        + "]: Dispatched Task: " + entry.getValue().getTaskType() + " to DroneController: "
                         + entry.getKey() + " for Zone " + entry.getValue().getZone());
             }
             else {
@@ -78,7 +78,7 @@ public class DroneActionsTable {
                         messagePasser.send(entry.getValue(), "localhost", 6000 + entry.getKey());
                     }
                     System.out.println("[" + Thread.currentThread().getName()
-                            + "]: Scheduler has dispatched Task: " + entry.getValue().getTaskType() + " to Drone: "
+                            + "]: Dispatched Task: " + entry.getValue().getTaskType() + " to Drone: "
                             + entry.getKey() + " for Zone: " + entry.getValue().getZone());
                 }
             }
