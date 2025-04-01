@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -12,6 +13,8 @@ public class UISubsystem {
     private static Thread droneSubsystemThread;
     private static Thread schedulerSubsystemThread;
     private static Thread fireIncidentSubsystemThread;
+
+    private static Border blackline = BorderFactory.createLineBorder(Color.black);
 
     private static JFrame configFrame;
     private static JFrame simulationFrame;
@@ -30,15 +33,12 @@ public class UISubsystem {
         fireIncidentSubsystem.readSimEventFile(new File("./sample_input_files/events.csv"));
 
         // Add an ActionListener to the button
-        configButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    setSimulationFrame();
-                }
-                catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
+        configButton.addActionListener(e -> {
+            try {
+                setSimulationFrame();
+            }
+            catch (IOException ex) {
+                throw new RuntimeException(ex);
             }
         });
 
@@ -59,11 +59,12 @@ public class UISubsystem {
         simulationFrame.setSize(800, 600);
 
         // Optionally, set a layout manager (BorderLayout is the default)
-        simulationFrame.setLayout(new FlowLayout());
+        simulationFrame.setLayout(new BorderLayout());
         simulationFrame.setLocationRelativeTo(null); // Center the window
         simulationFrame.setVisible(true);
 
         addMap();
+        addLegend();
         addStats();
 
         simulationFrame.revalidate();
@@ -71,21 +72,24 @@ public class UISubsystem {
     }
 
     public static void addMap() {
-        JPanel mapPanel = new JPanel();
-        mapPanel.setLayout(new FlowLayout());
-        mapPanel.add(new JLabel("Map UI"));
-        mapPanel.add(new JButton("Click this"));
+        JPanel panel = new JPanel();
+        panel.add(new JLabel("Map UI"));
+        panel.setBorder(blackline);
+        simulationFrame.getContentPane().add(panel, BorderLayout.WEST);
+    }
 
-        simulationFrame.getContentPane().add(mapPanel);
+    public static void addLegend() {
+        JPanel panel = new JPanel();
+        panel.add(new JLabel("Legend"));
+        panel.setBorder(blackline);
+        simulationFrame.getContentPane().add(panel, BorderLayout.SOUTH);
     }
 
     public static void addStats() {
-        JPanel mapPanel = new JPanel();
-        mapPanel.setLayout(new FlowLayout());
-        mapPanel.add(new JLabel("Stats UI"));
-        mapPanel.add(new JButton("Click this"));
-
-        simulationFrame.getContentPane().add(mapPanel);
+        JPanel panel = new JPanel();
+        panel.add(new JLabel("Stats UI"));
+        panel.setBorder(blackline);
+        simulationFrame.getContentPane().add(panel, BorderLayout.EAST);
     }
 
     public static void main(String[] args) {
