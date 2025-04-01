@@ -200,5 +200,4 @@ class DroneTest {
         sleep(2000); // Allow some time for state change
         assertEquals(drone.getCurrStateID(), DroneStateID.FAULT);
     }
-
 }

@@ -43,6 +43,7 @@ public class DroneRequestHandler extends MessagePasser implements Runnable {
             System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "Received DroneInfo from Drone#" + i);
             DroneInfo droneInfo = (DroneInfo) message;
+
             droneInfos.add(droneInfo);
         }
         return droneInfos;
@@ -56,17 +57,17 @@ public class DroneRequestHandler extends MessagePasser implements Runnable {
     public void run() {
         while (true) {
             DroneInfo droneInfo = (DroneInfo) receive();
-            if (droneInfo != null && droneInfo.fault == null) {
+            if (droneInfo != null && droneInfo.fault == FaultID.NONE) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Scheduler has received a drone info from Drone#" + droneInfo.droneID
+                        + "Received a drone info from Drone#" + droneInfo.droneID
                         + " | STATE = " + droneInfo.stateID
                         + " | POSITION = " + droneInfo.getPosition()
                         + " | TANK = " + String.format("%.2f L", droneInfo.getAgentTankAmount()));
                 scheduler.processDroneInfo(droneInfo, this);
                 scheduler.dispatchActions(this, droneInfo.droneID);
-            } else if (droneInfo.fault != null) {
+            } else if (droneInfo.fault != FaultID.NONE) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "⚠️ Scheduler has received a drone info from Drone#" + droneInfo.droneID
+                        + "⚠️Received a drone info from Drone#" + droneInfo.droneID
                         + " | FAULT = " + droneInfo.fault);
 
                 Set<Map.Entry<Zone, ZoneTriageInfo>> zonesOnFire = scheduler.getZonesOnFire().entrySet();

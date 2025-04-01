@@ -59,7 +59,9 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
      * @param eventTime the time the event occurred
      */
     private void trackFire(Zone zone, long eventTime) {
-        System.out.println("[" + Thread.currentThread().getName() + "]: " + "🔥Fire detected @ Zone#" + zone.getId());
+        System.out.println("[" + Thread.currentThread().getName() + "]: "
+                + TimeUtils.getCurrentTimestamp()
+                + "🔥Fire detected @ Zone#" + zone.getId());
         clearZones.remove(zone.getId());
         fireZones.put(zone.getId(), zone);
         send(zone, "localhost", 7000);
@@ -76,8 +78,7 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
 
             while ((line = br.readLine()) != null) {
                 String[] eventData = line.split(",");
-                String timeStr = eventData[0].trim();
-                long time = timeToMillis(timeStr);
+                long time = TimeUtils.csvTimeToMillis(eventData[0].trim());
                 int zoneId = Integer.parseInt(eventData[1].trim());
                 String eventType = eventData[2].trim();
                 String severity = eventData[3].trim();
@@ -146,18 +147,22 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
 
         while (hasActiveFiresOrUpcomingEvents(eventIndex)) {
             long currentTime = TimeUtils.getCurrentTime();
-            System.out.println("[" + Thread.currentThread().getName() + "]: " + "Current time: "
-                    + TimeUtils.millisecondsToTimestamp(currentTime));
+            System.out.println("[" + Thread.currentThread().getName() + "]: "
+                    + TimeUtils.getCurrentTimestamp());
             if (eventIndex < events.size()) { // Check if we have reached the end of the events
                 eventIndexTime = events.get(eventIndex).getTime();
-                System.out.println("[" + Thread.currentThread().getName() + "]: " + "Next event time: "
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + TimeUtils.getCurrentTimestamp()
+                        + "Next event time: "
                         + TimeUtils.millisecondsToTimestamp(eventIndexTime));
             }
 
 
             // Check if we need to send an event and send event to scheduler
             while (isEventReadyToProcess(eventIndex, eventIndexTime, currentTime)) {
-                System.out.println("[" + Thread.currentThread().getName() + "]: " + "Sending event to scheduler");
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + TimeUtils.getCurrentTimestamp()
+                        + "Sending event to scheduler");
                 sendEvent(events.get(eventIndex));
                 eventIndex++;
                 currentTime = TimeUtils.getCurrentTime();
@@ -173,7 +178,8 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
                 if (servicedZone.getSeverity() == FireSeverity.NO_FIRE) {
                     clearZones.put(servicedZone.getId(), servicedZone);
                     fireZones.remove(servicedZone.getId());
-                    System.out.println("[" + Thread.currentThread().getName() + "]: 👌 Zone "
+                    System.out.println("[" + Thread.currentThread().getName() + "]: "
+                            + TimeUtils.getCurrentTimestamp() + "👌 Zone "
                             + servicedZone.getId() + "'s  fire has been extinguished.");
                 }
             }
@@ -204,9 +210,7 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
      * @return true if the event is ready to be processed, false otherwise
      */
     public boolean isEventReadyToProcess(int eventIndex, long eventIndexTime, long currentTime) {
-        boolean hasPendingEvents = eventIndex < events.size(); // Check if there are events left to process
-        boolean isEventTimeReached = hasPendingEvents && eventIndexTime <= currentTime; // Check if the current event's time has been reached
-        return hasPendingEvents && isEventTimeReached;
+        return Math.abs(eventIndexTime - currentTime) <= 2500;
     }
 
     /**
