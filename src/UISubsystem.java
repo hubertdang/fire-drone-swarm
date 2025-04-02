@@ -8,7 +8,7 @@ import javax.swing.Timer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class UISubsystem extends JPanel{
+public class UISubsystem extends JPanel {
 
     private static final int MAP_SCALE = 2;
 
@@ -60,6 +60,7 @@ public class UISubsystem extends JPanel{
         speedPanel.add(maxSpeedLabel);
         speedPanel.add(maxSpeedField);
 
+        // Zone and events file upload
         JPanel zoneFilePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JLabel zoneFileUploadLabel = new JLabel("Upload Zones File:");
         JButton zoneFileUploadButton = new JButton("Choose File");
@@ -76,8 +77,9 @@ public class UISubsystem extends JPanel{
         eventsFileUploadButton.addActionListener(e -> chooseFile(eventsFilePathLabel));
         eventsFilePanel.add(eventsFileUploadLabel);
         eventsFilePanel.add(eventsFileUploadButton);
-        eventsFilePanel.add(eventsFilePathLabel );
+        eventsFilePanel.add(eventsFilePathLabel);
 
+        // Start button panel
         JPanel startBtnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         startButton = new JButton("Run Simulation");
         startButton.setEnabled(false);
@@ -115,22 +117,33 @@ public class UISubsystem extends JPanel{
         configFrame.setLocationRelativeTo(null); // Center the window
         configFrame.setVisible(true);
     }
+
+    /**
+     * Method to choose a file and update the label text.
+     *
+     * @param label The label to update
+     */
     private static void chooseFile(JLabel label) {
         JFileChooser fileChooser = new JFileChooser();
         int returnValue = fileChooser.showOpenDialog(null);
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
-            if(label.getText().contains("Zones:")) {
+            if (label.getText().contains("Zones:")) {
                 fireIncidentSubsystem.readSimZoneFile(selectedFile);
-                label.setText("Zones: "+selectedFile.getName());
-            } else {
+                label.setText("Zones: " + selectedFile.getName());
+            }
+            else {
                 fireIncidentSubsystem.readSimEventFile(selectedFile);
-                label.setText("Events: "+selectedFile.getName());
+                label.setText("Events: " + selectedFile.getName());
             }
             checkIfReadyToRun();
 
         }
     }
+
+    /**
+     * Method to check if all fields are filled and files are uploaded.
+     */
     private static void checkIfReadyToRun() {
         boolean fileUploaded = !zoneFilePathLabel.getText().equals("Zones: ") &&
                 !eventsFilePathLabel.getText().equals("Events: ");
@@ -271,7 +284,7 @@ public class UISubsystem extends JPanel{
 
             JPanel zonePanel = new JPanel();
             zonePanel.add(new JLabel("D#" + drone.getId()));
-            zonePanel.setBounds(x - 10, y - 10, 20 , 20);
+            zonePanel.setBounds(x - 10, y - 10, 20, 20);
             zonePanel.setBackground(Color.BLACK);
             zonePanel.setBorder(blackline);
             zonePanel.setVisible(true);
