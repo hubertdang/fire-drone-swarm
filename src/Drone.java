@@ -13,7 +13,7 @@ public class Drone extends MessagePasser implements Runnable {
     public static final float BASE_X = 0.0f;
     public static final float BASE_Y = 0.0f;
     public static final float ARRIVAL_DISTANCE_THRESHOLD = 10.0f;   // m
-    public static final float TOP_SPEED = 20.0f;                    // m/s
+    public static float TOP_SPEED = 20.0f;                    // m/s
     public static final float ACCEL_RATE = 3.0f;                    // m/s²
     public static final float DECEL_RATE = -5.0f;                   // m/s²
     public static final float CRUISE_ALTITUDE = 50.0f;              // arbitrary choice for demo
@@ -39,7 +39,7 @@ public class Drone extends MessagePasser implements Runnable {
     public Drone() {
         super(5000 + idCount);
         this.id = idCount;
-        idCount ++;
+        idCount++;
         position = new Position(BASE_X, BASE_Y);
         currSpeed = 0f;
         currAltitude = 0f;
@@ -61,6 +61,15 @@ public class Drone extends MessagePasser implements Runnable {
         addState(DroneStateID.LANDING, new Landing());
 
         updateState(DroneStateID.BASE);
+    }
+
+    /**
+     * Sets the top speed of the drone.
+     *
+     * @param topSpeed The new top speed of the drone.
+     */
+    public static void setTopSpeed(float topSpeed) {
+        TOP_SPEED = topSpeed;
     }
 
     /**
@@ -88,17 +97,17 @@ public class Drone extends MessagePasser implements Runnable {
     private void handleExternalEvent() {
         externalEventFlag = false;
 
-        if (getFault() != FaultID.NONE){
+        if (getFault() != FaultID.NONE) {
             eventFaultDetected();
             return;
         }
 
-        String destination = getCurrTask().getZone() != null ?  "zone#"
+        String destination = getCurrTask().getZone() != null ? "zone#"
                 + getCurrTask().getZone().getId() : "base";
 
         System.out.println("[" + Thread.currentThread().getName() + "]: "
                 + "Drone has received an new task: " + getCurrTask().getTaskType()
-                + " @ " +destination);
+                + " @ " + destination);
 
         switch (currTask.getTaskType()) {
             case DroneTaskType.SERVICE_ZONE:
@@ -260,6 +269,7 @@ public class Drone extends MessagePasser implements Runnable {
 
     /**
      * Sets the fault for this drone.
+     *
      * @param fault The fault type to assign to the drone.
      */
     public void setFault(FaultID fault) {
@@ -269,9 +279,12 @@ public class Drone extends MessagePasser implements Runnable {
 
     /**
      * Retrieves the current fault assigned to this drone.
+     *
      * @return The fault type currently set for the drone.
      */
-    public FaultID getFault() {return this.fault;}
+    public FaultID getFault() {
+        return this.fault;
+    }
 
     /**
      * Handles the current fault by logging an error message and notifying the scheduler.

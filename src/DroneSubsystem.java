@@ -6,11 +6,30 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 
-public class DroneSubsystem implements Runnable{
+public class DroneSubsystem implements Runnable {
 
-    private static final int NUMBER_OF_DRONES = 2;
+    private static int NUMBER_OF_DRONES = 2;
     private static ArrayList<DroneFault> droneFaults; // a list of drone faults that will be injected
     private static HashMap<Integer, Drone> drones;
+
+
+    /**
+     * Sets the number of drones in the system.
+     *
+     * @param numberOfDrones the number of drones
+     */
+    public static void setNumberOfDrones(int numberOfDrones) {
+        NUMBER_OF_DRONES = numberOfDrones;
+    }
+
+    /**
+     * Returns the number of drones in the system.
+     *
+     * @return the number of drones
+     */
+    public static int getNumberOfDrones() {
+        return NUMBER_OF_DRONES;
+    }
 
     /**
      * Reads a file containing drone faults and adds them to arraylist droneFaults.
@@ -78,7 +97,7 @@ public class DroneSubsystem implements Runnable{
         this.droneFaults = droneFaults;
     }
 
-    public static HashMap <Integer,Drone> getAllDrones(){
+    public static HashMap<Integer, Drone> getAllDrones() {
         return drones;
     }
 
@@ -165,7 +184,8 @@ public class DroneSubsystem implements Runnable{
                     Drone affectedDrone = drones.get(currentFault.getDroneId());
                     if (affectedDrone != null) {
                         affectedDrone.setFault(currentFault.getFaultType());
-                    } else {
+                    }
+                    else {
                         System.out.println("No drone found with ID: " + currentFault.getDroneId());
                     }
 
@@ -174,7 +194,8 @@ public class DroneSubsystem implements Runnable{
             }
             try {
                 Thread.sleep(1000); // check every second
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }

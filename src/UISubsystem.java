@@ -8,7 +8,7 @@ import javax.swing.Timer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class UISubsystem extends JPanel{
+public class UISubsystem extends JPanel {
 
     private static final int MAP_SCALE = 2;
 
@@ -23,25 +23,96 @@ public class UISubsystem extends JPanel{
     private static Border blackline = BorderFactory.createLineBorder(Color.black);
 
     private static JFrame configFrame;
+    private static JTextField dronesField;
+    private static JTextField agentCapacityField;
+    private static JTextField maxSpeedField;
+    private static JButton startButton;
+    private static JLabel zoneFilePathLabel;
+    private static JLabel eventsFilePathLabel;
     private static JFrame simulationFrame;
     private static JPanel mapPanel;
+    private static File zoneFile;
+    private static File eventsFile;
 
     public static void setConfigFrame() {
         // Create the configuration window
-        configFrame = new JFrame("Configuration");
+        configFrame = new JFrame("System Configuration");
         configFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        configFrame.setSize(300, 200);
+        configFrame.setSize(500, 250);
 
-        // Create a button and add it to the configuration window
-        JButton configButton = new JButton("Run Simulation");
-        configFrame.getContentPane().add(configButton);
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        fireIncidentSubsystem.readSimZoneFile(new File("./sample_input_files/zones.csv"));
-        fireIncidentSubsystem.readSimEventFile(new File("./sample_input_files/events.csv"));
+        // Labels and text fields
+        JPanel dronePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel dronesLabel = new JLabel("Num of Drones:");
+        dronesField = new JTextField(10);
+        dronePanel.add(dronesLabel);
+        dronePanel.add(dronesField);
+
+        JPanel agentPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel agentCapacityLabel = new JLabel("Agent Capacity:");
+        agentCapacityField = new JTextField(10);
+        agentPanel.add(agentCapacityLabel);
+        agentPanel.add(agentCapacityField);
+
+        JPanel speedPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel maxSpeedLabel = new JLabel("Drone Max Speed:");
+        maxSpeedField = new JTextField(10);
+        speedPanel.add(maxSpeedLabel);
+        speedPanel.add(maxSpeedField);
+
+        // Zone and events file upload
+        JPanel zoneFilePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel zoneFileUploadLabel = new JLabel("Upload Zones File:");
+        JButton zoneFileUploadButton = new JButton("Choose File");
+        zoneFilePathLabel = new JLabel("Zones:");
+        zoneFileUploadButton.addActionListener(e -> chooseFile(zoneFilePathLabel));
+        zoneFilePanel.add(zoneFileUploadLabel);
+        zoneFilePanel.add(zoneFileUploadButton);
+        zoneFilePanel.add(zoneFilePathLabel);
+
+        JPanel eventsFilePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel eventsFileUploadLabel = new JLabel("Upload Events File:");
+        JButton eventsFileUploadButton = new JButton("Choose File");
+        eventsFilePathLabel = new JLabel("Events:");
+        eventsFileUploadButton.addActionListener(e -> chooseFile(eventsFilePathLabel));
+        eventsFilePanel.add(eventsFileUploadLabel);
+        eventsFilePanel.add(eventsFileUploadButton);
+        eventsFilePanel.add(eventsFilePathLabel);
+
+        // Start button panel
+        JPanel startBtnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        startButton = new JButton("Run Simulation");
+        startBtnPanel.add(startButton);
+
+        panel.add(dronePanel);
+        panel.add(agentPanel);
+        panel.add(speedPanel);
+        panel.add(zoneFilePanel);
+        panel.add(eventsFilePanel);
+        panel.add(startBtnPanel);
+
+        configFrame.getContentPane().add(panel);
 
         // Add an ActionListener to the button
-        configButton.addActionListener(e -> {
+        startButton.addActionListener(e -> {
             try {
+                if (zoneFilePathLabel.getText().equals("Zones:")) {
+                    fireIncidentSubsystem.readSimZoneFile(new File("./sample_input_files/zones.csv"));
+                }
+                if (eventsFilePathLabel.getText().equals("Events:")) {
+                    fireIncidentSubsystem.readSimEventFile(new File("./sample_input_files/events.csv"));
+                }
+                String drones = dronesField.getText();
+                DroneSubsystem.setNumberOfDrones(Integer.parseInt(drones));
+
+                String agentCapacity = agentCapacityField.getText();
+                AgentTank.setCapacity(Float.parseFloat(agentCapacity));
+
+                String maxSpeed = maxSpeedField.getText();
+                Drone.setTopSpeed(Float.parseFloat(maxSpeed));
+
                 setSimulationFrame();
             }
             catch (IOException ex) {
@@ -52,6 +123,29 @@ public class UISubsystem extends JPanel{
         // Display the configuration window
         configFrame.setLocationRelativeTo(null); // Center the window
         configFrame.setVisible(true);
+    }
+
+    /**
+     * Method to choose a file and update the label text.
+     *
+     * @param label The label to update
+     */
+    private static void chooseFile(JLabel label) {
+        JFileChooser fileChooser = new JFileChooser();
+        int returnValue = fileChooser.showOpenDialog(null);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            if (label.getText().contains("Zones:")) {
+                File selectedFile = fileChooser.getSelectedFile();
+                fireIncidentSubsystem.readSimZoneFile(selectedFile);
+                label.setText("Zones: " + selectedFile.getName());
+            }
+            else {
+                File selectedFile = fileChooser.getSelectedFile();
+                fireIncidentSubsystem.readSimEventFile(selectedFile);
+                label.setText("Events: " + selectedFile.getName());
+            }
+
+        }
     }
 
     public static void setSimulationFrame() throws IOException {
@@ -184,7 +278,7 @@ public class UISubsystem extends JPanel{
 
             JPanel zonePanel = new JPanel();
             zonePanel.add(new JLabel("D#" + drone.getId()));
-            zonePanel.setBounds(x - 10, y - 10, 20 , 20);
+            zonePanel.setBounds(x - 10, y - 10, 20, 20);
             zonePanel.setBackground(Color.BLACK);
             zonePanel.setBorder(blackline);
             zonePanel.setVisible(true);
