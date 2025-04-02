@@ -1,4 +1,4 @@
-public class ReleasingAgent implements DroneState {
+public class EmptyTank implements DroneState {
     /**
      * Handles the event when a new mission is assigned.
      *
@@ -6,10 +6,7 @@ public class ReleasingAgent implements DroneState {
      */
     @Override
     public void reqServiceZone(Drone context) {
-        // already at flying altitude, stop releasing agent and can begin heading to the new zone
-        context.stopAgent();
-        context.updateState(DroneStateID.ACCELERATING);
-        context.accelerate();
+        throw new IllegalStateException("Invalid event for the current state.");
     }
 
     /**
@@ -29,7 +26,8 @@ public class ReleasingAgent implements DroneState {
      */
     @Override
     public void reqRecall(Drone context) {
-        throw new IllegalStateException("Invalid event for the current state.");
+        context.updateState(DroneStateID.ACCELERATING);
+        context.accelerate();
     }
 
     /**
@@ -38,7 +36,7 @@ public class ReleasingAgent implements DroneState {
      * @param context The context of the drone.
      */
     @Override
-    public void faultDetected(Drone context){
+    public void faultDetected(Drone context) {
         context.updateState(DroneStateID.FAULT);
         context.handleFault();
     }
@@ -50,10 +48,7 @@ public class ReleasingAgent implements DroneState {
      */
     @Override
     public void emptyTank(Drone context) {
-        context.updateState(DroneStateID.EMPTY_TANK);
-        context.stopAgent();
-        context.requestTask();
-        context.setZoneToService(null);
+        throw new IllegalStateException("Invalid event for the current state.");
     }
 
     /**
@@ -63,12 +58,7 @@ public class ReleasingAgent implements DroneState {
      */
     @Override
     public void fireExtinguished(Drone context) {
-        context.updateState(DroneStateID.IDLE);
-        context.stopAgent();
-        context.getZoneToService().setSeverity(FireSeverity.NO_FIRE);
-        context.requestTask();
-        context.setZoneToService(null);
-
+        throw new IllegalStateException("Invalid event for the current state.");
     }
 
     /**

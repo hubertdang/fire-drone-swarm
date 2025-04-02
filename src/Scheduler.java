@@ -43,6 +43,10 @@ public class Scheduler {
                             + "Drone#" + droneInfo.droneID
                             + " | OFFLINE "
                             + " | FAULT = " + droneInfo.fault);
+                } else if (droneInfo.agentTankAmount == 0F) {
+                    System.out.println("[" + Thread.currentThread().getName() + "]: "
+                            + "Drone#" + droneInfo.droneID
+                            + " | EMPTY ");
                 } else {
                     freeDroneInfos.add(droneInfo);
                 }
@@ -85,6 +89,10 @@ public class Scheduler {
         switch (droneInfo.getStateID()) {
             case ARRIVED:
                 newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RELEASE_AGENT, droneInfo.getZoneToService(), DRH_PORT);
+                droneActionsTable.addAction(droneInfo.droneID, newTask);
+                break;
+            case EMPTY_TANK:
+                newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RECALL, droneInfo.getZoneToService(), DRH_PORT);
                 droneActionsTable.addAction(droneInfo.droneID, newTask);
                 break;
             case IDLE:
@@ -145,7 +153,7 @@ public class Scheduler {
                 DroneTask newTask = new DroneTask(droneInfo.getDroneID()
                         , DroneTaskType.SERVICE_ZONE, zoneEntry.getKey());
                 // add drone to servicing structure to keep track of response time
-                zoneEntry.getValue().addDrone(droneInfo.droneID, droneInfo.position);
+                zoneEntry.getValue().addDrone(droneInfo);
                 // add task to actions table
                 droneActionsTable.addAction(droneInfo.droneID, newTask);
                 return true;
@@ -160,7 +168,7 @@ public class Scheduler {
 
         for (Map.Entry<Zone, ZoneTriageInfo> zoneEntry : sortedList) {
             // add drone to servicing structure to keep track of response time
-            boolean droneAdded = zonesOnFire.get(zoneEntry.getKey()).addDrone(droneInfo.droneID, droneInfo.position);
+            boolean droneAdded = zonesOnFire.get(zoneEntry.getKey()).addDrone(droneInfo);
             if (droneAdded) {
                 // create new task to service this zone
                 DroneTask newTask = new DroneTask(droneInfo.getDroneID()
