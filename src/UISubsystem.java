@@ -23,25 +23,87 @@ public class UISubsystem extends JPanel{
     private static Border blackline = BorderFactory.createLineBorder(Color.black);
 
     private static JFrame configFrame;
+    private static JTextField dronesField;
+    private static JTextField agentCapacityField;
+    private static JTextField maxSpeedField;
+    private static JButton startButton;
+    private static JLabel zoneFilePathLabel;
+    private static JLabel eventsFilePathLabel;
     private static JFrame simulationFrame;
     private static JPanel mapPanel;
 
     public static void setConfigFrame() {
         // Create the configuration window
-        configFrame = new JFrame("Configuration");
+        configFrame = new JFrame("System Configuration");
         configFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        configFrame.setSize(300, 200);
+        configFrame.setSize(500, 250);
 
-        // Create a button and add it to the configuration window
-        JButton configButton = new JButton("Run Simulation");
-        configFrame.getContentPane().add(configButton);
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        fireIncidentSubsystem.readSimZoneFile(new File("./sample_input_files/zones.csv"));
-        fireIncidentSubsystem.readSimEventFile(new File("./sample_input_files/events.csv"));
+        // Labels and text fields
+        JPanel dronePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel dronesLabel = new JLabel("Num of Drones:");
+        dronesField = new JTextField(10);
+        dronePanel.add(dronesLabel);
+        dronePanel.add(dronesField);
+
+        JPanel agentPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel agentCapacityLabel = new JLabel("Agent Capacity:");
+        agentCapacityField = new JTextField(10);
+        agentPanel.add(agentCapacityLabel);
+        agentPanel.add(agentCapacityField);
+
+        JPanel speedPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel maxSpeedLabel = new JLabel("Drone Max Speed:");
+        maxSpeedField = new JTextField(10);
+        speedPanel.add(maxSpeedLabel);
+        speedPanel.add(maxSpeedField);
+
+        JPanel zoneFilePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel zoneFileUploadLabel = new JLabel("Upload Zones File:");
+        JButton zoneFileUploadButton = new JButton("Choose File");
+        zoneFilePathLabel = new JLabel("Zones:");
+        zoneFileUploadButton.addActionListener(e -> chooseFile(zoneFilePathLabel));
+        zoneFilePanel.add(zoneFileUploadLabel);
+        zoneFilePanel.add(zoneFileUploadButton);
+        zoneFilePanel.add(zoneFilePathLabel);
+
+        JPanel eventsFilePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JLabel eventsFileUploadLabel = new JLabel("Upload Events File:");
+        JButton eventsFileUploadButton = new JButton("Choose File");
+        eventsFilePathLabel = new JLabel("Events:");
+        eventsFileUploadButton.addActionListener(e -> chooseFile(eventsFilePathLabel));
+        eventsFilePanel.add(eventsFileUploadLabel);
+        eventsFilePanel.add(eventsFileUploadButton);
+        eventsFilePanel.add(eventsFilePathLabel );
+
+        JPanel startBtnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        startButton = new JButton("Run Simulation");
+        startButton.setEnabled(false);
+        startBtnPanel.add(startButton);
+
+        panel.add(dronePanel);
+        panel.add(agentPanel);
+        panel.add(speedPanel);
+        panel.add(zoneFilePanel);
+        panel.add(eventsFilePanel);
+        panel.add(startBtnPanel);
+
+        configFrame.getContentPane().add(panel);
 
         // Add an ActionListener to the button
-        configButton.addActionListener(e -> {
+        startButton.addActionListener(e -> {
             try {
+                String drones = dronesField.getText();
+                DroneSubsystem.setNumberOfDrones(Integer.parseInt(drones));
+
+                String agentCapacity = agentCapacityField.getText();
+                AgentTank.setCapacity(Float.parseFloat(agentCapacity));
+
+                String maxSpeed = maxSpeedField.getText();
+                Drone.setTopSpeed(Float.parseFloat(maxSpeed));
+
                 setSimulationFrame();
             }
             catch (IOException ex) {
@@ -52,6 +114,31 @@ public class UISubsystem extends JPanel{
         // Display the configuration window
         configFrame.setLocationRelativeTo(null); // Center the window
         configFrame.setVisible(true);
+    }
+    private static void chooseFile(JLabel label) {
+        JFileChooser fileChooser = new JFileChooser();
+        int returnValue = fileChooser.showOpenDialog(null);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            if(label.getText().contains("Zones:")) {
+                fireIncidentSubsystem.readSimZoneFile(selectedFile);
+                label.setText("Zones: "+selectedFile.getName());
+            } else {
+                fireIncidentSubsystem.readSimEventFile(selectedFile);
+                label.setText("Events: "+selectedFile.getName());
+            }
+            checkIfReadyToRun();
+
+        }
+    }
+    private static void checkIfReadyToRun() {
+        boolean fileUploaded = !zoneFilePathLabel.getText().equals("Zones: ") &&
+                !eventsFilePathLabel.getText().equals("Events: ");
+        boolean allFieldsFilled = !dronesField.getText().trim().isEmpty() &&
+                !agentCapacityField.getText().trim().isEmpty() &&
+                !maxSpeedField.getText().trim().isEmpty();
+
+        startButton.setEnabled(fileUploaded && allFieldsFilled);
     }
 
     public static void setSimulationFrame() throws IOException {

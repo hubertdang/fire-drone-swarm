@@ -8,9 +8,17 @@ import java.util.Iterator;
 
 public class DroneSubsystem implements Runnable{
 
-    private static final int NUMBER_OF_DRONES = 2;
+    private static int NUMBER_OF_DRONES = 2;
     private static ArrayList<DroneFault> droneFaults; // a list of drone faults that will be injected
     private static HashMap<Integer, Drone> drones;
+
+    public static void setNumberOfDrones(int numberOfDrones) {
+        NUMBER_OF_DRONES = numberOfDrones;
+    }
+
+    public static int getNumberOfDrones() {
+        return NUMBER_OF_DRONES;
+    }
 
     /**
      * Reads a file containing drone faults and adds them to arraylist droneFaults.
