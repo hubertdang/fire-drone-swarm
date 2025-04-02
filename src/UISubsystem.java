@@ -102,6 +102,14 @@ public class UISubsystem extends JPanel{
                     }
                 }
 
+                JPanel basePanel = new JPanel();
+                basePanel.add(new JLabel("BASE" ));
+                basePanel.setBounds(BASE - 50, BASE - 50, 100, 100);
+                basePanel.setBackground(new Color(20, 20, 20, 73));
+                basePanel.setBorder(blackline);
+                basePanel.setVisible(true);
+                mapPanel.add(basePanel);
+
                 updateDronesMap();
                 updateZonesMap();
 
