@@ -6,6 +6,7 @@ import static java.lang.Thread.sleep;
 public class Drone extends MessagePasser implements Runnable {
 
     private static int idCount = 1;
+    private static final int FLIGHT_SLEEP = 100;
 
     private final int SCHEDULER_PORT = 7001;
 
@@ -454,7 +455,7 @@ public class Drone extends MessagePasser implements Runnable {
             }
             // sleep thread to allow other threads to run/ not flood logs
             try {
-                sleep(1000);
+                sleep(FLIGHT_SLEEP);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -501,13 +502,14 @@ public class Drone extends MessagePasser implements Runnable {
                 this.currAltitude = CRUISE_ALTITUDE;
             }
 
-            System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + "Climbing... "
-                    + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
+// #REMOVE LOG
+//            System.out.println("[" + Thread.currentThread().getName() + "]: "
+//                    + "Climbing... "
+//                    + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
 
             // sleep thread to allow other threads to run/ not flood logs
             try {
-                sleep(1000);
+                sleep(FLIGHT_SLEEP);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -558,10 +560,11 @@ public class Drone extends MessagePasser implements Runnable {
             // 2. We haven't reached top speed yet, so accelerate. v = vᵢ +at
             initialVelocity = this.currSpeed;
             this.currSpeed += ACCEL_RATE * deltaTime;
-            System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + "Accelerating... "
-                    + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
-                    + "| POSITION = " + this.position);
+// #REMOVE LOG
+//            System.out.println("[" + Thread.currentThread().getName() + "]: "
+//                    + "Accelerating... "
+//                    + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
+//                    + "| POSITION = " + this.position);
 
             // 3. If this acceleration pushes us to or beyond top speed, cap it and break.
             if (this.currSpeed >= TOP_SPEED) {
@@ -580,7 +583,7 @@ public class Drone extends MessagePasser implements Runnable {
 
             // sleep thread to allow other threads to run/ not flood logs
             try {
-                sleep(1000);
+                sleep(FLIGHT_SLEEP);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -609,9 +612,10 @@ public class Drone extends MessagePasser implements Runnable {
             deltaTime = (currentTime - previousTime) / 1_000_000_000f;
             previousTime = currentTime;
 
-            System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + "Flying... "
-                    + "| POSITION = " + this.position);
+// #REMOVE LOG
+//            System.out.println("[" + Thread.currentThread().getName() + "]: "
+//                    + "Flying... "
+//                    + "| POSITION = " + this.position);
 
             // If we're at or within the deceleration distance, exit the loop
             if (this.getDistanceFromDestination() <= this.getDecelDistance()) {
@@ -626,7 +630,7 @@ public class Drone extends MessagePasser implements Runnable {
 
             // sleep thread to allow other threads to run/ not flood logs
             try {
-                sleep(1000);
+                sleep(FLIGHT_SLEEP);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -672,10 +676,12 @@ public class Drone extends MessagePasser implements Runnable {
             // 2. We haven't reached destination yet, so decelerate. v = vᵢ +at
             initialVelocity = currSpeed;
             currSpeed += DECEL_RATE * deltaTime;
-            System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + "Decelerating ..."
-                    + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
-                    + "| POSITION = " + this.position);
+
+// #REMOVE LOG
+//            System.out.println("[" + Thread.currentThread().getName() + "]: "
+//                    + "Decelerating ..."
+//                    + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
+//                    + "| POSITION = " + this.position);
 
             // 3. If we've reached zero speed, there's no further deceleration to do.
             if (currSpeed <= 0) {
@@ -694,7 +700,7 @@ public class Drone extends MessagePasser implements Runnable {
 
             // sleep thread to allow other threads to run/ not flood logs
             try {
-                sleep(1000);
+                sleep(FLIGHT_SLEEP);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -733,13 +739,14 @@ public class Drone extends MessagePasser implements Runnable {
                 currAltitude = 0f;
             }
 
-            System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + "Descending ... "
-                    + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
+// #REMOVE LOG
+//            System.out.println("[" + Thread.currentThread().getName() + "]: "
+//                    + "Descending ... "
+//                    + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
 
             // sleep thread to allow other threads to run/ not flood logs
             try {
-                sleep(1000);
+                sleep(FLIGHT_SLEEP);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);

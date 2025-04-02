@@ -45,7 +45,7 @@ public class Zone implements Serializable {
      */
     public synchronized void setSeverity(FireSeverity severity) {
         this.severity = severity;
-    }
+            }
 
     /**
      * Gets the center position of this zone.

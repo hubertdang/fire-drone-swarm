@@ -1,11 +1,17 @@
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
-import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import javax.swing.Timer;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class UISubsystem {
+public class UISubsystem extends JPanel{
+
+    private static final int MAP_SCALE = 2;
+
     private static final DroneSubsystem droneSubsystem = new DroneSubsystem();
     private static final SchedulerSubsystem schedulerSubsystem = new SchedulerSubsystem();
     private static final FireIncidentSubsystem fireIncidentSubsystem = new FireIncidentSubsystem();
@@ -18,6 +24,7 @@ public class UISubsystem {
 
     private static JFrame configFrame;
     private static JFrame simulationFrame;
+    private static JPanel mapPanel;
 
     public static void setConfigFrame() {
         // Create the configuration window
@@ -72,10 +79,48 @@ public class UISubsystem {
     }
 
     public static void addMap() {
-        JPanel panel = new JPanel();
-        panel.add(new JLabel("Map UI"));
-        panel.setBorder(blackline);
-        simulationFrame.getContentPane().add(panel, BorderLayout.WEST);
+        mapPanel = new JPanel();
+        mapPanel.setLayout(null); // absolute positioning
+        mapPanel.setBorder(blackline);
+        mapPanel.setPreferredSize(new Dimension(900, 900));
+        mapPanel.setSize(900, 900);
+        mapPanel.setVisible(true);
+
+        JLabel mapLabel = new JLabel("Map UI");
+        mapLabel.setBounds(10, 10, 100, 20);
+        mapPanel.add(mapLabel);
+
+        simulationFrame.getContentPane().add(mapPanel, BorderLayout.WEST);
+        simulationFrame.revalidate();
+        simulationFrame.repaint();
+
+        // 🔁 Timer for refreshing zone panels every second
+        Timer timer = new Timer(100, new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Remove all zone panels (but not the label)
+                Component[] components = mapPanel.getComponents();
+                for (int i = components.length - 1; i >= 0; i--) {
+                    if (components[i] instanceof JPanel && components[i] != mapPanel) {
+                        mapPanel.remove(components[i]);
+                    }
+                }
+
+                updateDronesMap();
+                updateZonesMap();
+
+                mapPanel.revalidate();
+                mapPanel.repaint();
+            }
+        });
+
+        timer.start();
+    }
+
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        g.setColor(Color.red);
     }
 
     public static void addLegend() {
@@ -99,4 +144,50 @@ public class UISubsystem {
 
         setConfigFrame();
     }
+
+    private static void updateZonesMap() {
+        HashMap<Integer, Zone> fireZones = fireIncidentSubsystem.getFireZones();
+        for (Zone zone : fireZones.values()) {
+            int[] zc = zone.getZoneCoordinates();
+
+            JPanel zonePanel = new JPanel();
+            zonePanel.add(new JLabel("Zone#" + zone.getId()));
+            zonePanel.setBounds(zc[0] / MAP_SCALE, zc[1] / MAP_SCALE, (zc[2] - zc[0]) / MAP_SCALE, (zc[3] - zc[1]) / MAP_SCALE);
+            zonePanel.setBackground(zone.getZoneColor());
+            zonePanel.setBorder(blackline);
+            zonePanel.setVisible(true);
+            mapPanel.add(zonePanel);
+        }
+
+        HashMap<Integer, Zone> clearZones = fireIncidentSubsystem.getClearZones();
+        for (Zone zone : clearZones.values()) {
+            int[] zc = zone.getZoneCoordinates();
+
+            JPanel zonePanel = new JPanel();
+            zonePanel.add(new JLabel("Zone#" + zone.getId()));
+            zonePanel.setBounds(zc[0] / MAP_SCALE, zc[1] / MAP_SCALE, (zc[2] - zc[0]) / MAP_SCALE, (zc[3] - zc[1]) / MAP_SCALE);
+            zonePanel.setBackground(zone.getZoneColor());
+            zonePanel.setBorder(blackline);
+            zonePanel.setVisible(true);
+            mapPanel.add(zonePanel);
+        }
+    }
+
+    private static void updateDronesMap() {
+        // Re-add updated drone panels
+        HashMap<Integer, Drone> allDrones = DroneSubsystem.getAllDrones();
+        for (Drone drone : allDrones.values()) {
+            int x = (int) drone.getPosition().getX() / MAP_SCALE;
+            int y = (int) drone.getPosition().getY() / MAP_SCALE;
+
+            JPanel zonePanel = new JPanel();
+            zonePanel.add(new JLabel("D#" + drone.getId()));
+            zonePanel.setBounds(x - 10, y - 10, 20 , 20);
+            zonePanel.setBackground(Color.BLACK);
+            zonePanel.setBorder(blackline);
+            zonePanel.setVisible(true);
+            mapPanel.add(zonePanel);
+        }
+    }
+
 }

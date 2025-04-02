@@ -78,6 +78,10 @@ public class DroneSubsystem implements Runnable{
         this.droneFaults = droneFaults;
     }
 
+    public static HashMap <Integer,Drone> getAllDrones(){
+        return drones;
+    }
+
 //    public static void main(String[] args) throws IOException {
 //        drones = new HashMap<>();
 //        droneFaults = new ArrayList<>();
