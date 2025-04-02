@@ -31,6 +31,8 @@ public class UISubsystem extends JPanel {
     private static JLabel eventsFilePathLabel;
     private static JFrame simulationFrame;
     private static JPanel mapPanel;
+    private static File zoneFile;
+    private static File eventsFile;
 
     public static void setConfigFrame() {
         // Create the configuration window
@@ -82,7 +84,6 @@ public class UISubsystem extends JPanel {
         // Start button panel
         JPanel startBtnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         startButton = new JButton("Run Simulation");
-        startButton.setEnabled(false);
         startBtnPanel.add(startButton);
 
         panel.add(dronePanel);
@@ -97,6 +98,12 @@ public class UISubsystem extends JPanel {
         // Add an ActionListener to the button
         startButton.addActionListener(e -> {
             try {
+                if (zoneFilePathLabel.getText().equals("Zones:")) {
+                    fireIncidentSubsystem.readSimZoneFile(new File("./sample_input_files/zones.csv"));
+                }
+                if (eventsFilePathLabel.getText().equals("Events:")) {
+                    fireIncidentSubsystem.readSimEventFile(new File("./sample_input_files/events.csv"));
+                }
                 String drones = dronesField.getText();
                 DroneSubsystem.setNumberOfDrones(Integer.parseInt(drones));
 
@@ -127,31 +134,18 @@ public class UISubsystem extends JPanel {
         JFileChooser fileChooser = new JFileChooser();
         int returnValue = fileChooser.showOpenDialog(null);
         if (returnValue == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
             if (label.getText().contains("Zones:")) {
+                File selectedFile = fileChooser.getSelectedFile();
                 fireIncidentSubsystem.readSimZoneFile(selectedFile);
                 label.setText("Zones: " + selectedFile.getName());
             }
             else {
+                File selectedFile = fileChooser.getSelectedFile();
                 fireIncidentSubsystem.readSimEventFile(selectedFile);
                 label.setText("Events: " + selectedFile.getName());
             }
-            checkIfReadyToRun();
 
         }
-    }
-
-    /**
-     * Method to check if all fields are filled and files are uploaded.
-     */
-    private static void checkIfReadyToRun() {
-        boolean fileUploaded = !zoneFilePathLabel.getText().equals("Zones: ") &&
-                !eventsFilePathLabel.getText().equals("Events: ");
-        boolean allFieldsFilled = !dronesField.getText().trim().isEmpty() &&
-                !agentCapacityField.getText().trim().isEmpty() &&
-                !maxSpeedField.getText().trim().isEmpty();
-
-        startButton.setEnabled(fileUploaded && allFieldsFilled);
     }
 
     public static void setSimulationFrame() throws IOException {

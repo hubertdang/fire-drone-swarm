@@ -17,6 +17,11 @@ public class AgentTank {
         this.isNozzleOpen = false;
     }
 
+    /**
+     * Sets the capacity of the tank.
+     *
+     * @param Capacity The capacity of the tank in liters.
+     */
     public static void setCapacity(float Capacity) {
         AgentTank.CAPACITY = Capacity;
     }
