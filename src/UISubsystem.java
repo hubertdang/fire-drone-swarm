@@ -63,7 +63,7 @@ public class UISubsystem extends JPanel{
 
         simulationFrame = new JFrame("Simulation");
         simulationFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        simulationFrame.setSize(800, 600);
+        simulationFrame.setSize(1200, 900);
 
         // Optionally, set a layout manager (BorderLayout is the default)
         simulationFrame.setLayout(new BorderLayout());
@@ -133,6 +133,8 @@ public class UISubsystem extends JPanel{
     public static void addStats() {
         JPanel panel = new JPanel();
         panel.add(new JLabel("Stats UI"));
+        mapPanel.setPreferredSize(new Dimension(500, 900));
+        mapPanel.setSize(500, 900);
         panel.setBorder(blackline);
         simulationFrame.getContentPane().add(panel, BorderLayout.EAST);
     }
