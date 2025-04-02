@@ -10,7 +10,8 @@ import java.awt.event.ActionListener;
 
 public class UISubsystem extends JPanel{
 
-    private static final int MAP_SCALE = 2;
+    private static final int MAP_SCALE = 4;
+    private static final int BASE = 300;
 
     private static final DroneSubsystem droneSubsystem = new DroneSubsystem();
     private static final SchedulerSubsystem schedulerSubsystem = new SchedulerSubsystem();
@@ -81,16 +82,12 @@ public class UISubsystem extends JPanel{
     public static void addMap() {
         mapPanel = new JPanel();
         mapPanel.setLayout(null); // absolute positioning
-        mapPanel.setBorder(blackline);
+        mapPanel.setBorder(BorderFactory.createTitledBorder("MapUI"));
         mapPanel.setPreferredSize(new Dimension(900, 900));
         mapPanel.setSize(900, 900);
         mapPanel.setVisible(true);
 
-        JLabel mapLabel = new JLabel("Map UI");
-        mapLabel.setBounds(10, 10, 100, 20);
-        mapPanel.add(mapLabel);
-
-        simulationFrame.getContentPane().add(mapPanel, BorderLayout.WEST);
+        simulationFrame.getContentPane().add(mapPanel, BorderLayout.CENTER);
         simulationFrame.revalidate();
         simulationFrame.repaint();
 
@@ -116,23 +113,44 @@ public class UISubsystem extends JPanel{
         timer.start();
     }
 
-
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        g.setColor(Color.red);
-    }
-
     public static void addLegend() {
-        JPanel panel = new JPanel();
-        panel.add(new JLabel("Legend"));
-        panel.setBorder(blackline);
-        simulationFrame.getContentPane().add(panel, BorderLayout.SOUTH);
+        JPanel legendPanel = new JPanel(new GridLayout(2, 1)); // Two columns side by side
+        legendPanel.setBorder(blackline);
+
+        // 🔥 Fire Severity Legend
+        JPanel fireLegend = new JPanel();
+        fireLegend.setLayout(new BoxLayout(fireLegend, BoxLayout.X_AXIS));
+        fireLegend.setBorder(BorderFactory.createTitledBorder("Fire Severity"));
+        fireLegend.add(makeLegendItem(new Color(255, 0, 0, 50), "HIGH"));
+        fireLegend.add(makeLegendItem(new Color(255, 165, 0, 50), "MODERATE"));
+        fireLegend.add(makeLegendItem(new Color(255, 255, 0, 50), "LOW"));
+        fireLegend.add(makeLegendItem(new Color(0, 128, 0, 50), "CLEAR"));
+
+        // ✈️ Drone State Legend
+        JPanel droneLegend = new JPanel();
+        droneLegend.setLayout(new BoxLayout(droneLegend, BoxLayout.X_AXIS));
+        droneLegend.setBorder(BorderFactory.createTitledBorder("Drone States"));
+        droneLegend.add(makeLegendItem(Color.GRAY, "BASE"));
+        droneLegend.add(makeLegendItem(new Color(245, 137, 227, 255), "TAKEOFF"));
+        droneLegend.add(makeLegendItem(new Color(211, 40, 208, 255), "ACCELERATING"));
+        droneLegend.add(makeLegendItem(new Color(208, 0, 255, 255), "FLYING"));
+        droneLegend.add(makeLegendItem(new Color(179, 0, 255, 255), "DECELERATING"));
+        droneLegend.add(makeLegendItem(new Color(153, 0, 255, 225), "LANDING"));
+        droneLegend.add(makeLegendItem(new Color(152, 208, 119, 225), "ARRIVED"));
+        droneLegend.add(makeLegendItem(new Color(43, 190, 255, 225), "RELEASING_AGENT"));
+        droneLegend.add(makeLegendItem(new Color(255, 57, 57, 225), "FAULT"));
+        droneLegend.add(makeLegendItem(new Color(255, 222, 8, 225), "IDLE"));
+
+        // Add both to main panel
+        legendPanel.add(fireLegend);
+        legendPanel.add(droneLegend);
+
+        // Add to frame
+        simulationFrame.getContentPane().add(legendPanel, BorderLayout.SOUTH);
     }
 
     public static void addStats() {
         JPanel panel = new JPanel();
-        panel.add(new JLabel("Stats UI"));
         mapPanel.setPreferredSize(new Dimension(500, 900));
         mapPanel.setSize(500, 900);
         panel.setBorder(blackline);
@@ -147,6 +165,24 @@ public class UISubsystem extends JPanel{
         setConfigFrame();
     }
 
+    private static JPanel makeLegendItem(Color color, String label) {
+        JPanel itemPanel = new JPanel(new GridLayout(2, 1));
+
+        JLabel colorBox = new JLabel();
+        colorBox.setOpaque(true);
+        colorBox.setBackground(color);
+        colorBox.setPreferredSize(new Dimension(20, 20));
+        colorBox.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        JLabel textLabel = new JLabel(label);
+
+        itemPanel.add(colorBox);
+        //itemPanel.add(Box.createHorizontalStrut(5)); // spacing
+        itemPanel.add(textLabel);
+
+        return itemPanel;
+    }
+
     private static void updateZonesMap() {
         HashMap<Integer, Zone> fireZones = fireIncidentSubsystem.getFireZones();
         for (Zone zone : fireZones.values()) {
@@ -154,7 +190,7 @@ public class UISubsystem extends JPanel{
 
             JPanel zonePanel = new JPanel();
             zonePanel.add(new JLabel("Zone#" + zone.getId()));
-            zonePanel.setBounds(zc[0] / MAP_SCALE, zc[1] / MAP_SCALE, (zc[2] - zc[0]) / MAP_SCALE, (zc[3] - zc[1]) / MAP_SCALE);
+            zonePanel.setBounds((zc[0] / MAP_SCALE) + BASE, (zc[1] / MAP_SCALE) + BASE, (zc[2] - zc[0]) / MAP_SCALE, (zc[3] - zc[1]) / MAP_SCALE);
             zonePanel.setBackground(zone.getZoneColor());
             zonePanel.setBorder(blackline);
             zonePanel.setVisible(true);
@@ -167,7 +203,7 @@ public class UISubsystem extends JPanel{
 
             JPanel zonePanel = new JPanel();
             zonePanel.add(new JLabel("Zone#" + zone.getId()));
-            zonePanel.setBounds(zc[0] / MAP_SCALE, zc[1] / MAP_SCALE, (zc[2] - zc[0]) / MAP_SCALE, (zc[3] - zc[1]) / MAP_SCALE);
+            zonePanel.setBounds((zc[0] / MAP_SCALE) + BASE, (zc[1] / MAP_SCALE) + BASE, (zc[2] - zc[0]) / MAP_SCALE, (zc[3] - zc[1]) / MAP_SCALE);
             zonePanel.setBackground(zone.getZoneColor());
             zonePanel.setBorder(blackline);
             zonePanel.setVisible(true);
@@ -184,8 +220,8 @@ public class UISubsystem extends JPanel{
 
             JPanel zonePanel = new JPanel();
             zonePanel.add(new JLabel("D#" + drone.getId()));
-            zonePanel.setBounds(x - 10, y - 10, 20 , 20);
-            zonePanel.setBackground(Color.BLACK);
+            zonePanel.setBounds(x - 15 + BASE, y - 15 + BASE, 30 , 30);
+            zonePanel.setBackground(drone.getStateColor());
             zonePanel.setBorder(blackline);
             zonePanel.setVisible(true);
             mapPanel.add(zonePanel);

@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,7 +14,7 @@ public class Drone extends MessagePasser implements Runnable {
     public static final float BASE_X = 0.0f;
     public static final float BASE_Y = 0.0f;
     public static final float ARRIVAL_DISTANCE_THRESHOLD = 10.0f;   // m
-    public static final float TOP_SPEED = 20.0f;                    // m/s
+    public static final float TOP_SPEED = 100.0f;                    // m/s
     public static final float ACCEL_RATE = 3.0f;                    // m/s²
     public static final float DECEL_RATE = -5.0f;                   // m/s²
     public static final float CRUISE_ALTITUDE = 50.0f;              // arbitrary choice for demo
@@ -272,6 +273,23 @@ public class Drone extends MessagePasser implements Runnable {
      * @return The fault type currently set for the drone.
      */
     public FaultID getFault() {return this.fault;}
+
+    //Todo: color
+    public Color getStateColor() {
+        return switch (getCurrStateID()) {
+
+            case BASE -> Color.GRAY;
+            case TAKEOFF -> new Color(245, 137, 227, 255);
+            case ACCELERATING -> new Color(211, 40, 208, 255);
+            case FLYING -> new Color(208, 0, 255, 255);
+            case DECELERATING -> new Color(179, 0, 255, 255);
+            case LANDING -> new Color(153, 0, 255, 225);
+            case ARRIVED -> new Color(152, 208, 119, 225);
+            case RELEASING_AGENT -> new Color(43, 190, 255, 225);
+            case FAULT -> new Color(255, 57, 57, 225);
+            case IDLE -> new Color(255, 222, 8, 225);
+        };
+    }
 
     /**
      * Handles the current fault by logging an error message and notifying the scheduler.
