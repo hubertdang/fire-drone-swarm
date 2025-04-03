@@ -104,7 +104,6 @@ public class Landing implements DroneState {
     public void landed(Drone context) {
         context.updateState(DroneStateID.BASE);
         context.refillAgentTank();
-        context.requestTask();
     }
 
     /**
