@@ -6,7 +6,7 @@ public class Flying implements DroneState {
      */
     @Override
     public void reqServiceZone(Drone context) {
-        // is already at flying altitude and height, can continue flying to new direction
+        context.fly();
     }
 
     /**
