@@ -64,13 +64,16 @@ public class DroneRequestHandler extends MessagePasser implements Runnable {
                         + " | POSITION = " + droneInfo.getPosition()
                         + " | TANK = " + String.format("%.2f L", droneInfo.getAgentTankAmount()));
 
+                scheduler.processDroneInfo(droneInfo, this);
+
                 if (droneInfo.stateID == DroneStateID.EMPTY_TANK) {
                     scheduler.getZonesOnFire().get(droneInfo.zoneToService).removeDrone(droneInfo);
-                    // replace map value of zone
-                    scheduler.getZonesOnFire().compute(droneInfo.zoneToService, (k, oldTriageStruct) -> oldTriageStruct);
-                    System.out.println("NEW " + scheduler.getZonesOnFire().get(droneInfo.zoneToService));
+                    // replace value key pair in zonesOnFire to update the key (zone agent needed)
+                    ZoneTriageInfo copyTriageInfo = scheduler.getZonesOnFire().get(droneInfo.zoneToService);
+                    scheduler.getZonesOnFire().remove(droneInfo.zoneToService);
+                    scheduler.getZonesOnFire().put(droneInfo.zoneToService, copyTriageInfo);
                 }
-                scheduler.processDroneInfo(droneInfo, this);
+
                 scheduler.dispatchActions(this, droneInfo.droneID);
 
             } else if (droneInfo.fault != FaultID.NONE) {
