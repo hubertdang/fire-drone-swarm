@@ -11,7 +11,7 @@ import java.util.*;
 
 public class ZoneTriageInfo {
     private final Integer zoneId;
-    private final Float originalRequiredAgent;
+    private Float requiredAgentAmount;
     private final Position zonePosition;
     private LinkedHashMap<Integer, Map.Entry<Float, Float>> servicingDrones;
     private float extinguishingTime;
@@ -22,7 +22,7 @@ public class ZoneTriageInfo {
      */
     public ZoneTriageInfo(Zone zone) {
         this.zoneId = zone.getId();
-        this.originalRequiredAgent = zone.getRequiredAgentAmount();
+        this.requiredAgentAmount = zone.getRequiredAgentAmount();
         this.zonePosition = zone.getPosition();
         servicingDrones = new LinkedHashMap<>();
         extinguishingTime = -1F;
@@ -51,24 +51,24 @@ public class ZoneTriageInfo {
     /**
      * addDrone determines if new drone would reduce zone response time, if so adds to
      * servicingDrones
-     * @param droneId the id of drone
-     * @param dronePosition the position of drone
+     * @param info the drone info
      * @return true if the drone was added to servicingDrones, false otherwise
      */
-    public synchronized boolean addDrone(Integer droneId, Position dronePosition) {
-        float distance = dronePosition.distanceFrom(zonePosition);
+    public synchronized boolean addDrone(DroneInfo info) {
+        float distance = info.getPosition().distanceFrom(zonePosition);
         // Proper accel and deccel should be used but is overly complicated
         float arrivalTime = distance / Drone.TOP_SPEED;
         float zoneFlowRate = AgentTank.AGENT_DROP_RATE * (servicingDrones.size() + 1);
         float currentVolume = 0;
         float prevFlowRate = 0;
         float lastTime = 0;
+        if (info.zoneToService != null) requiredAgentAmount = info.getZoneToService().getRequiredAgentAmount();
 
-        if ( servicingDrones.containsKey(droneId) ) { return false; }
+        if ( servicingDrones.containsKey(info.droneID) ) { return false; }
         if (arrivalTime < extinguishingTime || extinguishingTime == -1 ) {
             // add drone scheduling details to servicingDrones
             Map.Entry<Float, Float> serviceEntry = new AbstractMap.SimpleEntry<>(arrivalTime, zoneFlowRate);
-            servicingDrones.put(droneId, serviceEntry);
+            servicingDrones.put(info.droneID, serviceEntry);
             sortServicingDrones();
             updateResponseTime();
             return true;
@@ -80,12 +80,16 @@ public class ZoneTriageInfo {
     /**
      * removeDrone
      * Removes drone from servicing structure
-     * @param droneId the ID of drone to remove
+     * @param info the drone to remove
      * @return true if successful, false otherwise
      */
-    public synchronized boolean removeDrone(int droneId) {
-        Map.Entry<Float, Float> entry = servicingDrones.remove(droneId);
+    public synchronized boolean removeDrone(DroneInfo info) {
+        Map.Entry<Float, Float> entry = servicingDrones.remove(info.droneID);
         if (entry != null) {
+            System.out.println();
+            if (info.zoneToService != null) {
+                requiredAgentAmount = info.getZoneToService().getRequiredAgentAmount();
+            }
             updateResponseTime();
         }
         return (entry != null);
@@ -150,7 +154,7 @@ public class ZoneTriageInfo {
             prevFlowRate = entryFlowRate;
         }
         // compute remaining time with full rate
-        extinguishingTime = lastTime + (originalRequiredAgent - currentVolume) / prevFlowRate;
+        extinguishingTime = lastTime + (requiredAgentAmount - currentVolume) / prevFlowRate;
     }
 
     /**

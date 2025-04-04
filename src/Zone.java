@@ -1,4 +1,5 @@
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Represents a zone in a 2D space with a unique ID, center position, fire severity,
@@ -96,10 +97,7 @@ public class Zone implements Serializable {
         if (obj == null || getClass() != obj.getClass()) return false;
 
         Zone zone = (Zone) obj;
-        return this.id == zone.getId() &&
-                Float.compare(zone.getRequiredAgentAmount(), this.requiredAgentAmount) == 0 &&
-                this.position.equals(zone.getPosition()) &&
-                this.severity == zone.getSeverity();
+        return this.id == zone.getId();
     }
 
     /**
@@ -110,4 +108,9 @@ public class Zone implements Serializable {
     @Override
     public String toString() { return "Zone[id: " + id + " Required Agent: "
             + requiredAgentAmount + "]"; }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id); // Generates a hash code based on zoneId
+    }
 }
