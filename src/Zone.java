@@ -1,4 +1,6 @@
+import java.awt.*;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Objects;
 
 /**
@@ -10,6 +12,11 @@ public class Zone implements Serializable {
     private final Position position;
     private FireSeverity severity;
     private float requiredAgentAmount;
+
+    private final int startx;
+    private final int starty;
+    private final int endx;
+    private final int endy;
 
     /**
      * Constructs a Zone with a given ID, required agent amount, and boundaries.
@@ -25,6 +32,12 @@ public class Zone implements Serializable {
     public Zone(int id, float requiredAgentAmount, int startX, int endX, int startY, int endY) {
         this.id = id;
         this.requiredAgentAmount = requiredAgentAmount;
+        this.startx = startX;
+        this.starty = startY;
+        this.endx = endX;
+        this.endy = endY;
+        this.severity = FireSeverity.NO_FIRE;
+
         float centerX = (float) (startX + endX) / 2;
         float centerY = (float) (startY + endY) / 2;
         this.position = new Position(centerX, centerY);
@@ -101,6 +114,14 @@ public class Zone implements Serializable {
     }
 
     /**
+     * Generates hash code for a zone based on its zone id
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    /**
      * String representation of Zone
      *
      * @return string representation of zone instance
@@ -109,8 +130,17 @@ public class Zone implements Serializable {
     public String toString() { return "Zone[id: " + id + " Required Agent: "
             + requiredAgentAmount + "]"; }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id); // Generates a hash code based on zoneId
+    public int[] getZoneCoordinates() {
+        return new int[] { this.startx, this.starty, this.endx, this.endy };
     }
+
+    public Color getZoneColor() {
+        return switch (getSeverity()) {
+            case HIGH -> new Color(255, 0, 0, 50);
+            case MODERATE -> new Color(255, 165, 0, 50);
+            case LOW -> new Color(255, 255, 0, 50);
+            default -> new Color(0, 128, 0, 50);
+        };
+    }
+
 }

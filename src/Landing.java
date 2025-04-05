@@ -101,8 +101,9 @@ public class Landing implements DroneState {
      */
     @Override
     public void landed(Drone context) {
-        context.updateState(DroneStateID.BASE);
         context.refillAgentTank();
+        context.updateState(DroneStateID.BASE);
+        context.requestTask();
     }
 
     /**

@@ -6,11 +6,30 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 
-public class DroneSubsystem {
+public class DroneSubsystem implements Runnable {
 
-    private static final int NUMBER_OF_DRONES = 2;
+    private static int NUMBER_OF_DRONES = 2;
     private static ArrayList<DroneFault> droneFaults; // a list of drone faults that will be injected
     private static HashMap<Integer, Drone> drones;
+
+
+    /**
+     * Sets the number of drones in the system.
+     *
+     * @param numberOfDrones the number of drones
+     */
+    public static void setNumberOfDrones(int numberOfDrones) {
+        NUMBER_OF_DRONES = numberOfDrones;
+    }
+
+    /**
+     * Returns the number of drones in the system.
+     *
+     * @return the number of drones
+     */
+    public static int getNumberOfDrones() {
+        return NUMBER_OF_DRONES;
+    }
 
     /**
      * Reads a file containing drone faults and adds them to arraylist droneFaults.
@@ -60,7 +79,76 @@ public class DroneSubsystem {
         });
     }
 
-    public static void main(String[] args) throws IOException {
+    /**
+     * Returns the arraylist droneFaults.
+     *
+     * @return droneFaults
+     */
+    public ArrayList<DroneFault> getDroneFaults() {
+        return droneFaults;
+    }
+
+    /**
+     * Sets the arraylist droneFaults.
+     *
+     * @param droneFaults empty arraylist that will be used to store drone faults
+     */
+    public void setDroneFaults(ArrayList<DroneFault> droneFaults) {
+        this.droneFaults = droneFaults;
+    }
+
+    public static HashMap<Integer, Drone> getAllDrones() {
+        return drones;
+    }
+
+//    public static void main(String[] args) throws IOException {
+//        drones = new HashMap<>();
+//        droneFaults = new ArrayList<>();
+//        TimeUtils.setOffset();
+//
+//        for (int i = 0; i < NUMBER_OF_DRONES; i++) {
+//            Drone drone = new Drone();
+//            DroneController controller = new DroneController(drone);
+//            drones.put(drone.getId(), drone);
+//
+//            Thread droneThread = new Thread(drone, "🛫D" + drone.getId());
+//            Thread controllerThread = new Thread(controller, "🛫DC" + drone.getId());
+//
+//            droneThread.start();
+//            controllerThread.start();
+//        }
+//
+//        readFaultsFile("./sample_input_files/faults.csv");
+//
+//        // a loop that injects faults when fault time is reached
+//        while (!droneFaults.isEmpty()) {
+//            Iterator<DroneFault> iterator = droneFaults.iterator();
+//            while (iterator.hasNext()) {
+//                DroneFault currentFault = iterator.next();
+//
+//                if (Math.abs(currentFault.getFaultTime() - TimeUtils.getCurrentTime()) <= 2000) {
+//                    //System.out.println("🚨 " + currentFault.toString());
+//
+//                    Drone affectedDrone = drones.get(currentFault.getDroneId());
+//                    if (affectedDrone != null) {
+//                        affectedDrone.setFault(currentFault.getFaultType());
+//                    } else {
+//                        System.out.println("No drone found with ID: " + currentFault.getDroneId());
+//                    }
+//
+//                    iterator.remove();
+//                }
+//            }
+//            try {
+//                Thread.sleep(1000); // check every second
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
+
+    @Override
+    public void run() {
         drones = new HashMap<>();
         droneFaults = new ArrayList<>();
         TimeUtils.setOffset();
@@ -77,7 +165,12 @@ public class DroneSubsystem {
             controllerThread.start();
         }
 
-        readFaultsFile("./sample_input_files/faults.csv");
+        try {
+            readFaultsFile("./sample_input_files/faults.csv");
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         // a loop that injects faults when fault time is reached
         while (!droneFaults.isEmpty()) {
@@ -91,7 +184,8 @@ public class DroneSubsystem {
                     Drone affectedDrone = drones.get(currentFault.getDroneId());
                     if (affectedDrone != null) {
                         affectedDrone.setFault(currentFault.getFaultType());
-                    } else {
+                    }
+                    else {
                         System.out.println("No drone found with ID: " + currentFault.getDroneId());
                     }
 
@@ -100,7 +194,8 @@ public class DroneSubsystem {
             }
             try {
                 Thread.sleep(1000); // check every second
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
