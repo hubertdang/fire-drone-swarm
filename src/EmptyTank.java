@@ -1,4 +1,4 @@
-public class Landing implements DroneState {
+public class EmptyTank implements DroneState {
     /**
      * Handles the event when a new mission is assigned.
      *
@@ -6,9 +6,7 @@ public class Landing implements DroneState {
      */
     @Override
     public void reqServiceZone(Drone context) {
-        // potentially not at flying altitude, must take off again
-        context.updateState(DroneStateID.TAKEOFF);
-        context.takeoff();
+        throw new IllegalStateException("Invalid event for the current state.");
     }
 
     /**
@@ -19,7 +17,6 @@ public class Landing implements DroneState {
     @Override
     public void reqRelAgent(Drone context) {
         throw new IllegalStateException("Invalid event for the current state.");
-
     }
 
     /**
@@ -29,8 +26,8 @@ public class Landing implements DroneState {
      */
     @Override
     public void reqRecall(Drone context) {
-        throw new IllegalStateException("Invalid event for the current state.");
-
+        context.updateState(DroneStateID.ACCELERATING);
+        context.accelerate();
     }
 
     /**
@@ -39,7 +36,7 @@ public class Landing implements DroneState {
      * @param context The context of the drone.
      */
     @Override
-    public void faultDetected(Drone context){
+    public void faultDetected(Drone context) {
         context.updateState(DroneStateID.FAULT);
         context.handleFault();
     }
@@ -102,9 +99,7 @@ public class Landing implements DroneState {
      */
     @Override
     public void landed(Drone context) {
-        context.refillAgentTank();
-        context.updateState(DroneStateID.BASE);
-        context.requestTask();
+        throw new IllegalStateException("Invalid event for the current state.");
     }
 
     /**

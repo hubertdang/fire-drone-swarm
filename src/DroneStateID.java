@@ -9,4 +9,5 @@ public enum DroneStateID {
     RELEASING_AGENT,
     FAULT,
     IDLE,               /* no zone to service, maybe have agent left, static */
+    EMPTY_TANK
 }

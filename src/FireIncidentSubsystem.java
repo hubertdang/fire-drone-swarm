@@ -25,8 +25,8 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
      *
      * @param port the port number for the FireIncidentSubsystem
      */
-    public FireIncidentSubsystem(int port) {
-        super(port);
+    public FireIncidentSubsystem() {
+        super(9000);
         this.clearZones = new HashMap<Integer, Zone>();
         this.fireZones = new HashMap<Integer, Zone>(); // no fires when we initialize
         this.events = new ArrayList<SimEvent>();
@@ -300,7 +300,7 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
 //    }
 
     public static void main(String[] args) {
-        FireIncidentSubsystem fireIncidentSubsystem = new FireIncidentSubsystem(9000);
+        FireIncidentSubsystem fireIncidentSubsystem = new FireIncidentSubsystem();
         fireIncidentSubsystem.readSimZoneFile(new File("./sample_input_files/zones.csv"));
         fireIncidentSubsystem.readSimEventFile(new File("./sample_input_files/events.csv"));
 

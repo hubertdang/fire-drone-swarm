@@ -50,7 +50,10 @@ public class ReleasingAgent implements DroneState {
      */
     @Override
     public void emptyTank(Drone context) {
-        throw new IllegalStateException("Invalid event for the current state.");
+        context.updateState(DroneStateID.EMPTY_TANK);
+        context.stopAgent();
+        context.requestTask();
+        context.setZoneToService(null);
     }
 
     /**

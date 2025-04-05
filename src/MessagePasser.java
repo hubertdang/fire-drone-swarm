@@ -20,6 +20,8 @@ public abstract class MessagePasser {
             socket = new DatagramSocket(port);
         }
         catch (SocketException e) {
+            System.err.println("❌ Failed to bind to port " + port);
+            e.printStackTrace();  // add those two lines so we could track which socket
             System.exit(1);
         }
     }

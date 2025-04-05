@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -6,13 +7,14 @@ import static java.lang.Thread.sleep;
 public class Drone extends MessagePasser implements Runnable {
 
     private static int idCount = 1;
+    private static final int FLIGHT_SLEEP = 100;
 
     private final int SCHEDULER_PORT = 7001;
 
     public static final float BASE_X = 0.0f;
     public static final float BASE_Y = 0.0f;
     public static final float ARRIVAL_DISTANCE_THRESHOLD = 10.0f;   // m
-    public static final float TOP_SPEED = 20.0f;                    // m/s
+    public static float TOP_SPEED = 20.0f;                    // m/s
     public static final float ACCEL_RATE = 3.0f;                    // m/s²
     public static final float DECEL_RATE = -5.0f;                   // m/s²
     public static final float CRUISE_ALTITUDE = 50.0f;              // arbitrary choice for demo
@@ -38,7 +40,7 @@ public class Drone extends MessagePasser implements Runnable {
     public Drone() {
         super(5000 + idCount);
         this.id = idCount;
-        idCount ++;
+        idCount++;
         position = new Position(BASE_X, BASE_Y);
         currSpeed = 0f;
         currAltitude = 0f;
@@ -58,8 +60,18 @@ public class Drone extends MessagePasser implements Runnable {
         addState(DroneStateID.FAULT, new Fault());
         addState(DroneStateID.IDLE, new Idle());
         addState(DroneStateID.LANDING, new Landing());
+        addState(DroneStateID.EMPTY_TANK, new EmptyTank());
 
         updateState(DroneStateID.BASE);
+    }
+
+    /**
+     * Sets the top speed of the drone.
+     *
+     * @param topSpeed The new top speed of the drone.
+     */
+    public static void setTopSpeed(float topSpeed) {
+        TOP_SPEED = topSpeed;
     }
 
     /**
@@ -87,17 +99,17 @@ public class Drone extends MessagePasser implements Runnable {
     private void handleExternalEvent() {
         externalEventFlag = false;
 
-        if (getFault() != FaultID.NONE){
+        if (getFault() != FaultID.NONE) {
             eventFaultDetected();
             return;
         }
 
-        String destination = getCurrTask().getZone() != null ?  "zone#"
+        String destination = getCurrTask().getZone() != null ? "zone#"
                 + getCurrTask().getZone().getId() : "base";
 
         System.out.println("[" + Thread.currentThread().getName() + "]: "
                 + "Drone has received an new task: " + getCurrTask().getTaskType()
-                + " @ " +destination);
+                + " @ " + destination);
 
         switch (currTask.getTaskType()) {
             case DroneTaskType.SERVICE_ZONE:
@@ -259,6 +271,7 @@ public class Drone extends MessagePasser implements Runnable {
 
     /**
      * Sets the fault for this drone.
+     *
      * @param fault The fault type to assign to the drone.
      */
     public void setFault(FaultID fault) {
@@ -268,9 +281,30 @@ public class Drone extends MessagePasser implements Runnable {
 
     /**
      * Retrieves the current fault assigned to this drone.
+     *
      * @return The fault type currently set for the drone.
      */
-    public FaultID getFault() {return this.fault;}
+    public FaultID getFault() {
+        return this.fault;
+    }
+
+    //Todo: color
+    public Color getStateColor() {
+        return switch (getCurrStateID()) {
+
+            case BASE -> Color.GRAY;
+            case TAKEOFF -> new Color(245, 137, 227, 255);
+            case ACCELERATING -> new Color(211, 40, 208, 255);
+            case FLYING -> new Color(208, 0, 255, 255);
+            case DECELERATING -> new Color(179, 0, 255, 255);
+            case LANDING -> new Color(153, 0, 255, 225);
+            case ARRIVED -> new Color(152, 208, 119, 225);
+            case RELEASING_AGENT -> new Color(43, 190, 255, 225);
+            case FAULT -> new Color(255, 57, 57, 225);
+            case IDLE -> new Color(255, 222, 8, 225);
+            case EMPTY_TANK -> 	new Color(128, 128, 128, 255); // grey rn not sure what colour should be
+        };
+    }
 
     /**
      * Handles the current fault by logging an error message and notifying the scheduler.
@@ -329,7 +363,6 @@ public class Drone extends MessagePasser implements Runnable {
                 getAgentTankAmount(),
                 zoneToService,
                 getFault());
-        /* TODO: create a method to get scheduler's IP address and port instead of hard-coding */
         send(info, "localhost", SCHEDULER_PORT);
         currTask = (DroneTask) receive();
         if (currTask.getTaskType() == DroneTaskType.RECALL) {
@@ -416,6 +449,13 @@ public class Drone extends MessagePasser implements Runnable {
         currState.landed(this);
     }
 
+    /**
+     * Triggers the event of your tank emptying.
+     */
+    public void eventEmptyTank() {
+        currState.emptyTank(this);
+    }
+
     /* ------------------------------ AGENT CONTROL ------------------------------ */
 
     /**
@@ -432,7 +472,7 @@ public class Drone extends MessagePasser implements Runnable {
 
         agentTank.openNozzle();
 
-        while (agentTank.isNozzleOpen() && !externalEventFlag) {
+        while (agentTank.isNozzleOpen() && !agentTank.isEmpty() && !externalEventFlag) {
             currentTime = System.nanoTime();
             deltaTime = (currentTime - previousTime) / 1_000_000_000f; // convert to second
             previousTime = currentTime;
@@ -454,14 +494,17 @@ public class Drone extends MessagePasser implements Runnable {
             }
             // sleep thread to allow other threads to run/ not flood logs
             try {
-                sleep(1000);
+                sleep(FLIGHT_SLEEP);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }
 
-        if (externalEventFlag) {
+        if (agentTank.isEmpty()) {
+            eventEmptyTank();
+        }
+        else if (externalEventFlag) {
             handleExternalEvent();
         }
     }
@@ -501,13 +544,14 @@ public class Drone extends MessagePasser implements Runnable {
                 this.currAltitude = CRUISE_ALTITUDE;
             }
 
-            System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + "Climbing... "
-                    + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
+// #REMOVE LOG
+//            System.out.println("[" + Thread.currentThread().getName() + "]: "
+//                    + "Climbing... "
+//                    + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
 
             // sleep thread to allow other threads to run/ not flood logs
             try {
-                sleep(1000);
+                sleep(FLIGHT_SLEEP);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -558,10 +602,11 @@ public class Drone extends MessagePasser implements Runnable {
             // 2. We haven't reached top speed yet, so accelerate. v = vᵢ +at
             initialVelocity = this.currSpeed;
             this.currSpeed += ACCEL_RATE * deltaTime;
-            System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + "Accelerating... "
-                    + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
-                    + "| POSITION = " + this.position);
+// #REMOVE LOG
+//            System.out.println("[" + Thread.currentThread().getName() + "]: "
+//                    + "Accelerating... "
+//                    + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
+//                    + "| POSITION = " + this.position);
 
             // 3. If this acceleration pushes us to or beyond top speed, cap it and break.
             if (this.currSpeed >= TOP_SPEED) {
@@ -580,7 +625,7 @@ public class Drone extends MessagePasser implements Runnable {
 
             // sleep thread to allow other threads to run/ not flood logs
             try {
-                sleep(1000);
+                sleep(FLIGHT_SLEEP);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -609,9 +654,10 @@ public class Drone extends MessagePasser implements Runnable {
             deltaTime = (currentTime - previousTime) / 1_000_000_000f;
             previousTime = currentTime;
 
-            System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + "Flying... "
-                    + "| POSITION = " + this.position);
+// #REMOVE LOG
+//            System.out.println("[" + Thread.currentThread().getName() + "]: "
+//                    + "Flying... "
+//                    + "| POSITION = " + this.position);
 
             // If we're at or within the deceleration distance, exit the loop
             if (this.getDistanceFromDestination() <= this.getDecelDistance()) {
@@ -626,7 +672,7 @@ public class Drone extends MessagePasser implements Runnable {
 
             // sleep thread to allow other threads to run/ not flood logs
             try {
-                sleep(1000);
+                sleep(FLIGHT_SLEEP);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -672,10 +718,12 @@ public class Drone extends MessagePasser implements Runnable {
             // 2. We haven't reached destination yet, so decelerate. v = vᵢ +at
             initialVelocity = currSpeed;
             currSpeed += DECEL_RATE * deltaTime;
-            System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + "Decelerating ..."
-                    + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
-                    + "| POSITION = " + this.position);
+
+// #REMOVE LOG
+//            System.out.println("[" + Thread.currentThread().getName() + "]: "
+//                    + "Decelerating ..."
+//                    + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
+//                    + "| POSITION = " + this.position);
 
             // 3. If we've reached zero speed, there's no further deceleration to do.
             if (currSpeed <= 0) {
@@ -694,7 +742,7 @@ public class Drone extends MessagePasser implements Runnable {
 
             // sleep thread to allow other threads to run/ not flood logs
             try {
-                sleep(1000);
+                sleep(FLIGHT_SLEEP);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -733,13 +781,14 @@ public class Drone extends MessagePasser implements Runnable {
                 currAltitude = 0f;
             }
 
-            System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + "Descending ... "
-                    + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
+// #REMOVE LOG
+//            System.out.println("[" + Thread.currentThread().getName() + "]: "
+//                    + "Descending ... "
+//                    + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
 
             // sleep thread to allow other threads to run/ not flood logs
             try {
-                sleep(1000);
+                sleep(FLIGHT_SLEEP);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
