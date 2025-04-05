@@ -63,8 +63,19 @@ public class DroneRequestHandler extends MessagePasser implements Runnable {
                         + " | STATE = " + droneInfo.stateID
                         + " | POSITION = " + droneInfo.getPosition()
                         + " | TANK = " + String.format("%.2f L", droneInfo.getAgentTankAmount()));
+
                 scheduler.processDroneInfo(droneInfo, this);
+
+                if (droneInfo.stateID == DroneStateID.EMPTY_TANK) {
+                    scheduler.getZonesOnFire().get(droneInfo.zoneToService).removeDrone(droneInfo);
+                    // replace key value pair in zonesOnFire to update the immutable key (zone agent needed)
+                    ZoneTriageInfo copyTriageInfo = scheduler.getZonesOnFire()
+                            .remove(droneInfo.zoneToService);
+                    scheduler.getZonesOnFire().put(droneInfo.zoneToService, copyTriageInfo);
+                }
+
                 scheduler.dispatchActions(this, droneInfo.droneID);
+
             } else if (droneInfo.fault != FaultID.NONE) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "⚠️Received a drone info from Drone#" + droneInfo.droneID
@@ -74,7 +85,7 @@ public class DroneRequestHandler extends MessagePasser implements Runnable {
                 for (Map.Entry<Zone, ZoneTriageInfo> entry : zonesOnFire) {
                     if (entry.getValue().getServicingDrones().containsKey(droneInfo.droneID)){
                         Zone zone = entry.getKey();
-                        scheduler.getZonesOnFire().get(zone).removeDrone(droneInfo.droneID);
+                        scheduler.getZonesOnFire().get(zone).removeDrone(droneInfo);
 
                         System.out.println("[" + Thread.currentThread().getName() + "]: "
                                 + "Removed Drone#" + droneInfo.droneID

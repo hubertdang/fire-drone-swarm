@@ -60,6 +60,7 @@ public class Drone extends MessagePasser implements Runnable {
         addState(DroneStateID.FAULT, new Fault());
         addState(DroneStateID.IDLE, new Idle());
         addState(DroneStateID.LANDING, new Landing());
+        addState(DroneStateID.EMPTY_TANK, new EmptyTank());
 
         updateState(DroneStateID.BASE);
     }
@@ -361,7 +362,6 @@ public class Drone extends MessagePasser implements Runnable {
                 getAgentTankAmount(),
                 zoneToService,
                 getFault());
-        /* TODO: create a method to get scheduler's IP address and port instead of hard-coding */
         send(info, "localhost", SCHEDULER_PORT);
         currTask = (DroneTask) receive();
         if (currTask.getTaskType() == DroneTaskType.RECALL) {
@@ -448,6 +448,13 @@ public class Drone extends MessagePasser implements Runnable {
         currState.landed(this);
     }
 
+    /**
+     * Triggers the event of your tank emptying.
+     */
+    public void eventEmptyTank() {
+        currState.emptyTank(this);
+    }
+
     /* ------------------------------ AGENT CONTROL ------------------------------ */
 
     /**
@@ -464,7 +471,7 @@ public class Drone extends MessagePasser implements Runnable {
 
         agentTank.openNozzle();
 
-        while (agentTank.isNozzleOpen() && !externalEventFlag) {
+        while (agentTank.isNozzleOpen() && !agentTank.isEmpty() && !externalEventFlag) {
             currentTime = System.nanoTime();
             deltaTime = (currentTime - previousTime) / 1_000_000_000f; // convert to second
             previousTime = currentTime;
@@ -493,7 +500,10 @@ public class Drone extends MessagePasser implements Runnable {
             }
         }
 
-        if (externalEventFlag) {
+        if (agentTank.isEmpty()) {
+            eventEmptyTank();
+        }
+        else if (externalEventFlag) {
             handleExternalEvent();
         }
     }
