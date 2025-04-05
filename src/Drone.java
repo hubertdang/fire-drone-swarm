@@ -302,6 +302,7 @@ public class Drone extends MessagePasser implements Runnable {
             case RELEASING_AGENT -> new Color(43, 190, 255, 225);
             case FAULT -> new Color(255, 57, 57, 225);
             case IDLE -> new Color(255, 222, 8, 225);
+            case EMPTY_TANK -> 	new Color(128, 128, 128, 255); // grey rn not sure what colour should be
         };
     }
 
