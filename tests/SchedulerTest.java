@@ -34,7 +34,7 @@ public class SchedulerTest {
         ArrayList<DroneInfo> droneInfoList = new ArrayList<>();
         droneInfoList.add(new DroneInfo(drone.getId(), drone.getCurrStateID(), drone.getPosition(), drone.getAgentTankAmount(), drone.getZoneToService(), drone.getFault()));
 
-        scheduler.scheduleAllDrones(droneInfoList);
+        scheduler.scheduleDrones(droneInfoList);
 
         DroneActionsTable droneActionsTable = scheduler.getDroneActionsTable();
         assertEquals(DroneTaskType.SERVICE_ZONE, droneActionsTable.getAction(1).getTaskType());
