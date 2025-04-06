@@ -32,7 +32,7 @@ public class SchedulerTest {
 
         Drone drone = new Drone();
         ArrayList<DroneInfo> droneInfoList = new ArrayList<>();
-        droneInfoList.add(new DroneInfo(drone.getId(), drone.getCurrStateID(), drone.getPosition(), drone.getAgentTankAmount(), drone.getZoneToService()));
+        //droneInfoList.add(new DroneInfo(drone.getId(), drone.getCurrStateID(), drone.getPosition(), drone.getAgentTankAmount(), drone.getZoneToService()));
 
         scheduler.scheduleDrones(droneInfoList);
 
