@@ -208,7 +208,9 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
      * @return true if the event is ready to be processed, false otherwise
      */
     public boolean isEventReadyToProcess(int eventIndex, long eventIndexTime, long currentTime) {
-        return Math.abs(eventIndexTime - currentTime) <= 2500;
+        boolean hasPendingEvents = eventIndex < events.size(); // Check if there are events left to process
+        boolean isEventTimeReached = hasPendingEvents && eventIndexTime <= currentTime; // Check if the current event's time has been reached
+        return hasPendingEvents && isEventTimeReached;
     }
 
     /**

@@ -72,6 +72,41 @@ public class Drone extends MessagePasser implements Runnable {
     public static void setTopSpeed(float topSpeed) {
         TOP_SPEED = topSpeed;
     }
+    /**
+     * Gets the scaled top speed of the drone
+     *
+     * @return scaled top speed of the drone
+     */
+    public static double getScaledTopSpeed() {
+        return TOP_SPEED * TimeUtils.getTimeFactor();
+    }
+
+    /**
+     * Gets the scaled acceleration rate of the drone.
+     *
+     * @return scaled acceleration rate of the drone
+     */
+    public static double getScaledAccelRate() {
+        return ACCEL_RATE * TimeUtils.getTimeFactor();
+    }
+
+    /**
+     * Gets the scaled deceleration rate of the drone.
+     *
+     * @return scaled deceleration rate of the drone
+     */
+    public static double getScaledDecelRate() {
+        return DECEL_RATE * TimeUtils.getTimeFactor();
+    }
+
+    /**
+     * Gets the scaled vertical speed of the drone.
+     *
+     * @return scaled vertical speed of the drone
+     */
+    public static double getScaledVerticalSpeed() {
+        return VERTICAL_SPEED * TimeUtils.getTimeFactor();
+    }
 
     /**
      * Executes the drone's main loop.
@@ -210,7 +245,7 @@ public class Drone extends MessagePasser implements Runnable {
      */
     private void setDecelDistance() {
         // d = v² / 2a
-        this.decelDistance = (float) (Math.pow(this.currSpeed, 2) / (2 * (-1) * DECEL_RATE));
+        this.decelDistance = (float) (Math.pow(this.currSpeed, 2) / (2 * (-1) * getScaledDecelRate()));
     }
 
     /**
@@ -531,7 +566,7 @@ public class Drone extends MessagePasser implements Runnable {
             previousTime = currentTime;
 
             // Increase altitude at a constant vertical speed
-            this.currAltitude += VERTICAL_SPEED * deltaTime;
+            this.currAltitude += (float) (getScaledVerticalSpeed() * deltaTime);
 
             // Clamp altitude so we do not overshoot
             if (this.currAltitude > CRUISE_ALTITUDE) {
@@ -594,15 +629,15 @@ public class Drone extends MessagePasser implements Runnable {
 
             // 2. We haven't reached top speed yet, so accelerate. v = vᵢ +at
             initialVelocity = this.currSpeed;
-            this.currSpeed += ACCEL_RATE * deltaTime;
+            this.currSpeed += (float) (getScaledAccelRate() * deltaTime);
             System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "Accelerating... "
                     + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
                     + "| POSITION = " + this.position);
 
             // 3. If this acceleration pushes us to or beyond top speed, cap it and break.
-            if (this.currSpeed >= TOP_SPEED) {
-                this.currSpeed = TOP_SPEED;
+            if (this.currSpeed >= getScaledTopSpeed()) {
+                this.currSpeed = (float) getScaledTopSpeed();
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Reached Max Speed. Stopping acceleration. "
                         + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
@@ -612,7 +647,7 @@ public class Drone extends MessagePasser implements Runnable {
 
             // d = Vᵢt + 0.5at²
             distance = (float) ((initialVelocity * deltaTime)
-                    + (0.5 * ACCEL_RATE * Math.pow(deltaTime, 2)));
+                    + (0.5 * getScaledAccelRate() * Math.pow(deltaTime, 2)));
             this.updatePosition(distance);
 
             // sleep thread to allow other threads to run/ not flood logs
@@ -708,7 +743,7 @@ public class Drone extends MessagePasser implements Runnable {
 
             // 2. We haven't reached destination yet, so decelerate. v = vᵢ +at
             initialVelocity = currSpeed;
-            currSpeed += DECEL_RATE * deltaTime;
+            currSpeed += (float) (getScaledDecelRate() * deltaTime);
             System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "Decelerating ..."
                     + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
@@ -726,7 +761,7 @@ public class Drone extends MessagePasser implements Runnable {
 
             // d = Vᵢt + 0.5at²
             float distance = (float) ((initialVelocity * deltaTime)
-                    + (0.5 * DECEL_RATE * Math.pow(deltaTime, 2)));
+                    + (0.5 * getScaledDecelRate() * Math.pow(deltaTime, 2)));
             this.updatePosition(distance);
 
             // sleep thread to allow other threads to run/ not flood logs
@@ -763,7 +798,7 @@ public class Drone extends MessagePasser implements Runnable {
             previousTime = currentTime;
 
             // Increase altitude at a constant vertical speed
-            currAltitude -= VERTICAL_SPEED * deltaTime;
+            currAltitude -= (float) (getScaledVerticalSpeed() * deltaTime);
 
             // Clamp altitude so we do not overshoot
             if (currAltitude <= 0f) {
