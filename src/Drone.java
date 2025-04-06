@@ -484,6 +484,7 @@ public class Drone extends MessagePasser implements Runnable {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "🧯Fire Extinguished.");
                 eventFireExtinguished();
+                return; // to avoid triggering event empty tank if fire extinguished;
             }
             // sleep thread to allow other threads to run/ not flood logs
             try {
