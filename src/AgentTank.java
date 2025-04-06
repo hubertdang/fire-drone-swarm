@@ -3,7 +3,7 @@
  * to release the agent at a specified rate.
  */
 public class AgentTank {
-    public static final float CAPACITY = 11.0f;       // L
+    public static float CAPACITY = 11.0f;       // L
     public static final float AGENT_DROP_RATE = 2.0f; // L/sec
     public static final long NOZZLE_TIME = 2000;      // sec
     private float currAgentAmount;
@@ -15,6 +15,15 @@ public class AgentTank {
     public AgentTank() {
         this.refill();
         this.isNozzleOpen = false;
+    }
+
+    /**
+     * Sets the capacity of the tank.
+     *
+     * @param Capacity The capacity of the tank in liters.
+     */
+    public static void setCapacity(float Capacity) {
+        AgentTank.CAPACITY = Capacity;
     }
 
     /**
