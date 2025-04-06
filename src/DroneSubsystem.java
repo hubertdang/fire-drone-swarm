@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 
-public class DroneSubsystem {
+public class DroneSubsystem implements Runnable {
 
     private static  int NUMBER_OF_DRONES = 10;
     private static ArrayList<DroneFault> droneFaults; // a list of drone faults that will be injected
@@ -28,6 +28,10 @@ public class DroneSubsystem {
      */
     public static int getNumberOfDrones() {
         return NUMBER_OF_DRONES;
+    }
+
+    public static HashMap<Integer, Drone> getAllDrones() {
+        return drones;
     }
 
     /**
@@ -78,7 +82,8 @@ public class DroneSubsystem {
         });
     }
 
-    public static void main(String[] args) throws IOException {
+    @Override
+    public void run() {
         drones = new HashMap<>();
         droneFaults = new ArrayList<>();
         TimeUtils.setOffset();
@@ -95,7 +100,12 @@ public class DroneSubsystem {
             controllerThread.start();
         }
 
-        readFaultsFile("./sample_input_files/faults.csv");
+        try {
+            readFaultsFile("./sample_input_files/faults.csv");
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         // a loop that injects faults when fault time is reached
         while (!droneFaults.isEmpty()) {
