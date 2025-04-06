@@ -29,8 +29,7 @@ public class Landing implements DroneState {
      */
     @Override
     public void reqRecall(Drone context) {
-        throw new IllegalStateException("Invalid event for the current state.");
-
+        context.land();
     }
 
     /**
