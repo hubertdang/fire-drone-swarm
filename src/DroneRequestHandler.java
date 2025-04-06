@@ -57,34 +57,22 @@ public class DroneRequestHandler extends MessagePasser implements Runnable {
     public void run() {
         while (true) {
             DroneInfo droneInfo = (DroneInfo) receive();
-            if (droneInfo != null && droneInfo.fault == FaultID.NONE) {
+            if (droneInfo != null) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Received a drone info from Drone#" + droneInfo.droneID
                         + " | STATE = " + droneInfo.stateID
                         + " | POSITION = " + droneInfo.getPosition()
                         + " | TANK = " + String.format("%.2f L", droneInfo.getAgentTankAmount()));
-                scheduler.processDroneInfo(droneInfo, this);
-                scheduler.dispatchActions(this, droneInfo.droneID);
-            } else if (droneInfo.fault != FaultID.NONE) {
-                System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "⚠️Received a drone info from Drone#" + droneInfo.droneID
-                        + " | FAULT = " + droneInfo.fault);
 
-                Set<Map.Entry<Zone, ZoneTriageInfo>> zonesOnFire = scheduler.getZonesOnFire().entrySet();
-                for (Map.Entry<Zone, ZoneTriageInfo> entry : zonesOnFire) {
-                    if (entry.getValue().getServicingDrones().containsKey(droneInfo.droneID)){
-                        Zone zone = entry.getKey();
-                        scheduler.getZonesOnFire().get(zone).removeDrone(droneInfo.droneID);
-
-                        System.out.println("[" + Thread.currentThread().getName() + "]: "
-                                + "Removed Drone#" + droneInfo.droneID
-                                + " from Zone#" + entry.getKey().getId());
-
-                        break;
-                    }
+                if (droneInfo.getStateID() == DroneStateID.FAULT
+                        || droneInfo.getStateID() == DroneStateID.IDLE) {
+                    scheduler.processDroneInfo(droneInfo, this, getAllDroneInfos());
+                } else {
+                    scheduler.processDroneInfo(droneInfo, this, null);
                 }
 
-                scheduler.scheduleDrones(getAllDroneInfos());
+                scheduler.dispatchActions(this, droneInfo.droneID);
+
             }
             try {
                 Thread.sleep(2000);

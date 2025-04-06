@@ -25,7 +25,7 @@ public class Scheduler {
         zonesOnFire.put(zone, new ZoneTriageInfo(zone));
     }
 
-    public synchronized void scheduleDrones(ArrayList<DroneInfo> droneInfoList) {
+    public synchronized void scheduleAllDrones(ArrayList<DroneInfo> droneInfoList) {
         ArrayList<DroneInfo> freeDroneInfos = new ArrayList<>();
         ArrayList<Integer> busyDrones = new ArrayList<>();
 
@@ -43,6 +43,10 @@ public class Scheduler {
                             + "Drone#" + droneInfo.droneID
                             + " | OFFLINE "
                             + " | FAULT = " + droneInfo.fault);
+                } else if (droneInfo.agentTankAmount == 0F) {
+                    System.out.println("[" + Thread.currentThread().getName() + "]: "
+                            + "Drone#" + droneInfo.droneID
+                            + " | EMPTY ");
                 } else {
                     freeDroneInfos.add(droneInfo);
                 }
@@ -80,7 +84,7 @@ public class Scheduler {
 
     }
 
-    public synchronized void processDroneInfo(DroneInfo droneInfo, MessagePasser messagePasser) {
+    public synchronized void processDroneInfo(DroneInfo droneInfo, MessagePasser messagePasser, ArrayList<DroneInfo> droneInfoList) {
         DroneTask newTask;
         switch (droneInfo.getStateID()) {
             case ARRIVED:
@@ -88,12 +92,19 @@ public class Scheduler {
                 droneActionsTable.addAction(droneInfo.droneID, newTask);
                 break;
             case IDLE:
+                boolean fireExtinguished = false;
                 Iterator<Map.Entry<Zone, ZoneTriageInfo>> zoneServicingEntriesIter =
                         zonesOnFire.entrySet().iterator();
                 while (zoneServicingEntriesIter.hasNext()) {
                     Map.Entry<Zone, ZoneTriageInfo> zoneEntry = zoneServicingEntriesIter.next();
                     if (zoneEntry.getValue().getServicingDrones().containsKey(droneInfo.droneID)) {
-                        // remove zoneOnFire
+                        fireExtinguished = true;
+                        // tell all drones at zone to recall
+                        for (Integer aServiceDroneId : zoneEntry.getValue().getServicingDrones().keySet()) {
+                            newTask = new DroneTask(aServiceDroneId, DroneTaskType.RECALL, null, DRH_PORT);
+                            droneActionsTable.addAction(droneInfo.droneID, newTask);
+                        }
+                        // remove zone on fire
                         messagePasser.send(droneInfo.zoneToService, "localhost", 9000);
                         zoneServicingEntriesIter.remove();
                         break;
@@ -103,13 +114,47 @@ public class Scheduler {
                         + "]: 🧯 Fire Extinguished received from Drone#" + droneInfo.getDroneID()
                         + " Zone: " + droneInfo.getZoneToService());
 
-                newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RECALL, null, DRH_PORT);
-
-                if (!scheduleDrone(droneInfo)) {droneActionsTable.addAction(droneInfo.droneID, newTask);}
+                if (fireExtinguished) {
+                    scheduleAllDrones(droneInfoList);
+                } else {
+                    newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RECALL, null, DRH_PORT);
+                    if (!scheduleDrone(droneInfo)) {droneActionsTable.addAction(droneInfo.droneID, newTask);}
+                }
 
                 break;
             case BASE:
                 scheduleDrone(droneInfo); // may do nothing if no fires to respond to
+                break;
+            case FAULT:
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "⚠️Received a drone info from Drone#" + droneInfo.droneID
+                        + " | FAULT = " + droneInfo.fault);
+
+                Set<Map.Entry<Zone, ZoneTriageInfo>> zonesOnFireSet = zonesOnFire.entrySet();
+                for (Map.Entry<Zone, ZoneTriageInfo> entry : zonesOnFireSet) {
+                    if (entry.getValue().getServicingDrones().containsKey(droneInfo.droneID)){
+                        Zone zone = entry.getKey();
+                        zonesOnFire.get(zone).removeDrone(droneInfo);
+
+                        System.out.println("[" + Thread.currentThread().getName() + "]: "
+                                + "Removed Drone#" + droneInfo.droneID
+                                + " from Zone#" + entry.getKey().getId());
+
+                        break;
+                    }
+                }
+                newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RECALL, null, DRH_PORT);
+                droneActionsTable.addAction(droneInfo.droneID, newTask);
+                scheduleAllDrones(droneInfoList);
+                break;
+            case EMPTY_TANK:
+                zonesOnFire.get(droneInfo.zoneToService).removeDrone(droneInfo);
+                // replace key value pair in zonesOnFire to update the immutable key (zone agent needed)
+                ZoneTriageInfo copyTriageInfo = zonesOnFire
+                        .remove(droneInfo.zoneToService);
+                zonesOnFire.put(droneInfo.zoneToService, copyTriageInfo);
+                newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RECALL, droneInfo.getZoneToService(), DRH_PORT);
+                droneActionsTable.addAction(droneInfo.droneID, newTask);
                 break;
             default:
                 System.out.println("[" + Thread.currentThread().getName()
@@ -145,7 +190,7 @@ public class Scheduler {
                 DroneTask newTask = new DroneTask(droneInfo.getDroneID()
                         , DroneTaskType.SERVICE_ZONE, zoneEntry.getKey());
                 // add drone to servicing structure to keep track of response time
-                zoneEntry.getValue().addDrone(droneInfo.droneID, droneInfo.position);
+                zoneEntry.getValue().addDrone(droneInfo);
                 // add task to actions table
                 droneActionsTable.addAction(droneInfo.droneID, newTask);
                 return true;
@@ -160,7 +205,7 @@ public class Scheduler {
 
         for (Map.Entry<Zone, ZoneTriageInfo> zoneEntry : sortedList) {
             // add drone to servicing structure to keep track of response time
-            boolean droneAdded = zonesOnFire.get(zoneEntry.getKey()).addDrone(droneInfo.droneID, droneInfo.position);
+            boolean droneAdded = zonesOnFire.get(zoneEntry.getKey()).addDrone(droneInfo);
             if (droneAdded) {
                 // create new task to service this zone
                 DroneTask newTask = new DroneTask(droneInfo.getDroneID()
