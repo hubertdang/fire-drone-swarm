@@ -59,7 +59,7 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
      */
     private void trackFire(Zone zone, long eventTime) {
         System.out.println("[" + Thread.currentThread().getName() + "]: "
-                + TimeUtils.millisecondsToTimestamp(TimeUtils.getCurrentTime())
+                + TimeUtils.getCurrentTimestamp()
                 + "🔥Fire detected @ Zone#" + zone.getId());
         clearZones.remove(zone.getId());
         fireZones.put(zone.getId(), zone);
@@ -147,11 +147,11 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
         while (hasActiveFiresOrUpcomingEvents(eventIndex)) {
             long currentTime = TimeUtils.getCurrentTime();
             System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + TimeUtils.millisecondsToTimestamp(TimeUtils.getCurrentTime()));
+                    + TimeUtils.getCurrentTimestamp());
             if (eventIndex < events.size()) { // Check if we have reached the end of the events
                 eventIndexTime = events.get(eventIndex).getTime();
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + TimeUtils.millisecondsToTimestamp(TimeUtils.getCurrentTime())
+                        + TimeUtils.getCurrentTimestamp()
                         + "Next event time: "
                         + TimeUtils.millisecondsToTimestamp(eventIndexTime));
             }
@@ -160,7 +160,7 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
             // Check if we need to send an event and send event to scheduler
             while (isEventReadyToProcess(eventIndex, eventIndexTime, currentTime)) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + TimeUtils.millisecondsToTimestamp(TimeUtils.getCurrentTime())
+                        + TimeUtils.getCurrentTimestamp()
                         + "Sending event to scheduler");
                 sendEvent(events.get(eventIndex));
                 eventIndex++;
@@ -178,7 +178,7 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
                     clearZones.put(servicedZone.getId(), servicedZone);
                     fireZones.remove(servicedZone.getId());
                     System.out.println("[" + Thread.currentThread().getName() + "]: "
-                            + TimeUtils.millisecondsToTimestamp(TimeUtils.getCurrentTime()) + "👌 Zone "
+                            + TimeUtils.getCurrentTimestamp() + "👌 Zone "
                             + servicedZone.getId() + "'s  fire has been extinguished.");
                 }
             }
