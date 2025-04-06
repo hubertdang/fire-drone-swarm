@@ -1,6 +1,5 @@
 import java.awt.*;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Objects;
 
 /**
@@ -59,7 +58,7 @@ public class Zone implements Serializable {
      */
     public synchronized void setSeverity(FireSeverity severity) {
         this.severity = severity;
-            }
+    }
 
     /**
      * Gets the center position of this zone.
@@ -97,6 +96,19 @@ public class Zone implements Serializable {
         this.requiredAgentAmount = requiredAgentAmount;
     }
 
+    public int[] getZoneCoordinates() {
+        return new int[] { this.startx, this.starty, this.endx, this.endy };
+    }
+
+    public Color getZoneColor() {
+        return switch (getSeverity()) {
+            case HIGH -> new Color(255, 0, 0, 50);
+            case MODERATE -> new Color(255, 165, 0, 50);
+            case LOW -> new Color(255, 255, 0, 50);
+            default -> new Color(0, 128, 0, 50);
+        };
+    }
+
     /**
      * Checks if this zone is equal to another object. Two zones are equal if they have the same ID,
      * required agent amount, center position, and severity level.
@@ -114,33 +126,17 @@ public class Zone implements Serializable {
     }
 
     /**
-     * Generates hash code for a zone based on its zone id
-     */
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    /**
      * String representation of Zone
      *
      * @return string representation of zone instance
      */
     @Override
     public String toString() { return "Zone[id: " + id + " Required Agent: "
-            + requiredAgentAmount + "]"; }
-
-    public int[] getZoneCoordinates() {
-        return new int[] { this.startx, this.starty, this.endx, this.endy };
+            + requiredAgentAmount + "]";
     }
 
-    public Color getZoneColor() {
-        return switch (getSeverity()) {
-            case HIGH -> new Color(255, 0, 0, 50);
-            case MODERATE -> new Color(255, 165, 0, 50);
-            case LOW -> new Color(255, 255, 0, 50);
-            default -> new Color(0, 128, 0, 50);
-        };
+    @Override
+    public int hashCode() {
+        return Objects.hash(id); // Generates a hash code based on zoneId
     }
-
 }

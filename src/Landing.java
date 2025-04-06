@@ -29,8 +29,7 @@ public class Landing implements DroneState {
      */
     @Override
     public void reqRecall(Drone context) {
-        throw new IllegalStateException("Invalid event for the current state.");
-
+        context.land();
     }
 
     /**
@@ -102,8 +101,8 @@ public class Landing implements DroneState {
      */
     @Override
     public void landed(Drone context) {
-        context.refillAgentTank();
         context.updateState(DroneStateID.BASE);
+        context.refillAgentTank();
         context.requestTask();
     }
 

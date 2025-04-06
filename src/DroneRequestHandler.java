@@ -27,7 +27,7 @@ public class DroneRequestHandler extends MessagePasser implements Runnable {
         // and the port numbers for DroneControllers are 6000 + droneID.
         // For example, Drone with ID 1 will have ports 5001 and 6001 for its Drone
         // and DroneController respectively.
-        for (int i = 1; i < DroneSubsystem.getNumberOfDrones(); i++) {
+        for (int i = 1; i <= DroneSubsystem.getNumberOfDrones(); i++) {
             DroneTask getInfo = new DroneTask(i, DroneTaskType.REQUEST_INFO, null, Scheduler.DRH_PORT);
             System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "Requesting info from Drone#" + i);
@@ -57,22 +57,45 @@ public class DroneRequestHandler extends MessagePasser implements Runnable {
     public void run() {
         while (true) {
             DroneInfo droneInfo = (DroneInfo) receive();
-            if (droneInfo != null) {
+            if (droneInfo != null && droneInfo.fault == FaultID.NONE) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Received a drone info from Drone#" + droneInfo.droneID
                         + " | STATE = " + droneInfo.stateID
                         + " | POSITION = " + droneInfo.getPosition()
                         + " | TANK = " + String.format("%.2f L", droneInfo.getAgentTankAmount()));
 
-                if (droneInfo.getStateID() == DroneStateID.FAULT
-                        || droneInfo.getStateID() == DroneStateID.IDLE) {
-                    scheduler.processDroneInfo(droneInfo, this, getAllDroneInfos());
-                } else {
-                    scheduler.processDroneInfo(droneInfo, this, null);
+                scheduler.processDroneInfo(droneInfo, this);
+
+                if (droneInfo.stateID == DroneStateID.EMPTY_TANK) {
+                    scheduler.getZonesOnFire().get(droneInfo.zoneToService).removeDrone(droneInfo);
+                    // replace key value pair in zonesOnFire to update the immutable key (zone agent needed)
+                    ZoneTriageInfo copyTriageInfo = scheduler.getZonesOnFire()
+                            .remove(droneInfo.zoneToService);
+                    scheduler.getZonesOnFire().put(droneInfo.zoneToService, copyTriageInfo);
                 }
 
                 scheduler.dispatchActions(this, droneInfo.droneID);
 
+            } else if (droneInfo.fault != FaultID.NONE) {
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "⚠️Received a drone info from Drone#" + droneInfo.droneID
+                        + " | FAULT = " + droneInfo.fault);
+
+                Set<Map.Entry<Zone, ZoneTriageInfo>> zonesOnFire = scheduler.getZonesOnFire().entrySet();
+                for (Map.Entry<Zone, ZoneTriageInfo> entry : zonesOnFire) {
+                    if (entry.getValue().getServicingDrones().containsKey(droneInfo.droneID)){
+                        Zone zone = entry.getKey();
+                        scheduler.getZonesOnFire().get(zone).removeDrone(droneInfo);
+
+                        System.out.println("[" + Thread.currentThread().getName() + "]: "
+                                + "Removed Drone#" + droneInfo.droneID
+                                + " from Zone#" + entry.getKey().getId());
+
+                        break;
+                    }
+                }
+
+                scheduler.scheduleDrones(getAllDroneInfos());
             }
             try {
                 Thread.sleep(2000);

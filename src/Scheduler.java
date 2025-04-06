@@ -91,6 +91,10 @@ public class Scheduler {
                 newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RELEASE_AGENT, droneInfo.getZoneToService(), DRH_PORT);
                 droneActionsTable.addAction(droneInfo.droneID, newTask);
                 break;
+            case EMPTY_TANK:
+                newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RECALL, droneInfo.getZoneToService(), DRH_PORT);
+                droneActionsTable.addAction(droneInfo.droneID, newTask);
+                break;
             case IDLE:
                 boolean fireExtinguished = false;
                 Iterator<Map.Entry<Zone, ZoneTriageInfo>> zoneServicingEntriesIter =

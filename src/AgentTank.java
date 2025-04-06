@@ -3,9 +3,9 @@
  * to release the agent at a specified rate.
  */
 public class AgentTank {
-    public static float CAPACITY = 100.0f;       // 100 L -> reality = 11L, change in iteration 5
-    public static final float AGENT_DROP_RATE = 2.0f; //1.0f; // 1 L/sec
-    public static final long NOZZLE_TIME = 2000;     // 2 sec
+    public static float CAPACITY = 11.0f;       // L
+    public static final float AGENT_DROP_RATE = 2.0f; // L/sec
+    public static final long NOZZLE_TIME = 2000;      // sec
     private float currAgentAmount;
     private boolean isNozzleOpen;
 

@@ -22,7 +22,6 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
 
     /**
      * Constructs a FireIncidentSubsystem with the given fireBuffer.
-     *
      */
     public FireIncidentSubsystem() {
         super(9000);
