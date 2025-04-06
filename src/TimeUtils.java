@@ -3,7 +3,8 @@ import java.time.format.DateTimeFormatter;
 
 public class TimeUtils {
     private static final String TARGET_TIME_STR = "17:04:10";
-    private static volatile  long offsetMilliseconds = 0;
+    private static volatile long offsetMilliseconds = 0;
+    private static double timeFactor = 1;
 
     /**
      * Converts a duration in milliseconds to a timestamp in HH:mm:ss:SSS format.
@@ -43,7 +44,8 @@ public class TimeUtils {
      */
     public static long getCurrentTime() {
         long nowMillis = LocalTime.now().toSecondOfDay() * 1000L;
-        return nowMillis + offsetMilliseconds;
+        timeFactor += 0.001;
+        return (long) ((nowMillis + offsetMilliseconds) * timeFactor);
     }
 
     /**
@@ -57,6 +59,6 @@ public class TimeUtils {
 
     public static long csvTimeToMillis(String timeStr) {
         LocalTime time = LocalTime.parse(timeStr, DateTimeFormatter.ofPattern("HH:mm:ss"));
-        return time.toSecondOfDay() * 1000L;
+        return (long) ((time.toSecondOfDay() * 1000L) );
     }
 }

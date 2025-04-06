@@ -23,7 +23,6 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
     /**
      * Constructs a FireIncidentSubsystem with the given fireBuffer.
      *
-     * @param port the port number for the FireIncidentSubsystem
      */
     public FireIncidentSubsystem() {
         super(9000);
@@ -60,7 +59,7 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
      */
     private void trackFire(Zone zone, long eventTime) {
         System.out.println("[" + Thread.currentThread().getName() + "]: "
-                + TimeUtils.getCurrentTimestamp()
+                + TimeUtils.millisecondsToTimestamp(TimeUtils.getCurrentTime())
                 + "🔥Fire detected @ Zone#" + zone.getId());
         clearZones.remove(zone.getId());
         fireZones.put(zone.getId(), zone);
@@ -148,11 +147,11 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
         while (hasActiveFiresOrUpcomingEvents(eventIndex)) {
             long currentTime = TimeUtils.getCurrentTime();
             System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + TimeUtils.getCurrentTimestamp());
+                    + TimeUtils.millisecondsToTimestamp(TimeUtils.getCurrentTime()));
             if (eventIndex < events.size()) { // Check if we have reached the end of the events
                 eventIndexTime = events.get(eventIndex).getTime();
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + TimeUtils.getCurrentTimestamp()
+                        + TimeUtils.millisecondsToTimestamp(TimeUtils.getCurrentTime())
                         + "Next event time: "
                         + TimeUtils.millisecondsToTimestamp(eventIndexTime));
             }
@@ -161,7 +160,7 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
             // Check if we need to send an event and send event to scheduler
             while (isEventReadyToProcess(eventIndex, eventIndexTime, currentTime)) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + TimeUtils.getCurrentTimestamp()
+                        + TimeUtils.millisecondsToTimestamp(TimeUtils.getCurrentTime())
                         + "Sending event to scheduler");
                 sendEvent(events.get(eventIndex));
                 eventIndex++;
@@ -179,7 +178,7 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
                     clearZones.put(servicedZone.getId(), servicedZone);
                     fireZones.remove(servicedZone.getId());
                     System.out.println("[" + Thread.currentThread().getName() + "]: "
-                            + TimeUtils.getCurrentTimestamp() + "👌 Zone "
+                            + TimeUtils.millisecondsToTimestamp(TimeUtils.getCurrentTime()) + "👌 Zone "
                             + servicedZone.getId() + "'s  fire has been extinguished.");
                 }
             }
@@ -210,7 +209,9 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
      * @return true if the event is ready to be processed, false otherwise
      */
     public boolean isEventReadyToProcess(int eventIndex, long eventIndexTime, long currentTime) {
-        return Math.abs(eventIndexTime - currentTime) <= 2500;
+        boolean hasPendingEvents = eventIndex < events.size(); // Check if there are events left to process
+        boolean isEventTimeReached = hasPendingEvents && eventIndexTime <= currentTime; // Check if the current event's time has been reached
+        return hasPendingEvents && isEventTimeReached;
     }
 
     /**
