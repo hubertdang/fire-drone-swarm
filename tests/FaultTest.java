@@ -8,8 +8,9 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class FaultTest {
     private Drone drone1, drone2;
-    private DroneFault fault;
     private Thread droneThread1, droneThread2;
+    private Scheduler scheduler;
+    private DroneRequestHandler droneRequestHandler;
 
     /**
      * Initializes 2 drones and a Drone Stuck Mid-Flight fault.
@@ -18,52 +19,58 @@ public class FaultTest {
     void setUp() {
         drone1 = new Drone();
         drone2 = new Drone();
-        fault = new DroneFault(2, 5, TimeUtils.csvTimeToMillis("18:40:05"), FaultID.DRONE_STUCK);
         droneThread1 = new Thread(drone1);
         droneThread2 = new Thread(drone2);
+        scheduler = new Scheduler();
+        droneRequestHandler =  new DroneRequestHandler(7001, scheduler);
+        droneThread1.start();
+        droneThread2.start();
+        Thread droneRequestHandlerThread = new Thread(droneRequestHandler);
+        droneRequestHandlerThread.start();
     }
 
     /**
      * Tests the state changes when a drone faults.
      * Uses print statements and assertions.
-     * <p>
+     *
      * Expected state change for a drone that faults:
      * BASE -> FAULT
      */
     @Test
     void testFault() throws InterruptedException {
-        droneThread1.start();
-        droneThread2.start();
+        Thread.sleep(100);
+        Zone testZone = new Zone(1, 25, 100, 300, 0, 100);
+
+        drone2.setDestination(testZone.getPosition());
+        drone2.setZoneToService(testZone);
+        drone2.setCurrTask(new DroneTask(1, DroneTaskType.SERVICE_ZONE, null, 0));
+
+        assertEquals(DroneStateID.BASE, drone1.getCurrStateID());
+        assertEquals(DroneStateID.BASE, drone2.getCurrStateID());
+        drone2.setFault(FaultID.DRONE_STUCK);
+        drone2.eventFaultDetected();
+        // make the thread sleep to allow for state transition
+        Thread.sleep(2000);
+
+        assertEquals(DroneStateID.FAULT, drone2.getCurrStateID());
+        //assertEquals(DroneTaskType.RECALL, drone2.getCurrTask().getTaskType());
+        //assertEquals(DroneStateID.BASE, drone2.getCurrStateID());
+    }
+
+
+    @Test
+    void test2Faults() throws InterruptedException {
         Thread.sleep(100);
         assertEquals(DroneStateID.BASE, drone1.getCurrStateID());
         assertEquals(DroneStateID.BASE, drone2.getCurrStateID());
 
-        // wait for the fault time to arrive
-        while ((Math.abs(fault.getFaultTime() - TimeUtils.getCurrentTime()) >= 2000)) {
-            ;
-        }
+        drone1.setFault(FaultID.CORRUPTED_MESSAGE);
+        Thread.sleep(2000);
+        assertEquals(drone1.getCurrStateID(), DroneStateID.FAULT);
+        Thread.sleep(2000);
 
-        if (Math.abs(fault.getFaultTime() - TimeUtils.getCurrentTime()) <= 2000) {
-            System.out.println("🚨 " + fault.toString());
-
-            if (fault.getDroneId() == drone1.getId()) {
-                drone1.setFault(fault.getFaultType());
-                assertEquals(DroneStateID.FAULT, drone1.getCurrStateID());
-                assertNull(drone1.getZoneToService());
-                assertNull(drone1.getCurrTask());
-            }
-            else if (fault.getDroneId() == drone2.getId()) {
-                drone2.setFault(fault.getFaultType());
-                // make the thread sleep to allow for state transition
-                Thread.sleep(1000);
-                System.out.println("Drone 2 - Current State: " + drone2.getCurrStateID());
-                assertEquals(DroneStateID.FAULT, drone2.getCurrStateID());
-                assertNull(drone2.getZoneToService());
-                assertNull(drone2.getCurrTask());
-            }
-            else {
-                System.out.println("No drone found with id: " + fault.getDroneId());
-            }
-        }
+        drone1.setFault(FaultID.DRONE_STUCK);
+        Thread.sleep(2000);
+        assertEquals(drone1.getCurrStateID(), DroneStateID.FAULT);
     }
 }
