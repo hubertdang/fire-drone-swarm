@@ -22,6 +22,7 @@ public class Scheduler {
     }
 
     public synchronized void putZoneOnFire(Zone zone) {
+        System.out.println("#ADDED FIRE @ ZONE" + zone.getId());
         zonesOnFire.put(zone, new ZoneTriageInfo(zone));
     }
 
@@ -79,7 +80,7 @@ public class Scheduler {
         /* Run algorithm for all free drones */
 
         for (DroneInfo droneInfo : freeDroneInfos) {
-            scheduleDrone(droneInfo);
+            if (droneInfo != null) scheduleDrone(droneInfo);
         }
 
     }
@@ -100,16 +101,19 @@ public class Scheduler {
                         zonesOnFire.entrySet().iterator();
                 while (zoneServicingEntriesIter.hasNext()) {
                     Map.Entry<Zone, ZoneTriageInfo> zoneEntry = zoneServicingEntriesIter.next();
-                    if (zoneEntry.getValue().getServicingDrones().containsKey(droneInfo.droneID)) {
+                    if (zoneEntry.getValue().getServicingDrones().containsKey(droneInfo.droneID) && droneInfo.getZoneToService().getSeverity() == FireSeverity.NO_FIRE) {
                         // remove zoneOnFire
                         messagePasser.send(droneInfo.zoneToService, "localhost", 9000);
                         zoneServicingEntriesIter.remove();
+                        System.out.println("#REMOVED ZONE: " + zoneEntry.getKey());
+
+                        System.out.println("[" + Thread.currentThread().getName()
+                                + "]: 🧯 Fire Extinguished received from Drone#" + droneInfo.getDroneID()
+                                + " Zone: " + droneInfo.getZoneToService());
+
                         break;
                     }
                 }
-                System.out.println("[" + Thread.currentThread().getName()
-                        + "]: 🧯 Fire Extinguished received from Drone#" + droneInfo.getDroneID()
-                        + " Zone: " + droneInfo.getZoneToService());
 
                 newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RECALL, null, DRH_PORT);
 
@@ -117,6 +121,7 @@ public class Scheduler {
 
                 break;
             case BASE:
+                System.out.println("#REMOVE: " + droneInfo);
                 scheduleDrone(droneInfo); // may do nothing if no fires to respond to
                 break;
             default:
@@ -139,10 +144,11 @@ public class Scheduler {
      */
     private boolean scheduleDrone(DroneInfo droneInfo) {
         if (zonesOnFire.isEmpty()) {
+            System.out.println("Zones NOT on fire ❌🔥: " + zonesOnFire);
             return false;
         }
         /* if there is a zone without a drone go there */
-
+        System.out.println("Zones still on fire 🔥: " + zonesOnFire);
         Iterator<Map.Entry<Zone, ZoneTriageInfo>> servicesIterator =
                 zonesOnFire.entrySet().iterator();
         while (servicesIterator.hasNext()) {

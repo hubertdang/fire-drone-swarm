@@ -21,6 +21,7 @@ public class DroneActionsTable {
      * @param task    the task to be added
      */
     public void addAction(int droneId, DroneTask task) {
+        System.out.println("#REMOVE:" + droneId + task);
         actionsTable.put(droneId, task);
     }
 
