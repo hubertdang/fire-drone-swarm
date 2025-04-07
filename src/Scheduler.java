@@ -12,6 +12,7 @@ public class Scheduler {
     private static final Position BASE = new Position(0, 0);
     private volatile Map<Zone, ZoneTriageInfo> zonesOnFire;
     private final DroneActionsTable droneActionsTable;
+    private HashMap<Integer, Float> hardcodeZoneNeededAgent;
 
 
     /**
@@ -21,11 +22,13 @@ public class Scheduler {
     public Scheduler() {
         this.zonesOnFire = Collections.synchronizedMap(new HashMap<>());
         this.droneActionsTable = new DroneActionsTable();
+        this.hardcodeZoneNeededAgent = new HashMap<>();
     }
 
     public synchronized void putZoneOnFire(Zone zone) {
         System.out.println("#ADDED FIRE @ ZONE" + zone.getId());
         zonesOnFire.put(zone, new ZoneTriageInfo(zone));
+        hardcodeZoneNeededAgent.put(zone.getId(), zone.getRequiredAgentAmount());
     }
 
     public synchronized void scheduleDrones(ArrayList<DroneInfo> droneInfoList) {
@@ -97,28 +100,33 @@ public class Scheduler {
             case EMPTY_TANK:
                 if (zonesOnFire.get(droneInfo.zoneToService) != null) {
                     zonesOnFire.get(droneInfo.zoneToService).removeDrone(droneInfo);
-                }
-                if(zonesOnFire.get(droneInfo.zoneToService).getRequiredAgentAmount()==0){
-                    zonesOnFire.get(droneInfo.zoneToService).removeDrone(droneInfo);
-                    newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RECALL, null, DRH_PORT);
-                    if (!scheduleDrone(droneInfo)) {droneActionsTable.addAction(droneInfo.droneID, newTask);}
-                    // remove zoneOnFire
-                    messagePasser.send(droneInfo.zoneToService, "localhost", 9000);
-                    zonesOnFire.remove(droneInfo.zoneToService);
-                    System.out.println("#REMOVED ZONE: " + droneInfo.zoneToService);
+                    // hard code updating agent needed
+                    Float oldAgentNeeded = hardcodeZoneNeededAgent.get(droneInfo.zoneToService.getId());
+                    Float newAgentNeeded = oldAgentNeeded - droneInfo.getReleasedAgentAmount();
+                    if (newAgentNeeded <= 0) {
+                        hardcodeZoneNeededAgent.put(droneInfo.zoneToService.getId(), 0F);
+                        // remove zoneOnFire
+                        ZoneTriageInfo triageInfo = zonesOnFire.remove(droneInfo.zoneToService);
+                        if (triageInfo != null) {
+                            Zone noFire = droneInfo.getZoneToService();
+                            noFire.setSeverity(FireSeverity.NO_FIRE);
+                            noFire.setRequiredAgentAmount(0);
+                            messagePasser.send(noFire, "localhost", 9000);
+                            System.out.println("[" + Thread.currentThread().getName()
+                                    + "]: 🧯 Fire Extinguished received from Drone#" + droneInfo.getDroneID()
+                                    + " Zone: " + droneInfo.getZoneToService());
+                        }
 
-                    System.out.println("[" + Thread.currentThread().getName()
-                            + "]: 🧯 Fire Extinguished received from Drone#" + droneInfo.getDroneID()
-                            + " Zone: " + droneInfo.getZoneToService());
-                }
-                else {
-                    // replace key value pair in zonesOnFire to update the immutable key (zone agent needed)
-                    ZoneTriageInfo copyZoneTriageInfo = zonesOnFire.remove(droneInfo.zoneToService);
-                    copyZoneTriageInfo.updateRequiredAgentAmount(droneInfo.getReleasedAgentAmount());
-                    zonesOnFire.put(droneInfo.zoneToService, copyZoneTriageInfo);
-                    System.out.println("###AGENTLEFTZONE"+zonesOnFire.get(droneInfo.zoneToService).getRequiredAgentAmount());
-                    System.out.println("###AGENTLEFTCOPY"+copyZoneTriageInfo.getRequiredAgentAmount());
+                        // reschedule drone
+                        newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RECALL, null, DRH_PORT);
+                        if (!scheduleDrone(droneInfo)) {droneActionsTable.addAction(droneInfo.droneID, newTask);}
 
+                    } else {
+                        hardcodeZoneNeededAgent.put(droneInfo.zoneToService.getId(), newAgentNeeded);
+                        newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RECALL, droneInfo.getZoneToService(), DRH_PORT);
+                        droneActionsTable.addAction(droneInfo.droneID, newTask);
+                    }
+                } else {
                     newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RECALL, droneInfo.getZoneToService(), DRH_PORT);
                     droneActionsTable.addAction(droneInfo.droneID, newTask);
                 }
