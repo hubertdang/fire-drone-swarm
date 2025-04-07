@@ -34,10 +34,10 @@ public class ZoneTriageInfo {
         System.out.println("#OLD REQUIRED AMOUNT"+ requiredAgentAmount);
         this.requiredAgentAmount -= agentDropped;
         System.out.println("#DECREASING BY"+ agentDropped);
-        System.out.println("#NEW REQUIRED AMOUNT"+ requiredAgentAmount);
-        if(requiredAgentAmount < 0) {
+        if(requiredAgentAmount <= 0F) {
             requiredAgentAmount = 0F;
         }
+        System.out.println("#NEW REQUIRED AMOUNT"+ requiredAgentAmount);
     }
 
     public synchronized Float getRequiredAgentAmount() {

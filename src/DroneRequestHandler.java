@@ -34,7 +34,7 @@ public class DroneRequestHandler extends MessagePasser implements Runnable {
 
             Object message = null;
             send(getInfo, "localhost", 6000 + i);
-            message = receive(1000);
+            message = receive(5000);
             if (message == null) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Receive message timeout for Drone#" + i);

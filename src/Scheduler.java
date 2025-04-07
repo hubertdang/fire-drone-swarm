@@ -1,5 +1,7 @@
 import java.util.*;
 
+import static java.lang.Thread.sleep;
+
 public class Scheduler {
     public static final int FEH_PORT = 7000;
     public static final int DRH_PORT = 7001;
@@ -126,6 +128,7 @@ public class Scheduler {
                         zonesOnFire.entrySet().iterator();
                 while (zoneServicingEntriesIter.hasNext()) {
                     Map.Entry<Zone, ZoneTriageInfo> zoneEntry = zoneServicingEntriesIter.next();
+
                     if (zoneEntry.getValue().getServicingDrones().containsKey(droneInfo.droneID) && droneInfo.getZoneToService().getSeverity() == FireSeverity.NO_FIRE) {
                         // remove zoneOnFire
                         messagePasser.send(droneInfo.zoneToService, "localhost", 9000);
@@ -138,6 +141,12 @@ public class Scheduler {
 
                         break;
                     }
+                }
+                try {
+                    sleep(500);
+                }
+                catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
                 newTask = new DroneTask(droneInfo.droneID, DroneTaskType.RECALL, null, DRH_PORT);
                 if (!scheduleDrone(droneInfo)) {droneActionsTable.addAction(droneInfo.droneID, newTask);}
@@ -198,7 +207,7 @@ public class Scheduler {
 
         for (Map.Entry<Zone, ZoneTriageInfo> zoneEntry : sortedList) {
             // add drone to servicing structure to keep track of response time
-            if(zoneEntry.getValue().getSize() < 1){
+            if(zoneEntry.getValue().getSize() < 3){
                 boolean droneAdded = zonesOnFire.get(zoneEntry.getKey()).addDrone(droneInfo);
                 if (droneAdded) {
                     // create new task to service this zone
@@ -207,6 +216,12 @@ public class Scheduler {
                     // add task to actions table
                     droneActionsTable.addAction(droneInfo.droneID, newTask);
                     return true;
+                }
+                try {
+                    sleep(500);
+                }
+                catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
             }
 

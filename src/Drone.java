@@ -105,7 +105,11 @@ public class Drone extends MessagePasser implements Runnable {
             eventFaultDetected();
             return;
         }
-
+        if(getCurrTask() == null){
+            System.out.println("[" + Thread.currentThread().getName() + "]: "
+                    + "No task received from the scheduler.");
+            return;
+        }
         String destination = getCurrTask().getZone() != null ?  "zone#"
                 + getCurrTask().getZone().getId() : "base";
 
@@ -366,8 +370,12 @@ public class Drone extends MessagePasser implements Runnable {
                 getFault(),
                 releasedAgentAmount);
         send(info, "localhost", SCHEDULER_PORT);
-        currTask = (DroneTask) receive();
-        if (currTask.getTaskType() == DroneTaskType.RECALL) {
+        currTask = (DroneTask) receive(5000);
+        if (currTask == null) {
+            System.out.println("[" + Thread.currentThread().getName() + "]: "
+                    + "No task received from the scheduler.");
+        }
+        else if(currTask.getTaskType() == DroneTaskType.RECALL){
             System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "Received new task: " + currTask.getTaskType());
         }
@@ -375,6 +383,7 @@ public class Drone extends MessagePasser implements Runnable {
             System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "Received new task: " + currTask.getTaskType() + " @ zone#"
                     + currTask.getZone().getId());
+
         }
         setExternalEventFlag();
     }
