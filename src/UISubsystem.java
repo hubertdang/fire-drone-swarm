@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class UISubsystem extends JPanel {
 
@@ -444,7 +442,7 @@ public class UISubsystem extends JPanel {
     }
 
     private static JPanel createFireTablePanel() {
-        String[] columns = {"Fire ID", "Zone ID", "Severity", "Appeared At", "Time Taken"};
+        String[] columns = {"Zone ID", "Severity", "Required Agent" ,"Appeared At", "Time Taken"};
 
         fireTableModel = new DefaultTableModel(columns, 0);
         fireTable = new JTable(fireTableModel);
@@ -460,6 +458,7 @@ public class UISubsystem extends JPanel {
     private static class FireRow {
         int zoneId;
         FireSeverity severity;
+        float requiredAgent;
         long appearedAtMillis;
         String extinguishedTime = null; // millis since appearance
 
@@ -467,8 +466,8 @@ public class UISubsystem extends JPanel {
             String formattedTime = TimeUtils.millisecondsToTimestamp(appearedAtMillis);
             return new Object[] {
                     zoneId,
-                    zoneId,
                     severity.toString(),
+                    requiredAgent,
                     formattedTime,
                     (extinguishedTime != null) ? extinguishedTime : "-"
             };
@@ -486,6 +485,7 @@ public class UISubsystem extends JPanel {
                 FireRow row = new FireRow();
                 row.zoneId = zone.getId();
                 row.severity = zone.getSeverity();
+                row.requiredAgent = zone.getRequiredAgentAmount();
                 row.appearedAtMillis = TimeUtils.getCurrentTime(); // store raw ms
                 fireRows.add(row);
             }
