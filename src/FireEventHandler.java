@@ -104,7 +104,7 @@ public class FireEventHandler extends MessagePasser implements Runnable {
      */
     private void scheduleAllDrones() {
         ArrayList<DroneInfo> droneInfoList = getAllDroneInfos();
-        scheduler.scheduleDrones(droneInfoList);
+        scheduler.scheduleAllDrones(droneInfoList);
     }
 
 }
