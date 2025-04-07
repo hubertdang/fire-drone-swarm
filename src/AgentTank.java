@@ -31,7 +31,7 @@ public class AgentTank {
      */
     public synchronized void openNozzle() {
         try {
-            Thread.sleep(NOZZLE_TIME);
+            Thread.sleep((long) (NOZZLE_TIME / TimeUtils.TIME_FACTOR));
         }
         catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -44,7 +44,7 @@ public class AgentTank {
      */
     public synchronized void closeNozzle() {
         try {
-            Thread.sleep(NOZZLE_TIME);
+            Thread.sleep((long) (NOZZLE_TIME / TimeUtils.TIME_FACTOR));
         }
         catch (InterruptedException e) {
             Thread.currentThread().interrupt();
