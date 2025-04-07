@@ -1,77 +1,73 @@
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Utility class for handling and simulating time in a controlled environment.
+ * Allows accelerated or decelerated simulation using a time factor.
+ */
 public class TimeUtils {
-    private static final String TARGET_TIME_STR = "17:04:10";
-    private static volatile  long offsetMilliseconds = 0;
-    private static volatile double timeFactor = 1;
+    public static final float TIME_FACTOR = 100;
+    private static final String RELATIVE_START_TIME = "17:04:10";
 
-
-    /**
-     * Converts a duration in milliseconds to a timestamp in HH:mm:ss:SSS format.
-     *
-     * @param milliseconds Duration since midnight.
-     * @return Timestamp string in HH:mm:ss:SSS format.
-     */
-    public static String millisecondsToTimestamp(long milliseconds) {
-        long hours = milliseconds / 3600000;
-        long minutes = (milliseconds % 3600000) / 60000;
-        long seconds = (milliseconds % 60000) / 1000;
-        //long remainingMilliseconds = milliseconds % 1000;
-
-        return String.format("%02d:%02d:%02d ", hours, minutes, seconds);
-    }
+    private static long startSimTimeMillis = 0;
+    private static long startNanoTime = 0;
 
     /**
-     * Sets the time offset so that the simulated time aligns with a target timestamp.
+     * Initializes the simulation by setting the start time.
+     * The simulated time will start from {@link #RELATIVE_START_TIME},
+     * and the real-world reference time will be stored using {@link System#nanoTime()}.
      */
-    public synchronized static void setOffset() {
+    public static void setOffset() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
-        LocalTime targetTime = LocalTime.parse(TARGET_TIME_STR, formatter);
-        long targetMillis = targetTime.toSecondOfDay() * 1000L;
-
-        long actualMillis = LocalTime.now().toSecondOfDay() * 1000L;
-
-        offsetMilliseconds = targetMillis - actualMillis;
-
-        //System.out.println("Offset set to: " + offsetMilliseconds + "ms");
+        LocalTime targetTime = LocalTime.parse(RELATIVE_START_TIME, formatter);
+        startSimTimeMillis = targetTime.toSecondOfDay() * 1000L;
+        startNanoTime = System.nanoTime();
     }
 
     /**
-     * Returns the simulated current time in milliseconds since midnight.
-     * This adds the offset to the actual system time.
+     * Returns the current simulated time in milliseconds since midnight.
+     * This is calculated using the simulation start time and the real-world
+     * time elapsed, scaled by {@link #TIME_FACTOR}.
      *
-     * @return Adjusted time in milliseconds since midnight.
+     * @return Simulated current time in milliseconds since midnight.
      */
     public static long getCurrentTime() {
-        long nowMillis = LocalTime.now().toSecondOfDay() * 1000L;
-        timeFactor += 0.001;
-        return (long) ((nowMillis + offsetMilliseconds) * timeFactor);
+        long elapsedNanos = System.nanoTime() - startNanoTime;
+        long elapsedMillis = (long) ((elapsedNanos / 1_000_000.0) * TIME_FACTOR);
+        return startSimTimeMillis + elapsedMillis;
     }
 
     /**
-     * Returns the current simulated time as a string timestamp.
+     * Returns the current simulated time as a formatted timestamp.
+     * Format: HH:mm:ss
      *
-     * @return Timestamp in HH:mm:ss:SSS format.
+     * @return Simulated timestamp string.
      */
     public static String getCurrentTimestamp() {
         return millisecondsToTimestamp(getCurrentTime());
     }
 
     /**
-     * Converts a CSV time string (HH:mm:ss) to milliseconds
+     * Converts a time in milliseconds since midnight into a timestamp string.
      *
-     * @param timeStr Time string in HH:mm:ss format.
-     * @return Time in milliseconds
+     * @param milliseconds Milliseconds since midnight.
+     * @return Formatted timestamp string in HH:mm:ss.
+     */
+    public static String millisecondsToTimestamp(long milliseconds) {
+        long hours = milliseconds / 3600000;
+        long minutes = (milliseconds % 3600000) / 60000;
+        long seconds = (milliseconds % 60000) / 1000;
+        return String.format("%02d:%02d:%02d ", hours, minutes, seconds);
+    }
+
+    /**
+     * Converts a time string in the format HH:mm:ss to milliseconds since midnight.
+     *
+     * @param timeStr Time string (e.g., "13:45:30").
+     * @return Milliseconds since midnight.
      */
     public static long csvTimeToMillis(String timeStr) {
         LocalTime time = LocalTime.parse(timeStr, DateTimeFormatter.ofPattern("HH:mm:ss"));
-        return (long) ((time.toSecondOfDay() * 1000L) );
-    }
-    /**
-     * Gets the time factor for simulation speed.
-     */
-    public static double getTimeFactor() {
-        return timeFactor;
+        return time.toSecondOfDay() * 1000L;
     }
 }

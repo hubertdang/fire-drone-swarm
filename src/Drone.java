@@ -9,15 +9,16 @@ public class Drone extends MessagePasser implements Runnable {
     private static int idCount = 1;
 
     private final int SCHEDULER_PORT = 7001;
+    private static int SLEEP = 50;
 
     public static final float BASE_X = 0.0f;
     public static final float BASE_Y = 0.0f;
     public static final float ARRIVAL_DISTANCE_THRESHOLD = 10.0f;   // m
-    public static float TOP_SPEED = 20.0f;                    // m/s
+    public static float TOP_SPEED = 20.0f;                          // m/s
     public static final float ACCEL_RATE = 3.0f;                    // m/s²
     public static final float DECEL_RATE = -5.0f;                   // m/s²
-    public static final float CRUISE_ALTITUDE = 50.0f;              // arbitrary choice for demo
     public static final float VERTICAL_SPEED = 5.0f;                // m/s upward/downward
+    public static final float CRUISE_ALTITUDE = 50.0f;              // arbitrary choice for demo
 
     private final int id;
     private final AgentTank agentTank;
@@ -71,41 +72,6 @@ public class Drone extends MessagePasser implements Runnable {
      */
     public static void setTopSpeed(float topSpeed) {
         TOP_SPEED = topSpeed;
-    }
-    /**
-     * Gets the scaled top speed of the drone
-     *
-     * @return scaled top speed of the drone
-     */
-    public static double getScaledTopSpeed() {
-        return TOP_SPEED * TimeUtils.getTimeFactor();
-    }
-
-    /**
-     * Gets the scaled acceleration rate of the drone.
-     *
-     * @return scaled acceleration rate of the drone
-     */
-    public static double getScaledAccelRate() {
-        return ACCEL_RATE * TimeUtils.getTimeFactor();
-    }
-
-    /**
-     * Gets the scaled deceleration rate of the drone.
-     *
-     * @return scaled deceleration rate of the drone
-     */
-    public static double getScaledDecelRate() {
-        return DECEL_RATE * TimeUtils.getTimeFactor();
-    }
-
-    /**
-     * Gets the scaled vertical speed of the drone.
-     *
-     * @return scaled vertical speed of the drone
-     */
-    public static double getScaledVerticalSpeed() {
-        return VERTICAL_SPEED * TimeUtils.getTimeFactor();
     }
 
     /**
@@ -245,7 +211,7 @@ public class Drone extends MessagePasser implements Runnable {
      */
     private void setDecelDistance() {
         // d = v² / 2a
-        this.decelDistance = (float) (Math.pow(this.currSpeed, 2) / (2 * (-1) * getScaledDecelRate()));
+        this.decelDistance = (float) (Math.pow(this.currSpeed, 2) / (2 * (-1) * DECEL_RATE));
     }
 
     /**
@@ -330,7 +296,7 @@ public class Drone extends MessagePasser implements Runnable {
             case RELEASING_AGENT -> new Color(43, 190, 255, 225);
             case FAULT -> new Color(255, 57, 57, 225);
             case IDLE -> new Color(255, 222, 8, 225);
-            case EMPTY_TANK -> 	new Color(128, 128, 128, 255); // grey rn not sure what colour should be
+            case EMPTY_TANK -> 	new Color(5, 87, 138, 225);
         };
     }
 
@@ -502,18 +468,22 @@ public class Drone extends MessagePasser implements Runnable {
 
         while (agentTank.isNozzleOpen() && !agentTank.isEmpty() && !externalEventFlag) {
             currentTime = System.nanoTime();
-            deltaTime = (currentTime - previousTime) / 1_000_000_000f; // convert to second
+            deltaTime = (currentTime - previousTime) / 1_000_000_000f;
+            deltaTime *= TimeUtils.TIME_FACTOR; // convert to second
             previousTime = currentTime;
 
             // check how much agent can drop vs how much agent left
             agentToDrop = AgentTank.AGENT_DROP_RATE * deltaTime;
 
             agentTank.decreaseAgent(agentToDrop);
-            zoneToService.setRequiredAgentAmount(zoneToService.getRequiredAgentAmount()
-                    - agentToDrop);
-            System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + "💧Releasing " + String.format("%.2f L ", agentToDrop)
-                    + "| TANK = " + String.format("%.2f L ", agentTank.getCurrAgentAmount()));
+            synchronized (zoneToService){
+                zoneToService.setRequiredAgentAmount(zoneToService.getRequiredAgentAmount()
+                        - agentToDrop);
+            }
+
+//            System.out.println("[" + Thread.currentThread().getName() + "]: "
+//                    + "💧Releasing " + String.format("%.2f L ", agentToDrop)
+//                    + "| TANK = " + String.format("%.2f L ", agentTank.getCurrAgentAmount()));
 
             if (zoneToService.getRequiredAgentAmount() <= 0) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
@@ -523,7 +493,7 @@ public class Drone extends MessagePasser implements Runnable {
             }
             // sleep thread to allow other threads to run/ not flood logs
             try {
-                sleep(1000);
+                sleep(SLEEP);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -563,23 +533,24 @@ public class Drone extends MessagePasser implements Runnable {
         while (this.currAltitude < CRUISE_ALTITUDE && !externalEventFlag) {
             long currentTime = System.nanoTime();
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
+            deltaTime *= TimeUtils.TIME_FACTOR;
             previousTime = currentTime;
 
             // Increase altitude at a constant vertical speed
-            this.currAltitude += (float) (getScaledVerticalSpeed() * deltaTime);
+            this.currAltitude += (float) (VERTICAL_SPEED * deltaTime);
 
             // Clamp altitude so we do not overshoot
             if (this.currAltitude > CRUISE_ALTITUDE) {
                 this.currAltitude = CRUISE_ALTITUDE;
             }
 
-            System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + "Climbing... "
-                    + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
+//            System.out.println("[" + Thread.currentThread().getName() + "]: "
+//                    + "Climbing... "
+//                    + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
 
             // sleep thread to allow other threads to run/ not flood logs
             try {
-                sleep(1000);
+                sleep(SLEEP);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -614,6 +585,7 @@ public class Drone extends MessagePasser implements Runnable {
         while (!externalEventFlag) {
             long currentTime = System.nanoTime();
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
+            deltaTime *= TimeUtils.TIME_FACTOR;
             previousTime = currentTime;
 
             this.setDecelDistance();
@@ -629,15 +601,15 @@ public class Drone extends MessagePasser implements Runnable {
 
             // 2. We haven't reached top speed yet, so accelerate. v = vᵢ +at
             initialVelocity = this.currSpeed;
-            this.currSpeed += (float) (getScaledAccelRate() * deltaTime);
-            System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + "Accelerating... "
-                    + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
-                    + "| POSITION = " + this.position);
+            this.currSpeed += (float) (ACCEL_RATE * deltaTime);
+//            System.out.println("[" + Thread.currentThread().getName() + "]: "
+//                    + "Accelerating... "
+//                    + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
+//                    + "| POSITION = " + this.position);
 
             // 3. If this acceleration pushes us to or beyond top speed, cap it and break.
-            if (this.currSpeed >= getScaledTopSpeed()) {
-                this.currSpeed = (float) getScaledTopSpeed();
+            if (this.currSpeed >= TOP_SPEED) {
+                this.currSpeed = (float) TOP_SPEED;
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Reached Max Speed. Stopping acceleration. "
                         + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
@@ -647,12 +619,12 @@ public class Drone extends MessagePasser implements Runnable {
 
             // d = Vᵢt + 0.5at²
             distance = (float) ((initialVelocity * deltaTime)
-                    + (0.5 * getScaledAccelRate() * Math.pow(deltaTime, 2)));
+                    + (0.5 * ACCEL_RATE * Math.pow(deltaTime, 2)));
             this.updatePosition(distance);
 
             // sleep thread to allow other threads to run/ not flood logs
             try {
-                sleep(1000);
+                sleep(SLEEP);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -679,11 +651,12 @@ public class Drone extends MessagePasser implements Runnable {
         while (!externalEventFlag) {
             currentTime = System.nanoTime();
             deltaTime = (currentTime - previousTime) / 1_000_000_000f;
+            deltaTime *= TimeUtils.TIME_FACTOR;
             previousTime = currentTime;
 
-            System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + "Flying... "
-                    + "| POSITION = " + this.position);
+//            System.out.println("[" + Thread.currentThread().getName() + "]: "
+//                    + "Flying... "
+//                    + "| POSITION = " + this.position);
 
             // If we're at or within the deceleration distance, exit the loop
             if (this.getDistanceFromDestination() <= this.getDecelDistance()) {
@@ -698,7 +671,7 @@ public class Drone extends MessagePasser implements Runnable {
 
             // sleep thread to allow other threads to run/ not flood logs
             try {
-                sleep(1000);
+                sleep(SLEEP);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -729,6 +702,7 @@ public class Drone extends MessagePasser implements Runnable {
         while (!externalEventFlag) {
             long currentTime = System.nanoTime();
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
+            deltaTime *= TimeUtils.TIME_FACTOR;
             previousTime = currentTime;
 
             // 1. If we're basically at the destination, stop.
@@ -743,11 +717,11 @@ public class Drone extends MessagePasser implements Runnable {
 
             // 2. We haven't reached destination yet, so decelerate. v = vᵢ +at
             initialVelocity = currSpeed;
-            currSpeed += (float) (getScaledDecelRate() * deltaTime);
-            System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + "Decelerating ..."
-                    + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
-                    + "| POSITION = " + this.position);
+            currSpeed += (float) (DECEL_RATE * deltaTime);
+//            System.out.println("[" + Thread.currentThread().getName() + "]: "
+//                    + "Decelerating ..."
+//                    + "| SPEED = " + String.format("%.2f m/s ", this.currSpeed)
+//                    + "| POSITION = " + this.position);
 
             // 3. If we've reached zero speed, there's no further deceleration to do.
             if (currSpeed <= 0) {
@@ -761,12 +735,12 @@ public class Drone extends MessagePasser implements Runnable {
 
             // d = Vᵢt + 0.5at²
             float distance = (float) ((initialVelocity * deltaTime)
-                    + (0.5 * getScaledDecelRate() * Math.pow(deltaTime, 2)));
+                    + (0.5 * DECEL_RATE * Math.pow(deltaTime, 2)));
             this.updatePosition(distance);
 
             // sleep thread to allow other threads to run/ not flood logs
             try {
-                sleep(1000);
+                sleep(SLEEP);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -795,23 +769,24 @@ public class Drone extends MessagePasser implements Runnable {
         while (currAltitude > 0f && !externalEventFlag) {
             long currentTime = System.nanoTime();
             float deltaTime = (currentTime - previousTime) / 1_000_000_000f;
+            deltaTime *= TimeUtils.TIME_FACTOR;
             previousTime = currentTime;
 
             // Increase altitude at a constant vertical speed
-            currAltitude -= (float) (getScaledVerticalSpeed() * deltaTime);
+            currAltitude -= (float) (VERTICAL_SPEED * deltaTime);
 
             // Clamp altitude so we do not overshoot
             if (currAltitude <= 0f) {
                 currAltitude = 0f;
             }
 
-            System.out.println("[" + Thread.currentThread().getName() + "]: "
-                    + "Descending ... "
-                    + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
+//            System.out.println("[" + Thread.currentThread().getName() + "]: "
+//                    + "Descending ... "
+//                    + "| ALTITUDE = " + String.format("%.2f m ", this.currAltitude));
 
             // sleep thread to allow other threads to run/ not flood logs
             try {
-                sleep(1000);
+                sleep(SLEEP);
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);

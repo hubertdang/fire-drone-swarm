@@ -13,25 +13,22 @@ import java.awt.event.ActionListener;
 
 public class UISubsystem extends JPanel {
 
-    private static final int MAP_SCALE = 4;
-    private static final int BASE = 300;
+    // ############################## VARIABLES ############################## //
 
+    // --------------- Constants ---------------
+    private static final int SIMULATION_REFRESH = 250;
+    private static final int MAP_SCALE = 3;
+    private static final int BASE = 60;
+
+    // --------------- Subsystems & Threads ---------------
     private static final DroneSubsystem droneSubsystem = new DroneSubsystem();
     private static final SchedulerSubsystem schedulerSubsystem = new SchedulerSubsystem();
     private static final FireIncidentSubsystem fireIncidentSubsystem = new FireIncidentSubsystem();
-
     private static Thread droneSubsystemThread;
     private static Thread schedulerSubsystemThread;
     private static Thread fireIncidentSubsystemThread;
 
-    private static Border blackline = BorderFactory.createLineBorder(Color.black);
-
-    private static JTable droneTable;
-    private static Object[][] droneTableData;
-    private static JTable fireTable;
-    private static DefaultTableModel fireTableModel;
-    private static ArrayList<FireRow> fireRows = new ArrayList<>();
-
+    // --------------- Config Elements ---------------
     private static JFrame configFrame;
     private static JTextField dronesField;
     private static JTextField agentCapacityField;
@@ -39,10 +36,28 @@ public class UISubsystem extends JPanel {
     private static JButton startButton;
     private static JLabel zoneFilePathLabel;
     private static JLabel eventsFilePathLabel;
+
+    // --------------- Simulation Elements ---------------
     private static JFrame simulationFrame;
+
     private static JPanel mapPanel;
-    private static File zoneFile;
-    private static File eventsFile;
+    private static final HashMap<Integer, JPanel> zonePanels = new HashMap<>();
+    private static final HashMap<Integer, JPanel> dronePanels = new HashMap<>();
+
+    private static JPanel statsPanel;
+    private static JLabel currentTimeLabel;
+    private static JLabel elapsedTimeLabel;
+    private static long simulationStartMillis;
+    private static JTable droneTable;
+    private static Object[][] droneTableData;
+    private static JTable fireTable;
+    private static DefaultTableModel fireTableModel;
+    private static ArrayList<FireRow> fireRows = new ArrayList<>();
+
+    // --------------- Styles ---------------
+    private static final Border blackline = BorderFactory.createLineBorder(Color.black);
+
+    // ############################## CONFIG WINDOW ############################## //
 
     public static void setConfigFrame() {
         // Create the configuration window
@@ -56,19 +71,19 @@ public class UISubsystem extends JPanel {
         // Labels and text fields
         JPanel dronePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JLabel dronesLabel = new JLabel("Num of Drones:");
-        dronesField = new JTextField(10);
+        dronesField = new JTextField("10", 10);
         dronePanel.add(dronesLabel);
         dronePanel.add(dronesField);
 
         JPanel agentPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JLabel agentCapacityLabel = new JLabel("Agent Capacity:");
-        agentCapacityField = new JTextField(10);
+        agentCapacityField = new JTextField("11", 10);
         agentPanel.add(agentCapacityLabel);
         agentPanel.add(agentCapacityField);
 
         JPanel speedPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JLabel maxSpeedLabel = new JLabel("Drone Max Speed:");
-        maxSpeedField = new JTextField(10);
+        maxSpeedField = new JTextField("20", 10);
         speedPanel.add(maxSpeedLabel);
         speedPanel.add(maxSpeedField);
 
@@ -158,6 +173,7 @@ public class UISubsystem extends JPanel {
         }
     }
 
+    // ############################## SIMULATION WINDOW ############################## //
     public static void setSimulationFrame() throws IOException {
         configFrame.dispose();
 
@@ -180,8 +196,26 @@ public class UISubsystem extends JPanel {
 
         simulationFrame.revalidate();
         simulationFrame.repaint();
+
+        Timer timer = new Timer(SIMULATION_REFRESH, e -> {
+            updateDrones();
+            updateZoneColors(fireIncidentSubsystem.getFireZones());
+            updateZoneColors(fireIncidentSubsystem.getClearZones());
+
+            mapPanel.repaint();
+
+            updateDroneTableData();
+            updateFireTableData();
+
+            long elapsedMilliSeconds = (TimeUtils.getCurrentTime() - simulationStartMillis);
+            elapsedTimeLabel.setText(TimeUtils.millisecondsToTimestamp(elapsedMilliSeconds));
+            currentTimeLabel.setText(TimeUtils.getCurrentTimestamp());
+        });
+
+        timer.start();
     }
 
+    // ------------------------ MAP ------------------------ //
     public static void addMap() {
         mapPanel = new JPanel();
         mapPanel.setLayout(null); // absolute positioning
@@ -191,49 +225,89 @@ public class UISubsystem extends JPanel {
         mapPanel.setVisible(true);
 
         simulationFrame.getContentPane().add(mapPanel, BorderLayout.CENTER);
+
+        addBasePanel();
+        initDronePanels();
+        initZonePanels(fireIncidentSubsystem.getFireZones());
+        initZonePanels(fireIncidentSubsystem.getClearZones());
+
         simulationFrame.revalidate();
         simulationFrame.repaint();
-
-        // 🔁 Timer for refreshing zone panels every second
-        Timer timer = new Timer(100, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                // Remove all zone panels (but not the label)
-                Component[] components = mapPanel.getComponents();
-                for (int i = components.length - 1; i >= 0; i--) {
-                    if (components[i] instanceof JPanel && components[i] != mapPanel) {
-                        mapPanel.remove(components[i]);
-                    }
-                }
-
-                updateDronesMap();
-
-                updateZonesMap();
-
-                JPanel basePanel = new JPanel();
-                basePanel.add(new JLabel("BASE" ));
-                basePanel.setBounds(BASE - 30, BASE - 30, 60, 60);
-                basePanel.setBackground(new Color(20, 20, 20, 73));
-                basePanel.setBorder(blackline);
-                basePanel.setVisible(true);
-                mapPanel.add(basePanel);
-
-
-
-                mapPanel.revalidate();
-                mapPanel.repaint();
-            }
-        });
-
-        timer.start();
     }
 
+    private static void initZonePanels(HashMap<Integer, Zone> zones) {
+        for (Zone zone : zones.values()) {
+            int[] zc = zone.getZoneCoordinates();
+            JPanel panel = new JPanel();
+            panel.add(new JLabel("Zone#" + zone.getId()));
+            panel.setBounds(
+                    (zc[0] / MAP_SCALE) + BASE,
+                    (zc[1] / MAP_SCALE) + BASE,
+                    (zc[2] - zc[0]) / MAP_SCALE,
+                    (zc[3] - zc[1]) / MAP_SCALE
+            );
+            panel.setBackground(zone.getZoneColor());
+            panel.setBorder(blackline);
+            panel.setVisible(true);
+            mapPanel.add(panel);
+            zonePanels.put(zone.getId(), panel);
+        }
+    }
+
+    private static void initDronePanels() {
+        HashMap<Integer, Drone> drones = DroneSubsystem.getAllDrones();
+        for (Drone drone : drones.values()) {
+            JPanel panel = new JPanel();
+            panel.add(new JLabel("D#" + drone.getId()));
+            panel.setBounds(0, 0, 30, 30); // set properly in updateDrones()
+            panel.setBackground(drone.getStateColor());
+            panel.setBorder(blackline);
+            panel.setVisible(true);
+            mapPanel.add(panel);
+            dronePanels.put(drone.getId(), panel);
+        }
+    }
+
+    private static void updateZoneColors(HashMap<Integer, Zone> zones) {
+        for (Zone zone : zones.values()) {
+            JPanel panel = zonePanels.get(zone.getId());
+            if (panel != null) {
+                panel.setBackground(zone.getZoneColor());
+            }
+        }
+    }
+
+    private static void updateDrones() {
+        HashMap<Integer, Drone> drones = DroneSubsystem.getAllDrones();
+        for (Drone drone : drones.values()) {
+            JPanel panel = dronePanels.get(drone.getId());
+            if (panel != null) {
+                int x = (int) (drone.getPosition().getX() / MAP_SCALE + BASE - 15);
+                int y = (int) (drone.getPosition().getY() / MAP_SCALE + BASE - 15);
+                panel.setBounds(x, y, 30, 30);
+                panel.setBackground(drone.getStateColor());
+            }
+        }
+    }
+
+    private static void addBasePanel() {
+        JPanel basePanel = new JPanel();
+        basePanel.add(new JLabel("BASE"));
+        basePanel.setBounds(BASE - 30, BASE - 30, 60, 60);
+        basePanel.setBackground(new Color(20, 20, 20, 73));
+        basePanel.setBorder(blackline);
+        basePanel.setVisible(true);
+        mapPanel.add(basePanel);
+    }
+
+    // ------------------------ LEGEND ------------------------ //
+
     public static void addLegend() {
-        JPanel legendPanel = new JPanel(new GridLayout(2, 1)); // Two columns side by side
-        legendPanel.setBorder(blackline);
+        JPanel legendPanel = new JPanel(new GridLayout(2, 1, 0, 10));
 
         // 🔥 Fire Severity Legend
         JPanel fireLegend = new JPanel();
-        fireLegend.setLayout(new BoxLayout(fireLegend, BoxLayout.X_AXIS));
+        fireLegend.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 5));
         fireLegend.setBorder(BorderFactory.createTitledBorder("Fire Severity"));
         fireLegend.add(makeLegendItem(new Color(255, 0, 0, 50), "HIGH"));
         fireLegend.add(makeLegendItem(new Color(255, 165, 0, 50), "MODERATE"));
@@ -242,55 +316,24 @@ public class UISubsystem extends JPanel {
 
         // ✈️ Drone State Legend
         JPanel droneLegend = new JPanel();
-        droneLegend.setLayout(new BoxLayout(droneLegend, BoxLayout.X_AXIS));
+        droneLegend.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 5));
         droneLegend.setBorder(BorderFactory.createTitledBorder("Drone States"));
         droneLegend.add(makeLegendItem(Color.GRAY, "BASE"));
-        droneLegend.add(makeLegendItem(new Color(245, 137, 227, 255), "TAKEOFF"));
-        droneLegend.add(makeLegendItem(new Color(211, 40, 208, 255), "ACCELERATING"));
-        droneLegend.add(makeLegendItem(new Color(208, 0, 255, 255), "FLYING"));
-        droneLegend.add(makeLegendItem(new Color(179, 0, 255, 255), "DECELERATING"));
-        droneLegend.add(makeLegendItem(new Color(153, 0, 255, 225), "LANDING"));
-        droneLegend.add(makeLegendItem(new Color(152, 208, 119, 225), "ARRIVED"));
-        droneLegend.add(makeLegendItem(new Color(43, 190, 255, 225), "RELEASING_AGENT"));
-        droneLegend.add(makeLegendItem(new Color(5, 87, 138, 225), "EMPTY_TANK"));
-        droneLegend.add(makeLegendItem(new Color(255, 57, 57, 225), "FAULT"));
-        droneLegend.add(makeLegendItem(new Color(255, 222, 8, 225), "IDLE"));
+        droneLegend.add(makeLegendItem(new Color(245, 137, 227), "TAKEOFF"));
+        droneLegend.add(makeLegendItem(new Color(211, 40, 208), "ACCELERATING"));
+        droneLegend.add(makeLegendItem(new Color(208, 0, 255), "FLYING"));
+        droneLegend.add(makeLegendItem(new Color(179, 0, 255), "DECELERATING"));
+        droneLegend.add(makeLegendItem(new Color(153, 0, 255), "LANDING"));
+        droneLegend.add(makeLegendItem(new Color(152, 208, 119), "ARRIVED"));
+        droneLegend.add(makeLegendItem(new Color(43, 190, 255), "RELEASING_AGENT"));
+        droneLegend.add(makeLegendItem(new Color(5, 87, 138), "EMPTY_TANK"));
+        droneLegend.add(makeLegendItem(new Color(255, 57, 57), "FAULT"));
+        droneLegend.add(makeLegendItem(new Color(255, 222, 8), "IDLE"));
 
-        // Add both to main panel
         legendPanel.add(fireLegend);
         legendPanel.add(droneLegend);
 
-        // Add to frame
         simulationFrame.getContentPane().add(legendPanel, BorderLayout.SOUTH);
-    }
-
-    public static void addStats() {
-        JPanel statsPanel = new JPanel();
-        statsPanel.setLayout(new BoxLayout(statsPanel, BoxLayout.Y_AXIS));
-        statsPanel.setBorder(BorderFactory.createTitledBorder("Stats"));
-
-        statsPanel.add(createDroneTablePanel());
-        statsPanel.add(createFireTablePanel());
-
-        simulationFrame.getContentPane().add(statsPanel, BorderLayout.EAST);
-
-        Timer statsTimer = new Timer(500, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                updateDroneTableData();
-                updateFireTableData();
-            }
-        });
-        statsTimer.start();
-    }
-
-
-    public static void main(String[] args) {
-        droneSubsystemThread = new Thread(droneSubsystem, "DroneSubsystem");
-        schedulerSubsystemThread = new Thread(schedulerSubsystem, "SchedulerSubsystem");
-        fireIncidentSubsystemThread = new Thread(fireIncidentSubsystem, "FireIncidentSubsystem");
-
-        setConfigFrame();
     }
 
     private static JPanel makeLegendItem(Color color, String label) {
@@ -299,7 +342,7 @@ public class UISubsystem extends JPanel {
         JLabel colorBox = new JLabel();
         colorBox.setOpaque(true);
         colorBox.setBackground(color);
-        colorBox.setPreferredSize(new Dimension(20, 20));
+        colorBox.setPreferredSize(new Dimension(100, 20));
         colorBox.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
         JLabel textLabel = new JLabel(label);
@@ -311,49 +354,47 @@ public class UISubsystem extends JPanel {
         return itemPanel;
     }
 
-    private static void updateZonesMap() {
-        HashMap<Integer, Zone> fireZones = fireIncidentSubsystem.getFireZones();
-        for (Zone zone : fireZones.values()) {
-            int[] zc = zone.getZoneCoordinates();
+    // ------------------------ STATS ------------------------ //
 
-            JPanel zonePanel = new JPanel();
-            zonePanel.add(new JLabel("Zone#" + zone.getId()));
-            zonePanel.setBounds((zc[0] / MAP_SCALE) + BASE, (zc[1] / MAP_SCALE) + BASE, (zc[2] - zc[0]) / MAP_SCALE, (zc[3] - zc[1]) / MAP_SCALE);
-            zonePanel.setBackground(zone.getZoneColor());
-            zonePanel.setBorder(blackline);
-            zonePanel.setVisible(true);
-            mapPanel.add(zonePanel);
-        }
+    public static void addStats() {
+        statsPanel = new JPanel();
+        statsPanel.setLayout(new BoxLayout(statsPanel, BoxLayout.Y_AXIS));
+        statsPanel.setBorder(BorderFactory.createTitledBorder("Stats"));
 
-        HashMap<Integer, Zone> clearZones = fireIncidentSubsystem.getClearZones();
-        for (Zone zone : clearZones.values()) {
-            int[] zc = zone.getZoneCoordinates();
+        statsPanel.add(createTimerPanel());
+        statsPanel.add(createDroneTablePanel());
+        statsPanel.add(createFireTablePanel());
 
-            JPanel zonePanel = new JPanel();
-            zonePanel.add(new JLabel("Zone#" + zone.getId()));
-            zonePanel.setBounds((zc[0] / MAP_SCALE) + BASE, (zc[1] / MAP_SCALE) + BASE, (zc[2] - zc[0]) / MAP_SCALE, (zc[3] - zc[1]) / MAP_SCALE);
-            zonePanel.setBackground(zone.getZoneColor());
-            zonePanel.setBorder(blackline);
-            zonePanel.setVisible(true);
-            mapPanel.add(zonePanel);
-        }
+        simulationFrame.getContentPane().add(statsPanel, BorderLayout.EAST);
     }
 
-    private static void updateDronesMap() {
-        // Re-add updated drone panels
-        HashMap<Integer, Drone> allDrones = DroneSubsystem.getAllDrones();
-        for (Drone drone : allDrones.values()) {
-            int x = (int) drone.getPosition().getX() / MAP_SCALE;
-            int y = (int) drone.getPosition().getY() / MAP_SCALE;
+    private static JPanel createTimerPanel() {
+        JPanel timerPanel = new JPanel();
+        timerPanel.setLayout(new BoxLayout(timerPanel, BoxLayout.Y_AXIS));
+        timerPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        //timerPanel.setBorder(BorderFactory.createTitledBorder("Time"));
 
-            JPanel zonePanel = new JPanel();
-            zonePanel.add(new JLabel("D#" + drone.getId()));
-            zonePanel.setBounds(x - 15 + BASE, y - 15 + BASE, 30 , 30);
-            zonePanel.setBackground(drone.getStateColor());
-            zonePanel.setBorder(blackline);
-            zonePanel.setVisible(true);
-            mapPanel.add(zonePanel);
-        }
+        elapsedTimeLabel = new JLabel("0s");
+        elapsedTimeLabel.setFont(new Font("Arial", Font.BOLD, 60)); // smaller text
+        currentTimeLabel = new JLabel(TimeUtils.getCurrentTimestamp());
+        currentTimeLabel.setFont(new Font("Arial", Font.BOLD, 14));
+
+        timerPanel.add(elapsedTimeLabel);
+        timerPanel.add(currentTimeLabel);
+
+
+        // Record the simulation start time
+        simulationStartMillis = TimeUtils.getCurrentTime();
+
+        // Timer to update time every second
+//        Timer timer = new Timer(1000, e -> {
+//            long elapsedMilliSeconds = (TimeUtils.getCurrentTime() - simulationStartMillis);
+//            elapsedTimeLabel.setText(TimeUtils.millisecondsToTimestamp(elapsedMilliSeconds));
+//            currentTimeLabel.setText(TimeUtils.getCurrentTimestamp());
+//});
+//        timer.start();
+
+        return timerPanel;
     }
 
     private static JPanel createDroneTablePanel() {
@@ -420,7 +461,7 @@ public class UISubsystem extends JPanel {
         int zoneId;
         FireSeverity severity;
         long appearedAtMillis;
-        Long extinguishedTime = null; // millis since appearance
+        String extinguishedTime = null; // millis since appearance
 
         public Object[] toTableRow() {
             String formattedTime = TimeUtils.millisecondsToTimestamp(appearedAtMillis);
@@ -429,7 +470,7 @@ public class UISubsystem extends JPanel {
                     zoneId,
                     severity.toString(),
                     formattedTime,
-                    (extinguishedTime != null) ? extinguishedTime + "s" : "-"
+                    (extinguishedTime != null) ? extinguishedTime : "-"
             };
         }
     }
@@ -455,7 +496,7 @@ public class UISubsystem extends JPanel {
             for (FireRow row : fireRows) {
                 if (row.zoneId == zone.getId() && row.extinguishedTime == null) {
                     long now = TimeUtils.getCurrentTime();
-                    row.extinguishedTime = (now - row.appearedAtMillis) / 1000; // in seconds
+                    row.extinguishedTime = TimeUtils.millisecondsToTimestamp((long) ((now - row.appearedAtMillis) / TimeUtils.TIME_FACTOR));
                 }
             }
         }
@@ -465,6 +506,14 @@ public class UISubsystem extends JPanel {
         for (FireRow row : fireRows) {
             fireTableModel.addRow(row.toTableRow());
         }
+    }
+
+    public static void main(String[] args) {
+        droneSubsystemThread = new Thread(droneSubsystem, "DroneSubsystem");
+        schedulerSubsystemThread = new Thread(schedulerSubsystem, "SchedulerSubsystem");
+        fireIncidentSubsystemThread = new Thread(fireIncidentSubsystem, "FireIncidentSubsystem");
+
+        setConfigFrame();
     }
 
 }

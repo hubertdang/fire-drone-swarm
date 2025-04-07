@@ -57,7 +57,7 @@ public class ZoneTriageInfo {
     public synchronized boolean addDrone(DroneInfo info) {
         float distance = info.getPosition().distanceFrom(zonePosition);
         // Proper accel and deccel should be used but is overly complicated
-        float arrivalTime = (float) (distance / Drone.getScaledTopSpeed());
+        float arrivalTime = (float) (distance / Drone.TOP_SPEED);
         float zoneFlowRate = AgentTank.AGENT_DROP_RATE * (servicingDrones.size() + 1);
         float currentVolume = 0;
         float prevFlowRate = 0;
