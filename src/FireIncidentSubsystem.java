@@ -22,11 +22,9 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
 
     /**
      * Constructs a FireIncidentSubsystem with the given fireBuffer.
-     *
-     * @param port the port number for the FireIncidentSubsystem
      */
-    public FireIncidentSubsystem(int port) {
-        super(port);
+    public FireIncidentSubsystem() {
+        super(9000);
         this.clearZones = new HashMap<Integer, Zone>();
         this.fireZones = new HashMap<Integer, Zone>(); // no fires when we initialize
         this.events = new ArrayList<SimEvent>();
@@ -210,7 +208,9 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
      * @return true if the event is ready to be processed, false otherwise
      */
     public boolean isEventReadyToProcess(int eventIndex, long eventIndexTime, long currentTime) {
-        return Math.abs(eventIndexTime - currentTime) <= 2500;
+        boolean hasPendingEvents = eventIndex < events.size(); // Check if there are events left to process
+        boolean isEventTimeReached = hasPendingEvents && eventIndexTime <= currentTime; // Check if the current event's time has been reached
+        return hasPendingEvents && isEventTimeReached;
     }
 
     /**
@@ -300,7 +300,7 @@ public class FireIncidentSubsystem extends MessagePasser implements Runnable {
 //    }
 
     public static void main(String[] args) {
-        FireIncidentSubsystem fireIncidentSubsystem = new FireIncidentSubsystem(9000);
+        FireIncidentSubsystem fireIncidentSubsystem = new FireIncidentSubsystem();
         fireIncidentSubsystem.readSimZoneFile(new File("./sample_input_files/zones.csv"));
         fireIncidentSubsystem.readSimEventFile(new File("./sample_input_files/events.csv"));
 

@@ -27,7 +27,7 @@ public class DroneRequestHandler extends MessagePasser implements Runnable {
         // and the port numbers for DroneControllers are 6000 + droneID.
         // For example, Drone with ID 1 will have ports 5001 and 6001 for its Drone
         // and DroneController respectively.
-        for (int i = 1; i < 3; i++) {
+        for (int i = 1; i <= DroneSubsystem.getNumberOfDrones(); i++) {
             DroneTask getInfo = new DroneTask(i, DroneTaskType.REQUEST_INFO, null, Scheduler.DRH_PORT);
             System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "Requesting info from Drone#" + i);

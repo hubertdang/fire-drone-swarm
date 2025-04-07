@@ -1,5 +1,6 @@
-public class SchedulerSubsystem {
-    public static void main(String[] args) {
+public class SchedulerSubsystem implements Runnable{
+    @Override
+    public void run() {
         Scheduler scheduler = new Scheduler();
 
         FireEventHandler fireEventHandler = new FireEventHandler(7000, scheduler);
