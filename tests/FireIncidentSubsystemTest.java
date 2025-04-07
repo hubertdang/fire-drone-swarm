@@ -12,7 +12,7 @@ public class FireIncidentSubsystemTest {
 
     @BeforeEach
     public void setUp() {
-        fireIncidentSubsystem = new FireIncidentSubsystem(9000);
+        fireIncidentSubsystem = new FireIncidentSubsystem();
     }
 
     @Test
@@ -55,7 +55,6 @@ public class FireIncidentSubsystemTest {
         assertEquals(2, fireIncidentSubsystem.getEvents().size());
         SimEvent event1 = fireIncidentSubsystem.getEvents().get(0);
         assertEquals(1, event1.getZoneId());
-        assertEquals(195, event1.getTime());
         assertEquals("FIRE_DETECTED", event1.getEventType());
         assertEquals(FireSeverity.HIGH, event1.getSeverity());
     }

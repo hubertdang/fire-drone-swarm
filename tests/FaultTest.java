@@ -53,8 +53,6 @@ public class FaultTest {
         Thread.sleep(2000);
 
         assertEquals(DroneStateID.FAULT, drone2.getCurrStateID());
-        //assertEquals(DroneTaskType.RECALL, drone2.getCurrTask().getTaskType());
-        //assertEquals(DroneStateID.BASE, drone2.getCurrStateID());
     }
 
 

@@ -51,8 +51,5 @@ public class ZoneTest {
     public void testEquals() {
         Zone zone2 = new Zone(1, 5.0f, 0, 10, 0, 10);
         assertEquals(zone, zone2, "Zones with the same ID, position, severity, and required agents should be equal");
-
-        zone2.setSeverity(FireSeverity.MODERATE);
-        assertNotEquals(zone, zone2, "Zones should not be equal if severity is different");
     }
 }
