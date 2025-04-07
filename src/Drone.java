@@ -29,6 +29,7 @@ public class Drone extends MessagePasser implements Runnable {
     private float currAltitude;
     private float decelDistance;
     private FaultID fault;
+    private float releasedAgentAmount;
 
     /* fields accessed by other threads */
     private volatile DroneStateID currStateID;
@@ -49,6 +50,7 @@ public class Drone extends MessagePasser implements Runnable {
         states = new HashMap<>();
         fault = FaultID.NONE;
         externalEventFlag = false;
+        releasedAgentAmount = 0f;
 
         addState(DroneStateID.BASE, new Base());
         addState(DroneStateID.TAKEOFF, new Takeoff());
@@ -300,6 +302,10 @@ public class Drone extends MessagePasser implements Runnable {
         };
     }
 
+    public float getReleasedAgentAmount() {
+        return releasedAgentAmount;
+    }
+
     /**
      * Handles the current fault by logging an error message and notifying the scheduler.
      */
@@ -333,7 +339,8 @@ public class Drone extends MessagePasser implements Runnable {
                 this.getPosition(),
                 this.getAgentTankAmount(),
                 this.getZoneToService(),
-                fault);
+                fault,
+                releasedAgentAmount);
         send(info, "localhost", SCHEDULER_PORT);
     }
 
@@ -356,7 +363,8 @@ public class Drone extends MessagePasser implements Runnable {
                 position,
                 getAgentTankAmount(),
                 zoneToService,
-                getFault());
+                getFault(),
+                releasedAgentAmount);
         send(info, "localhost", SCHEDULER_PORT);
         currTask = (DroneTask) receive();
         if (currTask.getTaskType() == DroneTaskType.RECALL) {
@@ -450,6 +458,11 @@ public class Drone extends MessagePasser implements Runnable {
         currState.emptyTank(this);
     }
 
+    public void setReleasedAgentAmount(float releasedAgentAmount) {
+        this.releasedAgentAmount = releasedAgentAmount;
+    }
+
+
     /* ------------------------------ AGENT CONTROL ------------------------------ */
 
     /**
@@ -474,6 +487,7 @@ public class Drone extends MessagePasser implements Runnable {
 
             // check how much agent can drop vs how much agent left
             agentToDrop = AgentTank.AGENT_DROP_RATE * deltaTime;
+            releasedAgentAmount += agentToDrop;
 
             agentTank.decreaseAgent(agentToDrop);
             synchronized (zoneToService){

@@ -66,7 +66,8 @@ public class DroneController extends MessagePasser implements Runnable {
                         drone.getPosition(),
                         drone.getAgentTankAmount(),
                         drone.getZoneToService(),
-                        FaultID.NONE);
+                        FaultID.NONE,
+                        drone.getReleasedAgentAmount());
                 send(info, "localhost", task.port);
                 break;
             default:
