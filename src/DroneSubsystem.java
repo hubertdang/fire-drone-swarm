@@ -113,7 +113,7 @@ public class DroneSubsystem implements Runnable {
             while (iterator.hasNext()) {
                 DroneFault currentFault = iterator.next();
 
-                if (Math.abs(currentFault.getFaultTime() - TimeUtils.getCurrentTime()) <= 2000) {
+                if (Math.abs(TimeUtils.getCurrentTime()) > currentFault.getFaultTime()) {
                     //System.out.println("🚨 " + currentFault.toString());
 
                     Drone affectedDrone = drones.get(currentFault.getDroneId());

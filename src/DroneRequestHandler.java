@@ -34,7 +34,7 @@ public class DroneRequestHandler extends MessagePasser implements Runnable {
 
             Object message = null;
             send(getInfo, "localhost", 6000 + i);
-            message = receive(1000);
+            message = receive(5000);
             if (message == null) {
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Receive message timeout for Drone#" + i);
@@ -64,15 +64,14 @@ public class DroneRequestHandler extends MessagePasser implements Runnable {
                         + " | POSITION = " + droneInfo.getPosition()
                         + " | TANK = " + String.format("%.2f L", droneInfo.getAgentTankAmount()));
 
-                scheduler.processDroneInfo(droneInfo, this);
 
-                if (droneInfo.stateID == DroneStateID.EMPTY_TANK) {
-                    scheduler.getZonesOnFire().get(droneInfo.zoneToService).removeDrone(droneInfo);
-                    // replace key value pair in zonesOnFire to update the immutable key (zone agent needed)
-                    ZoneTriageInfo copyTriageInfo = scheduler.getZonesOnFire()
-                            .remove(droneInfo.zoneToService);
-                    scheduler.getZonesOnFire().put(droneInfo.zoneToService, copyTriageInfo);
+                if(droneInfo.stateID == DroneStateID.IDLE) {
+                   scheduler.processDroneInfo(droneInfo, this, getAllDroneInfos());
                 }
+                else{
+                    scheduler.processDroneInfo(droneInfo, this, null);
+                }
+
 
                 scheduler.dispatchActions(this, droneInfo.droneID);
 

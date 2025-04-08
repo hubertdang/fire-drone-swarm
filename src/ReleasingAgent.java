@@ -10,6 +10,7 @@ public class ReleasingAgent implements DroneState {
         context.stopAgent();
         context.updateState(DroneStateID.ACCELERATING);
         context.accelerate();
+        context.setReleasedAgentAmount(0);
     }
 
     /**
@@ -19,7 +20,7 @@ public class ReleasingAgent implements DroneState {
      */
     @Override
     public void reqRelAgent(Drone context) {
-        throw new IllegalStateException("Invalid event for the current state.");
+        //throw new IllegalStateException("Invalid event for the current state.");
     }
 
     /**
@@ -32,6 +33,7 @@ public class ReleasingAgent implements DroneState {
         context.stopAgent();
         context.updateState(DroneStateID.ACCELERATING);
         context.accelerate();
+        context.setReleasedAgentAmount(0);
     }
 
     /**
@@ -43,6 +45,7 @@ public class ReleasingAgent implements DroneState {
     public void faultDetected(Drone context){
         context.updateState(DroneStateID.FAULT);
         context.handleFault();
+        context.setReleasedAgentAmount(0);
     }
 
     /**
@@ -56,6 +59,7 @@ public class ReleasingAgent implements DroneState {
         context.stopAgent();
         context.requestTask();
         context.setZoneToService(null);
+        context.setReleasedAgentAmount(0);
     }
 
     /**
@@ -70,6 +74,7 @@ public class ReleasingAgent implements DroneState {
         context.getZoneToService().setSeverity(FireSeverity.NO_FIRE);
         context.requestTask();
         context.setZoneToService(null);
+        context.setReleasedAgentAmount(0);
 
     }
 
