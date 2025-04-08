@@ -6,7 +6,10 @@ public class EmptyTank implements DroneState {
      */
     @Override
     public void reqServiceZone(Drone context) {
-        throw new IllegalStateException("Invalid event for the current state.");
+        context.requestTask();
+        context.setZoneToService(null);
+
+
     }
 
     /**
@@ -16,7 +19,9 @@ public class EmptyTank implements DroneState {
      */
     @Override
     public void reqRelAgent(Drone context) {
-        throw new IllegalStateException("Invalid event for the current state.");
+        context.requestTask();
+        context.setZoneToService(null);
+
     }
 
     /**

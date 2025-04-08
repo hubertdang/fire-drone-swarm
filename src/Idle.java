@@ -17,7 +17,8 @@ public class Idle implements DroneState {
      */
     @Override
     public void reqRelAgent(Drone context) {
-        throw new IllegalStateException("Invalid event for the current state.");
+        context.updateState(DroneStateID.RELEASING_AGENT);
+        context.releaseAgent();
     }
 
     /**

@@ -9,7 +9,7 @@ public class Drone extends MessagePasser implements Runnable {
     private static int idCount = 1;
 
     private final int SCHEDULER_PORT = 7001;
-    private static int SLEEP = 50;
+    private static int SLEEP = 5;
 
     public static final float BASE_X = 0.0f;
     public static final float BASE_Y = 0.0f;
@@ -37,6 +37,9 @@ public class Drone extends MessagePasser implements Runnable {
     private volatile boolean externalEventFlag;
     private volatile Position destination;
     private volatile Zone zoneToService;
+
+    private long stateStartTime;
+    private static final long STATE_TIMEOUT = 30000;
 
     public Drone() {
         super(5000 + idCount);
@@ -82,6 +85,28 @@ public class Drone extends MessagePasser implements Runnable {
     @Override
     public void run() {
         while (true) {
+            if (currStateID == DroneStateID.EMPTY_TANK && System.currentTimeMillis() - stateStartTime > STATE_TIMEOUT) {
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "Drone in EMPTY_TANK state timed out. Forcing recall (return home).");
+                setDestination(new Position(BASE_X, BASE_Y));
+                eventReqRecall();
+                stateStartTime = System.currentTimeMillis();
+            }
+
+            if (currStateID == DroneStateID.ARRIVED && System.currentTimeMillis() - stateStartTime > STATE_TIMEOUT) {
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "Drone in ARRIVED state timed out. Forcing releasing agent.");
+                eventReqRelAgent();
+                stateStartTime = System.currentTimeMillis();
+            }
+
+            if (System.currentTimeMillis() - stateStartTime > STATE_TIMEOUT) {
+                System.out.println("[" + Thread.currentThread().getName() + "]: "
+                        + "State " + currStateID + " timed out. Requesting new task from DRH.");
+                requestTask();
+                stateStartTime = System.currentTimeMillis();
+            }
+
             if (externalEventFlag) {
                 handleExternalEvent();
             }
@@ -150,6 +175,7 @@ public class Drone extends MessagePasser implements Runnable {
                 + "♻️State change | " + currStateID + " -> " + stateID);
         currState = states.get(stateID);
         currStateID = stateID;
+        stateStartTime = System.currentTimeMillis();
     }
 
     /**
@@ -370,7 +396,7 @@ public class Drone extends MessagePasser implements Runnable {
                 getFault(),
                 releasedAgentAmount);
         send(info, "localhost", SCHEDULER_PORT);
-        currTask = (DroneTask) receive(5000);
+        currTask = (DroneTask) receive(6000);
         if (currTask == null) {
             System.out.println("[" + Thread.currentThread().getName() + "]: "
                     + "No task received from the scheduler.");
@@ -499,21 +525,24 @@ public class Drone extends MessagePasser implements Runnable {
             releasedAgentAmount += agentToDrop;
 
             agentTank.decreaseAgent(agentToDrop);
-            synchronized (zoneToService){
-                zoneToService.setRequiredAgentAmount(zoneToService.getRequiredAgentAmount()
-                        - agentToDrop);
+            if(zoneToService!=null){
+                synchronized (zoneToService){
+                    zoneToService.setRequiredAgentAmount(zoneToService.getRequiredAgentAmount()
+                            - agentToDrop);
+                    if (zoneToService.getRequiredAgentAmount() <= 0) {
+                        System.out.println("[" + Thread.currentThread().getName() + "]: "
+                                + "🧯Fire Extinguished.");
+                        eventFireExtinguished();
+                        return; // to avoid triggering event empty tank if fire extinguished;
+                    }
+                }
             }
 
 //            System.out.println("[" + Thread.currentThread().getName() + "]: "
 //                    + "💧Releasing " + String.format("%.2f L ", agentToDrop)
 //                    + "| TANK = " + String.format("%.2f L ", agentTank.getCurrAgentAmount()));
 
-            if (zoneToService.getRequiredAgentAmount() <= 0) {
-                System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "🧯Fire Extinguished.");
-                eventFireExtinguished();
-                return; // to avoid triggering event empty tank if fire extinguished;
-            }
+
             // sleep thread to allow other threads to run/ not flood logs
             try {
                 sleep(SLEEP);

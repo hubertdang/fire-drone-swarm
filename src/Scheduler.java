@@ -137,17 +137,19 @@ public class Scheduler {
                 while (zoneServicingEntriesIter.hasNext()) {
                     Map.Entry<Zone, ZoneTriageInfo> zoneEntry = zoneServicingEntriesIter.next();
 
-                    if (zoneEntry.getValue().getServicingDrones().containsKey(droneInfo.droneID) && droneInfo.getZoneToService().getSeverity() == FireSeverity.NO_FIRE) {
-                        // remove zoneOnFire
-                        messagePasser.send(droneInfo.zoneToService, "localhost", 9000);
-                        zoneServicingEntriesIter.remove();
-                        System.out.println("#REMOVED ZONE: " + zoneEntry.getKey());
+                    if(droneInfo.getZoneToService()!=null){
+                        if (zoneEntry.getValue().getServicingDrones().containsKey(droneInfo.droneID) && droneInfo.getZoneToService().getSeverity() == FireSeverity.NO_FIRE) {
+                            // remove zoneOnFire
+                            messagePasser.send(droneInfo.zoneToService, "localhost", 9000);
+                            zoneServicingEntriesIter.remove();
+                            System.out.println("#REMOVED ZONE: " + zoneEntry.getKey());
 
-                        System.out.println("[" + Thread.currentThread().getName()
-                                + "]: 🧯 Fire Extinguished received from Drone#" + droneInfo.getDroneID()
-                                + " Zone: " + droneInfo.getZoneToService());
+                            System.out.println("[" + Thread.currentThread().getName()
+                                    + "]: 🧯 Fire Extinguished received from Drone#" + droneInfo.getDroneID()
+                                    + " Zone: " + droneInfo.getZoneToService());
 
-                        break;
+                            break;
+                        }
                     }
                 }
                 try {

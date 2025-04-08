@@ -1,4 +1,7 @@
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A FireEventHandler to handle fire events.
@@ -6,6 +9,7 @@ import java.util.*;
 public class FireEventHandler extends MessagePasser implements Runnable {
     private Scheduler scheduler;
     private LinkedList<Zone> fireQueue;
+    private ScheduledExecutorService periodicScheduler;
 
     /**
      * Constructs a FireEventHandler for the system.
@@ -15,6 +19,18 @@ public class FireEventHandler extends MessagePasser implements Runnable {
         super(port);
         this.scheduler = scheduler;
         this.fireQueue = new LinkedList<>();
+        periodicScheduler = Executors.newSingleThreadScheduledExecutor();
+        periodicScheduler = Executors.newSingleThreadScheduledExecutor();
+        periodicScheduler.scheduleAtFixedRate(() -> {
+            if (scheduler.getZonesOnFire().isEmpty()) {
+                System.out.println("[" + Thread.currentThread().getName() + "]: No fire events. Skipping periodic scheduling.");
+                return;
+            }
+            ArrayList<DroneInfo> droneInfoList = getAllDroneInfos();
+            scheduleAllDrones();
+            scheduler.dispatchActions(this, -1);
+            System.out.println("[" + Thread.currentThread().getName() + "]: Periodic scheduling executed.");
+        }, 0, 30000, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -33,6 +49,8 @@ public class FireEventHandler extends MessagePasser implements Runnable {
                 scheduleAllDrones(); // scheduling algorithm updates drone actions table for all drones
                 scheduler.dispatchActions(this,-1);
             }
+           // scheduleAllDrones();
+            //scheduler.dispatchActions(this,-1);
 
             Object data = receive();
             //if (data instanceof Zone) fireZone

@@ -6,8 +6,8 @@ import java.time.format.DateTimeFormatter;
  * Allows accelerated or decelerated simulation using a time factor.
  */
 public class TimeUtils {
-    public static final float TIME_FACTOR = 50;
-    private static final String RELATIVE_START_TIME = "17:04:10";
+    public static final float TIME_FACTOR = 100;
+    private static final String RELATIVE_START_TIME = "00:42:42";
 
     private static long startSimTimeMillis = 0;
     private static long startNanoTime = 0;

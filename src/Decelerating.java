@@ -18,7 +18,7 @@ public class Decelerating implements DroneState {
      */
     @Override
     public void reqRelAgent(Drone context) {
-        throw new IllegalStateException("Invalid event for the current state.");
+       context.decelerate();
     }
 
     /**
