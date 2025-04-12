@@ -2,6 +2,8 @@
 
 A control system and simulator for a firefighting drone swarm.
 
+Link to video demo:https://www.youtube.com/watch?v=vZ8mC-Jr5oY
+
 ## 📂 Project Structure
 | **File**                               | **Description**                                                                                 |
 |----------------------------------------|-------------------------------------------------------------------------------------------------|
