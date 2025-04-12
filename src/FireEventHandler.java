@@ -37,7 +37,6 @@ public class FireEventHandler extends MessagePasser implements Runnable {
             Object data = receive();
             //if (data instanceof Zone) fireZone
             if (data instanceof Zone fireZone) {
-                System.out.println("#FIREZONE" + fireZone);
                 if (fireZone != null) {
                     System.out.println("[" + Thread.currentThread().getName() + "]: "
                             + "Received a new event");
@@ -85,7 +84,6 @@ public class FireEventHandler extends MessagePasser implements Runnable {
 
                 message = receive(2000);
                 if (message instanceof Zone zone) {
-                    System.out.println("#FIREZONE" + zone);
                     // we received a fire event, add to queue
                     System.out.println("[" + Thread.currentThread().getName() + "]: "
                             + "Received a fire event, adding it the fire queue");

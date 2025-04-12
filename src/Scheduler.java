@@ -26,7 +26,6 @@ public class Scheduler {
     }
 
     public synchronized void putZoneOnFire(Zone zone) {
-        System.out.println("#ADDED FIRE @ ZONE" + zone.getId());
         zonesOnFire.put(zone, new ZoneTriageInfo(zone));
         hardcodeZoneNeededAgent.put(zone.getId(), zone.getRequiredAgentAmount());
     }
@@ -141,7 +140,6 @@ public class Scheduler {
                         // remove zoneOnFire
                         messagePasser.send(droneInfo.zoneToService, "localhost", 9000);
                         zoneServicingEntriesIter.remove();
-                        System.out.println("#REMOVED ZONE: " + zoneEntry.getKey());
 
                         System.out.println("[" + Thread.currentThread().getName()
                                 + "]: 🧯 Fire Extinguished received from Drone#" + droneInfo.getDroneID()
@@ -161,7 +159,6 @@ public class Scheduler {
 
                 break;
             case BASE:
-                System.out.println("#REMOVE: " + droneInfo);
                 scheduleDrone(droneInfo); // may do nothing if no fires to respond to
                 break;
             default:
@@ -185,11 +182,9 @@ public class Scheduler {
      */
     private boolean scheduleDrone(DroneInfo droneInfo) {
         if (zonesOnFire.isEmpty()) {
-            System.out.println("Zones NOT on fire ❌🔥: " + zonesOnFire);
             return false;
         }
         /* if there is a zone without a drone go there */
-        System.out.println("Zones still on fire 🔥: " + zonesOnFire);
         Iterator<Map.Entry<Zone, ZoneTriageInfo>> servicesIterator =
                 zonesOnFire.entrySet().iterator();
         while (servicesIterator.hasNext()) {
@@ -215,7 +210,12 @@ public class Scheduler {
 
         for (Map.Entry<Zone, ZoneTriageInfo> zoneEntry : sortedList) {
             // add drone to servicing structure to keep track of response time
-            if(zoneEntry.getValue().getSize() < 3){
+            int dronesToAssign = switch (zoneEntry.getKey().getSeverity()) {
+                case FireSeverity.LOW -> 1;
+                case FireSeverity.MODERATE -> 2;
+                default -> 3;
+            };
+            if(zoneEntry.getValue().getSize() < dronesToAssign){
                 boolean droneAdded = zonesOnFire.get(zoneEntry.getKey()).addDrone(droneInfo);
                 if (droneAdded) {
                     // create new task to service this zone
