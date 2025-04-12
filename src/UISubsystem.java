@@ -455,7 +455,7 @@ public class UISubsystem extends JPanel {
         return firePanel;
     }
 
-    private static class FireRow {
+    public static class FireRow {
         int zoneId;
         FireSeverity severity;
         float requiredAgent;
@@ -496,7 +496,7 @@ public class UISubsystem extends JPanel {
             for (FireRow row : fireRows) {
                 if (row.zoneId == zone.getId() && row.extinguishedTime == null) {
                     long now = TimeUtils.getCurrentTime();
-                    row.extinguishedTime = TimeUtils.millisecondsToTimestamp((long) ((now - row.appearedAtMillis) / TimeUtils.TIME_FACTOR));
+                    row.extinguishedTime = TimeUtils.millisecondsToTimestamp((long) ((now - row.appearedAtMillis)));
                 }
             }
         }

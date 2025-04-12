@@ -25,7 +25,7 @@ public class FireEventHandler extends MessagePasser implements Runnable {
     public void run() {
         while (true) {
             // check if there are any fire events in the queue, execute first
-            if (!fireQueue.isEmpty()) {
+            while (!fireQueue.isEmpty()) {
                 Zone storedZone = fireQueue.pop();
                 System.out.println("[" + Thread.currentThread().getName() + "]: "
                         + "Received a new event");
@@ -36,23 +36,24 @@ public class FireEventHandler extends MessagePasser implements Runnable {
 
             Object data = receive();
             //if (data instanceof Zone) fireZone
-            Zone fireZone = (Zone) data;
-            if (fireZone != null) {
-                System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Received a new event");
-                scheduler.putZoneOnFire(fireZone);
-                scheduleAllDrones(); // scheduling algorithm updates drone actions table for all drones
-                scheduler.dispatchActions(this,-1);
-            }
-            else {
-                System.out.println("[" + Thread.currentThread().getName() + "]: "
-                        + "Received unknown message");
-            }
-            try {
-                Thread.sleep(2000);
-            }
-            catch (InterruptedException e) {
-                throw new RuntimeException(e);
+            if (data instanceof Zone fireZone) {
+                if (fireZone != null) {
+                    System.out.println("[" + Thread.currentThread().getName() + "]: "
+                            + "Received a new event");
+                    scheduler.putZoneOnFire(fireZone);
+                    scheduleAllDrones(); // scheduling algorithm updates drone actions table for all drones
+                    scheduler.dispatchActions(this, -1);
+                }
+                else {
+                    System.out.println("[" + Thread.currentThread().getName() + "]: "
+                            + "Received unknown message");
+                }
+                try {
+                    Thread.sleep(2000);
+                }
+                catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
 
         }
@@ -80,12 +81,14 @@ public class FireEventHandler extends MessagePasser implements Runnable {
             Object message = null;
             send(getInfo, "localhost", 6000 + i);
             while (true) {
+
                 message = receive(2000);
-                if (message instanceof Zone) {
+                if (message instanceof Zone zone) {
                     // we received a fire event, add to queue
                     System.out.println("[" + Thread.currentThread().getName() + "]: "
                             + "Received a fire event, adding it the fire queue");
                     fireQueue.add((Zone) message);
+                    System.out.println("FIREQ:" + fireQueue);
                 }
                 else if (message instanceof DroneInfo droneInfo) {
                     System.out.println("[" + Thread.currentThread().getName() + "]: "

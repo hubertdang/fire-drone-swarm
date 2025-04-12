@@ -11,10 +11,11 @@ import java.util.*;
 
 public class ZoneTriageInfo {
     private final Integer zoneId;
-    private Float requiredAgentAmount;
+    private volatile Float requiredAgentAmount;
     private final Position zonePosition;
     private LinkedHashMap<Integer, Map.Entry<Float, Float>> servicingDrones;
     private float extinguishingTime;
+    private List<Integer> servicingDroneIDs;
 
     /**
      * Constructor for the ZoneTriageInfo class
@@ -26,6 +27,18 @@ public class ZoneTriageInfo {
         this.zonePosition = zone.getPosition();
         servicingDrones = new LinkedHashMap<>();
         extinguishingTime = -1F;
+        servicingDroneIDs = Collections.synchronizedList(new ArrayList<Integer>());
+    }
+
+    public synchronized void updateRequiredAgentAmount(Float agentDropped) {
+        this.requiredAgentAmount -= agentDropped;
+        if(requiredAgentAmount <= 0F) {
+            requiredAgentAmount = 0F;
+        }
+    }
+
+    public synchronized Float getRequiredAgentAmount() {
+        return requiredAgentAmount;
     }
 
     /**
@@ -46,6 +59,10 @@ public class ZoneTriageInfo {
      */
     public synchronized LinkedHashMap<Integer, Map.Entry<Float, Float>> getServicingDrones() {
         return servicingDrones;
+    }
+
+    public synchronized List<Integer> getServicingDroneIDs() {
+        return servicingDroneIDs;
     }
 
     /**
@@ -71,6 +88,7 @@ public class ZoneTriageInfo {
             servicingDrones.put(info.droneID, serviceEntry);
             sortServicingDrones();
             updateResponseTime();
+            servicingDroneIDs.add(info.droneID);
             return true;
         }
 
@@ -91,6 +109,7 @@ public class ZoneTriageInfo {
                 requiredAgentAmount = info.getZoneToService().getRequiredAgentAmount();
             }
             updateResponseTime();
+            servicingDroneIDs.remove((Integer) info.droneID);
         }
         return (entry != null);
     }

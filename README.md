@@ -2,6 +2,8 @@
 
 A control system and simulator for a firefighting drone swarm.
 
+Link to video demo:https://www.youtube.com/watch?v=vZ8mC-Jr5oY
+
 ## 📂 Project Structure
 | **File**                               | **Description**                                                                                 |
 |----------------------------------------|-------------------------------------------------------------------------------------------------|
@@ -37,6 +39,7 @@ A control system and simulator for a firefighting drone swarm.
 | `DroneController.java`                 | Controls the drone operations.                                                                  |
 | `DroneFault.java`                      | Represents faults in the drone.                                                                 |
 | `FaultID.java`                         | Enum defining the types of faults that can occur in a drone.                                    |
+| `UISubsystem.java`                     | Manages the user interface subsystem.                                                           |
 | `tests/FireIncidentSubsystemTest.java` | Unit tests for `FireIncidentSubsystem`.                                                         |
 | `tests/ZoneTest.java`                  | Unit tests for `Zone`.                                                                          |
 | `tests/DroneTest.java`                 | Unit tests for `Drone`.                                                                         |
@@ -70,7 +73,8 @@ cd fire-drone-swarm
 ### **2. Open the Project in IntelliJ IDEA**
 1. Open IntelliJ IDEA.
 2. Click on `Open`.
-3. Compile and run `DroneSubsystem`,`SchedulerSubsystem`,`FireIncidentSubsystem` inside your IDE to run the simulation.
+3. Compile and run `UISubSystem` inside your IDE to run the simulation. Default values are provided in the 
+`zones.csv` and `events.csv` files. You can modify these files to test different scenarios.
 4. To run unit tests, click on unit test file and run the test
 
 ## Developer Workflow
@@ -100,7 +104,7 @@ cd fire-drone-swarm
 
 7. Add and commit your changes **locally**.
     ```bash
-    huber@hubert_laptop MINGW64 ~/OneDrive - Carleton University/w2025/SYSC3303/project/FireDroneSwarm (hubert- issue)
+``    huber@hubert_laptop MINGW64 ~/OneDrive - Carleton University/w2025/SYSC3303/project/FireDroneSwarm (hubert- issue)
     $ git add src/Hubert.java    # DO THIS COMMAND
 
     huber@hubert_laptop MINGW64 ~/OneDrive - Carleton University/w2025/SYSC3303/project/FireDroneSwarm (hubert-issue)
@@ -129,6 +133,18 @@ cd fire-drone-swarm
 10. Create your pull request. Follow the instructions listed [here](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request#creating-the-pull-request).
 11. Once your pull request is ready to merge, please **squash and merge** to limit the number of commits to master.
 ![image](https://github.com/user-attachments/assets/e829f914-5a12-4ec0-a8e7-1ee3f6358397)
+
+## Iteration 5: Breakdown of Responsibilities 
+- Amilesh: `UISubsystem`,`Drone`, `AgentTank`,`DroneSubsystem`, `FireEventHandler`, `DroneRequestHandler`, 
+`FireIncidentSubsystem`, `TimeUtils`, `ZoneTriageInfo`, UML diagrams, Report, debugging and pair programming for bugs
+- Hubert: `AgentTank`,`Drone`, `DroneRequestHandler`, `DroneStateID`,`EmptyTank`, `ReleasingAgent`, `Scheduler`,`Zone`,
+`ZoneTriageInfo`, `ServicingDronesInfoTest`,`Landing`, debugging and pair programming for bugs
+- David: `DroneRequestHandler`, `Scheduler`, `DroneSubsystem`, `Drone`, `DroneRequestHandler`, ` ZoneTriageInfo`, 
+debugging and pair programming for bugs
+- Aashna: `UISubsystem`, `Drone`, `Landing`, `TimeUtils`, `ZoneTriageInfo`, debugging and pair programming for bugs
+- Shenhao Gong: `Flying`, `Accelerating`, `Arrived`, `Decelerating`, `Flying`, `Landing`, `ReleasingAgent`, `Takeoff`
+, debugging and pair programming for bugs
+- Manit: `FaultTest`, `FireIncidentSubsystemTest`, `SchedulerTest`, `ZoneTest`
 
 ## Iteration 4: Breakdown of Responsibilities
 In general, the team approached the project collaboratively, working together to solve problems and make decisions. However, each team member was responsible for specific tasks and components of the project.
