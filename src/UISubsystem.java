@@ -455,7 +455,7 @@ public class UISubsystem extends JPanel {
         return firePanel;
     }
 
-    private static class FireRow {
+    public static class FireRow {
         int zoneId;
         FireSeverity severity;
         float requiredAgent;
